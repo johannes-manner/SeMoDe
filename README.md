@@ -1,1 +1,1 @@
-# SeMoDe
+# SeMoDe - Generate test classes for AWS Lambda function written in Java
