@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
+import com.amazonaws.services.logs.model.ResourceNotFoundException;
 import com.amazonaws.services.logs.AWSLogs;
 import com.amazonaws.services.logs.AWSLogsClientBuilder;
 import com.amazonaws.services.logs.model.DescribeLogStreamsRequest;
@@ -26,6 +27,7 @@ import com.google.common.io.Resources;
 
 import de.uniba.dsg.serverless.semode.model.FunctionExecutionEvent;
 import de.uniba.dsg.serverless.semode.model.FunctionInstrumentation;
+import de.uniba.dsg.serverless.semode.model.SeMoDeException;
 import de.uniba.dsg.serverless.semode.util.LogAnalyzer;
 
 /**
@@ -94,14 +96,19 @@ public final class AWSLogHandler {
 	 * latest function executions.
 	 */
 	public void startAnalzying() {
-		List<FunctionExecutionEvent> logEventList = this.getLogEventList();
-		List<FunctionInstrumentation> jsonInstrumentationList = this.getJsonInstrumentation(logEventList);
-
-		for (FunctionInstrumentation jsonInstrumentation : jsonInstrumentationList) {
-			this.generateTestClass(jsonInstrumentation);
+		try {
+			List<FunctionExecutionEvent> logEventList = this.getLogEventList();
+			List<FunctionInstrumentation> jsonInstrumentationList = this.getJsonInstrumentation(logEventList);
+	
+			for (FunctionInstrumentation jsonInstrumentation : jsonInstrumentationList) {
+				this.generateTestClass(jsonInstrumentation);
+			}
+	
+			logger.log(Level.INFO, "Number of test files generated: " + jsonInstrumentationList.size());
+		}catch(SeMoDeException e) {
+			logger.log(Level.SEVERE, e.getMessage());
+			logger.log(Level.INFO, "Prototype is terminated");
 		}
-
-		logger.log(Level.INFO, "Number of test files generated: " + jsonInstrumentationList.size());
 	}
 
 	/**
@@ -190,8 +197,9 @@ public final class AWSLogHandler {
 	 * This function enables the grouping and returns the list of cohesive log data.
 	 * 
 	 * @return List of {@link FunctionExecutionEvent}
+	 * @throws SeMoDeException 
 	 */
-	private List<FunctionExecutionEvent> getLogEventList() {
+	private List<FunctionExecutionEvent> getLogEventList() throws SeMoDeException {
 
 		List<FunctionExecutionEvent> logEventList = new ArrayList<>();
 
@@ -216,12 +224,17 @@ public final class AWSLogHandler {
 	 * of the object.
 	 * 
 	 * @return List of {@link LogStream}
+	 * @throws SeMoDeException 
 	 */
-	private List<LogStream> getLogStreams() {
+	private List<LogStream> getLogStreams() throws SeMoDeException {
 		DescribeLogStreamsRequest logStreamRequest = new DescribeLogStreamsRequest(this.logGroupName);
 		logStreamRequest.withDescending(true);
-		DescribeLogStreamsResult logStreamsResult = this.amazonCloudLogs.describeLogStreams(logStreamRequest);
-		return logStreamsResult.getLogStreams();
+		try {
+			DescribeLogStreamsResult logStreamsResult = this.amazonCloudLogs.describeLogStreams(logStreamRequest);
+			return logStreamsResult.getLogStreams();
+		}catch(ResourceNotFoundException e) {
+			throw new SeMoDeException("Resource not found. Please check the deployment of the specified function and the corresponding region!", e);
+		}
 	}
 
 	/**
