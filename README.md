@@ -16,7 +16,7 @@ Following are the five command to use the SeMoDe prototype to generate tests aut
 2. cd SeMoDe
 3. gradlew build
 4. cd build\libs
-5. java -jar SeMoDe.jar "<REGION>" "<LOG GROUP>" "<SEARCH STRING>"
+5. java -jar SeMoDe.jar "REGION" "LOG GROUP" "SEARCH STRING"
  
 ### Parameters 
 
