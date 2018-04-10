@@ -37,6 +37,6 @@ public final class SeMoDeMain {
 		
 		logger.log(Level.INFO, "Region: " + region + "\tLogGroupName: " + logGroupName + "\tSearch string: " + searchString);
 		logger.log(Level.INFO, System.getProperty("java.class.path"));
-		new AWSLogHandler(region, logGroupName, searchString).startAnalzying();
+		new AWSLogHandler(region, logGroupName).startAnalzying(searchString);
 	}
 }

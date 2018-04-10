@@ -1,6 +1,8 @@
 package de.uniba.dsg.serverless.semode.troubleshooting.service;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -27,6 +29,7 @@ import com.google.common.io.Resources;
 
 import de.uniba.dsg.serverless.semode.model.FunctionExecutionEvent;
 import de.uniba.dsg.serverless.semode.model.FunctionInstrumentation;
+import de.uniba.dsg.serverless.semode.model.PerformanceData;
 import de.uniba.dsg.serverless.semode.model.SeMoDeException;
 import de.uniba.dsg.serverless.semode.util.LogAnalyzer;
 
@@ -51,7 +54,6 @@ public final class AWSLogHandler {
 
 	private final String region;
 	private final String logGroupName;
-	private final String searchString;
 
 	private final AWSLogs amazonCloudLogs;
 
@@ -64,14 +66,11 @@ public final class AWSLogHandler {
 	 *            Ireland
 	 * @param logGroupName
 	 *            - the complete log group name
-	 * @param searchString
-	 *            - the string for searching the message from aws cloud watch
 	 */
-	public AWSLogHandler(String region, String logGroupName, String searchString) {
+	public AWSLogHandler(String region, String logGroupName) {
 
 		this.region = region;
 		this.logGroupName = logGroupName;
-		this.searchString = searchString;
 
 		this.amazonCloudLogs = this.buildAmazonCloudLogsClient();
 	}
@@ -95,17 +94,17 @@ public final class AWSLogHandler {
 	 * a descending order (the newest first). So, the analysis concentrates on the
 	 * latest function executions.
 	 */
-	public void startAnalzying() {
+	public void startAnalzying(String searchString) {
 		try {
-			List<FunctionExecutionEvent> logEventList = this.getLogEventList();
+			List<FunctionExecutionEvent> logEventList = this.getLogEventList(searchString);
 			List<FunctionInstrumentation> jsonInstrumentationList = this.getJsonInstrumentation(logEventList);
-	
+
 			for (FunctionInstrumentation jsonInstrumentation : jsonInstrumentationList) {
 				this.generateTestClass(jsonInstrumentation);
 			}
-	
+
 			logger.log(Level.INFO, "Number of test files generated: " + jsonInstrumentationList.size());
-		}catch(SeMoDeException e) {
+		} catch (SeMoDeException e) {
 			logger.log(Level.SEVERE, e.getMessage());
 			logger.log(Level.INFO, "Prototype is terminated");
 		}
@@ -129,9 +128,9 @@ public final class AWSLogHandler {
 	/**
 	 * Uses googles guava library to get the content of the template test file,
 	 * which is included in the resources folder of the project /jar file. <br/>
-	 * It creates a directory, where the generated test files are stored in, if 
-	 * this directory does not exist and logs a message for each generated file or
-	 * when an error occured during file writing.
+	 * It creates a directory, where the generated test files are stored in, if this
+	 * directory does not exist and logs a message for each generated file or when
+	 * an error occured during file writing.
 	 * 
 	 * @param fileName
 	 * @param attributeMap
@@ -152,7 +151,8 @@ public final class AWSLogHandler {
 	}
 
 	/**
-	 * Creates a directory for the given generation path, if this directory does not exist.
+	 * Creates a directory for the given generation path, if this directory does not
+	 * exist.
 	 * 
 	 * @throws IOException
 	 */
@@ -187,6 +187,23 @@ public final class AWSLogHandler {
 		return jsonInstrumentation;
 	}
 
+	private List<FunctionExecutionEvent> prepareLogEventList() throws SeMoDeException {
+
+		List<FunctionExecutionEvent> logEventList = new ArrayList<>();
+
+		for (LogStream logStream : this.getLogStreams()) {
+			logger.log(Level.INFO, "Investigated LogStream " + logStream.getArn());
+			List<OutputLogEvent> logEvents = this.getOutputLogEvent(logStream.getLogStreamName());
+
+			List<FunctionExecutionEvent> logStreamEvents = LogAnalyzer.generateEventList(logEvents, this.logGroupName,
+					logStream.getArn());
+
+			logEventList.addAll(logStreamEvents);
+		}
+
+		return logEventList;
+	}
+
 	/**
 	 * Generates a list of cohesive function logs. </br>
 	 * </br>
@@ -197,43 +214,76 @@ public final class AWSLogHandler {
 	 * This function enables the grouping and returns the list of cohesive log data.
 	 * 
 	 * @return List of {@link FunctionExecutionEvent}
-	 * @throws SeMoDeException 
+	 * @throws SeMoDeException
 	 */
-	private List<FunctionExecutionEvent> getLogEventList() throws SeMoDeException {
+	public List<FunctionExecutionEvent> getLogEventList(String searchString) throws SeMoDeException {
 
 		List<FunctionExecutionEvent> logEventList = new ArrayList<>();
+		List<FunctionExecutionEvent> preparedEventList = this.prepareLogEventList();
 
-		for (LogStream logStream : this.getLogStreams()) {
-			logger.log(Level.INFO,
-					"Investigated LogStream " + logStream.getArn() + " Search string " + this.searchString);
-			List<OutputLogEvent> logEvents = this.getOutputLogEvent(logStream.getLogStreamName());
-
-			List<FunctionExecutionEvent> logStreamEvents = LogAnalyzer.generateEventList(logEvents, this.logGroupName);
-
-			for (FunctionExecutionEvent event : logStreamEvents) {
-				if (event.containsSearchString(this.searchString)) {
-					logEventList.add(event);
-				}
+		for (FunctionExecutionEvent event : preparedEventList) {
+			if (event.containsSearchString(searchString)) {
+				logEventList.add(event);
 			}
 		}
 		return logEventList;
 	}
 
 	/**
+	 * This method computes function execution events out of the plain text
+	 * messages from the logging service.
+	 * 
+	 * @return a list of function execution events
+	 * @throws SeMoDeException
+	 */
+	public List<FunctionExecutionEvent> getLogEventList() throws SeMoDeException {
+		return this.prepareLogEventList();
+	}
+
+	/**
 	 * This method returns a list of log streams based on the logGroupName attribute
-	 * of the object.
+	 * of the object. 
+	 * <p/>
+	 * There is a problem with the API of cloudwatch. The limit for retrieving 
+	 * log stream is 50 for a single DescribeLogStreamsResult. Therefore, the function has
+	 * to specify 
 	 * 
 	 * @return List of {@link LogStream}
-	 * @throws SeMoDeException 
+	 * @throws SeMoDeException
 	 */
 	private List<LogStream> getLogStreams() throws SeMoDeException {
-		DescribeLogStreamsRequest logStreamRequest = new DescribeLogStreamsRequest(this.logGroupName);
-		logStreamRequest.withDescending(true);
 		try {
-			DescribeLogStreamsResult logStreamsResult = this.amazonCloudLogs.describeLogStreams(logStreamRequest);
-			return logStreamsResult.getLogStreams();
-		}catch(ResourceNotFoundException e) {
-			throw new SeMoDeException("Resource not found. Please check the deployment of the specified function and the corresponding region!", e);
+			DescribeLogStreamsRequest logRequest = new DescribeLogStreamsRequest(this.logGroupName);
+			DescribeLogStreamsResult logResponse = this.amazonCloudLogs.describeLogStreams(logRequest);
+			List<LogStream> streams = logResponse.getLogStreams();
+
+			boolean furtherLogRequest = true;
+
+			do {
+				logRequest = new DescribeLogStreamsRequest(this.logGroupName);
+				logRequest.setNextToken(logResponse.getNextToken());
+
+				logResponse = this.amazonCloudLogs.describeLogStreams(logRequest);
+				
+				System.out.println("Number of Log streams: " + logResponse.getLogStreams().size());
+				List<LogStream> responseStreams = logResponse.getLogStreams();
+				
+				if(responseStreams.isEmpty()) {
+					furtherLogRequest = false;
+				// Check the first returned log stream to avoid duplicates in the returned list
+				}else if(streams.contains(responseStreams.get(0))) {
+					furtherLogRequest = false;
+				}else {
+					streams.addAll(logResponse.getLogStreams());
+				}				
+
+			} while (furtherLogRequest);//logResponse.getLogStreams().size() > 0);
+
+			return streams;
+		} catch (ResourceNotFoundException e) {
+			throw new SeMoDeException(
+					"Resource not found. Please check the deployment of the specified function and the corresponding region!",
+					e);
 		}
 	}
 
@@ -263,6 +313,36 @@ public final class AWSLogHandler {
 		GetLogEventsRequest logsRequest = new GetLogEventsRequest(this.logGroupName, logStreamName);
 		GetLogEventsResult logEvents = this.amazonCloudLogs.getLogEvents(logsRequest);
 		return logEvents.getEvents();
+	}
+
+	public void writePerformanceDataToFile(String fileName) {
+
+		List<PerformanceData> performanceDataList = new ArrayList<>();
+		try {
+			List<FunctionExecutionEvent> eventList = this.getLogEventList();
+			for (FunctionExecutionEvent e : eventList) {
+				performanceDataList.add(LogAnalyzer.extractInformation(e));
+			}
+			
+			if(!Files.exists(Paths.get("performanceData"))){
+				Files.createDirectory(Paths.get("performanceData"));
+			}
+			
+			Path file = Files.createFile(Paths.get("performanceData/" + fileName));
+			try (BufferedWriter bw = Files.newBufferedWriter(file)) {
+				bw.write(PerformanceData.getCSVMetadata() + System.lineSeparator());
+				for (PerformanceData performanceData : performanceDataList) {
+					bw.write(performanceData.toCSVString() + System.lineSeparator());
+				}
+			}
+
+		} catch (SeMoDeException e) {
+			logger.severe(e.getMessage());
+			logger.severe("Data handler is terminated due to an error.");
+		} catch (IOException e) {
+			logger.severe("IO Exception occured.");
+			e.printStackTrace();
+		}
 	}
 
 }

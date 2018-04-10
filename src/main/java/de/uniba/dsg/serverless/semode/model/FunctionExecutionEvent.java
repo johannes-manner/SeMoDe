@@ -19,6 +19,7 @@ public final class FunctionExecutionEvent {
 	
 	private final List<OutputLogEvent> events;
 	private final String functionName;
+	private final String logStream;
 	private final String requestId;
 
 	/**
@@ -28,9 +29,10 @@ public final class FunctionExecutionEvent {
 	 * @param functionName
 	 * @param requestId
 	 */
-	public FunctionExecutionEvent(String functionName, String requestId) {
+	public FunctionExecutionEvent(String functionName, String logStream, String requestId) {
 		this.events = new ArrayList<>();
 		this.functionName = functionName;
+		this.logStream = logStream;
 		this.requestId = requestId;
 	}
 
@@ -62,6 +64,10 @@ public final class FunctionExecutionEvent {
 		return events;
 	}
 	
+	public String getFunctionName() {
+		return this.functionName;
+	}
+	
 	/**
 	 * Generates a unique file name for the naming of the java test classes.
 	 * 
@@ -70,6 +76,10 @@ public final class FunctionExecutionEvent {
 	 */
 	public String getUniqueFileName() {
 		return this.functionName + "_" + this.requestId;
+	}
+	
+	public String getLogStream() {
+		return this.logStream;
 	}
 
 	@Override
@@ -86,8 +96,13 @@ public final class FunctionExecutionEvent {
 	 * 		false, otherwise
 	 */
 	public boolean containsSearchString(String searchString) {
+		
+		if(searchString == null || searchString.trim().isEmpty()) {
+			return true;
+		}
+		
 		for (OutputLogEvent event : events) {
-			if (event.getMessage().contains(searchString)) {
+			if (event.getMessage().contains(searchString.trim())) {
 				return true;
 			}
 		}

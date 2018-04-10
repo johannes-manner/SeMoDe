@@ -10,15 +10,13 @@ The tool itself is in an early stage and needs feedback and participation of the
 
 ### Usage
  
-Following are the five command to use the SeMoDe prototype to generate tests automatically from your Lambda function executions.
- 
-1. git clone https://github.com/johannes-manner/SeMoDe.git
-2. cd SeMoDe
-3. gradlew build
-4. cd build\libs
-5. java -jar SeMoDe.jar "REGION" "LOG GROUP" "SEARCH STRING"
- 
-### Parameters 
+SeMoDe prototype is a command line application, buildable with gradle.
+
+### Test generation feature 
+
+This feature is to generate tests automatically from your Lambda function executions.
+
+java -jar SeMoDe.jar "REGION" "LOG GROUP" "SEARCH STRING"
 
 1. Region is the first argument, when executing the prototype. The AWS region
 information is provided as a string, e.g. "eu-west-1" for Ireland, and is related to the
@@ -35,3 +33,7 @@ in the specified log group. The implementation of the prototype is case sensitiv
 because this enables a finer-grained result set. If various spelling for a search expression
 exists, an user of the prototype must repeat the prototype invocation with
 all spellings of the search string.
+
+### New feature: Get performance data from aws cloud watch
+
+Information about this feature will appear soon ...

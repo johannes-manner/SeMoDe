@@ -106,5 +106,6 @@ gradle-app.setting
 #directories
 generatedTests/
 template/
+performanceData/
 
 # End of https://www.gitignore.io/api/git,java,gradle,eclipse

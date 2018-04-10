@@ -1,13 +1,16 @@
 package de.uniba.dsg.serverless.semode.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
 import com.amazonaws.services.logs.model.OutputLogEvent;
 
 import de.uniba.dsg.serverless.semode.model.FunctionExecutionEvent;
 import de.uniba.dsg.serverless.semode.model.FunctionInstrumentation;
+import de.uniba.dsg.serverless.semode.model.PerformanceData;
 
 /**
  * {@code LogAnaylzer} is an utility class for analyzing log data and a basket
@@ -33,6 +36,8 @@ public final class LogAnalyzer {
 
 	private static final String EVENT_MESSAGE_START = "START";
 	private static final String EVENT_MESSAGE_END = "REPORT";
+	
+	private static final Logger logger = Logger.getLogger(LogAnalyzer.class.getName());
 
 	/**
 	 * The troubleshoot prefix is used in the logged data to identify the
@@ -48,6 +53,11 @@ public final class LogAnalyzer {
 	 * AWS log group name is constructed like a file path with the '/' separator
 	 */
 	private static final String AWS_GROUP_SPLIT_PATTERN = "/";
+	/**
+	 * Number of strings in an report message (AWS Cloud Watch), when splitting
+	 * with a blank.
+	 */
+	private static final int STRING_IN_END_MESSAGE = 16;
 
 	/**
 	 * Generates a list of cohesive elements out of the log messages in the
@@ -60,7 +70,7 @@ public final class LogAnalyzer {
 	 * 
 	 * @return
 	 */
-	public static List<FunctionExecutionEvent> generateEventList(List<OutputLogEvent> logEvents, String logGroupName) {
+	public static List<FunctionExecutionEvent> generateEventList(List<OutputLogEvent> logEvents, String logGroupName, String logStream) {
 
 		List<FunctionExecutionEvent> groupedEvents = new ArrayList<>();
 		String functionName = extractFunctionName(logGroupName);
@@ -71,7 +81,7 @@ public final class LogAnalyzer {
 			message = event.getMessage();
 			if (message.startsWith(EVENT_MESSAGE_START)) {
 				String requestId = LogAnalyzer.extractRequestId(message);
-				cohesiveEvent = new FunctionExecutionEvent(functionName, requestId);
+				cohesiveEvent = new FunctionExecutionEvent(functionName, logStream, requestId);
 			}
 			cohesiveEvent.addLogEvent(event);
 			if (message.startsWith(EVENT_MESSAGE_END)) {
@@ -191,5 +201,41 @@ public final class LogAnalyzer {
 		String jsonResult = json.replaceAll("\"", Matcher.quoteReplacement("\\\""));
 		jsonResult = "\"" + jsonResult + "\"";
 		return jsonResult;
+	}
+	
+	
+	public static PerformanceData extractInformation(FunctionExecutionEvent event) {
+		
+		if(event == null) {
+			return new PerformanceData();
+		}
+		
+		String[] messageParts = null;
+		long startTime = -1;
+		
+		for(OutputLogEvent logEvent : event.getEvents()) {
+			if(logEvent.getMessage().startsWith(LogAnalyzer.EVENT_MESSAGE_START)) {
+				startTime = logEvent.getTimestamp();
+			}
+			if(logEvent.getMessage().startsWith(LogAnalyzer.EVENT_MESSAGE_END)){
+				messageParts = logEvent.getMessage().split(" ");
+				break;
+			}
+		}
+		
+		if(messageParts == null || messageParts.length != STRING_IN_END_MESSAGE) {
+			logger.severe("The investigated log event does not contain an end message with performance data.");
+			logger.info("Split of the report message : " + Arrays.toString(messageParts));
+			return new PerformanceData();
+		}
+		
+		return new PerformanceData(event.getFunctionName(), 
+				event.getLogStream(),
+				event.getRequestId(), 
+				startTime, 
+				Double.parseDouble(messageParts[3]), 
+				Integer.parseInt(messageParts[6]), 
+				Integer.parseInt(messageParts[10]), 
+				Integer.parseInt(messageParts[14]));
 	}
 }
