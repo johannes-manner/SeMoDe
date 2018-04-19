@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.semode.model;
+package de.uniba.dsg.serverless.model;
 
 import java.util.ArrayList;
 import java.util.List;

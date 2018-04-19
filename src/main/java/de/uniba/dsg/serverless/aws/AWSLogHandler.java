@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.semode.troubleshooting.service;
+package de.uniba.dsg.serverless.aws;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -27,10 +27,10 @@ import com.amazonaws.services.logs.model.LogStream;
 import com.amazonaws.services.logs.model.OutputLogEvent;
 import com.google.common.io.Resources;
 
-import de.uniba.dsg.serverless.semode.model.FunctionExecutionEvent;
-import de.uniba.dsg.serverless.semode.model.FunctionInstrumentation;
-import de.uniba.dsg.serverless.semode.model.PerformanceData;
-import de.uniba.dsg.serverless.semode.model.SeMoDeException;
+import de.uniba.dsg.serverless.model.FunctionExecutionEvent;
+import de.uniba.dsg.serverless.model.FunctionInstrumentation;
+import de.uniba.dsg.serverless.model.PerformanceData;
+import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.semode.util.LogAnalyzer;
 
 /**

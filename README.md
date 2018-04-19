@@ -2,7 +2,7 @@
 
 ## Getting Started
 
-SeMoDe is a prototype for troubleshooting Serverless Lambda function implemented in Java. The idea is the combination between a monitoring service, like CloudWatch, to create notifications, if anomalous function behavior is detected, and debugging the function on a developer's machine. This tool enables an automatic test generation, where a developer must update a view settings and can use a test skeleton as the basis for further investigation of the errors, which caused the failed executions.
+SeMoDe is a prototype for troubleshooting Serverless Lambda functions implemented in Java. The idea is the combination between a monitoring service, like CloudWatch, to create notifications, if anomalous function behavior is detected, and debugging the function on a developer's machine. This tool enables an automatic test generation, where a developer must update a view settings and can use a test skeleton as the basis for further investigation of the errors, which caused the failed executions. Also further research interests, like performance measurement etc., are integrated in this tool to provide a cli tool for different purposes and platforms.
 
 The tool itself is in an early stage and needs feedback and participation of the GitHub community. Feel free to contribute :)
 
@@ -16,9 +16,11 @@ SeMoDe prototype is a command line application, buildable with gradle.
 
 This feature is to generate tests automatically from your Lambda function executions.
 
-java -jar SeMoDe.jar "REGION" "LOG GROUP" "SEARCH STRING"
+´´´java -jar SeMoDe.jar "awsSeMoDe" "REGION" "LOG GROUP" "SEARCH STRING"´´´
 
-1. Region is the first argument, when executing the prototype. The AWS region
+0. "awsSeMoDe" is a constant, which specifies the used utility mechanism.
+
+1. Region is the first argument. The AWS region
 information is provided as a string, e.g. "eu-west-1" for Ireland, and is related to the
 location of the function deployment.
 
@@ -36,4 +38,19 @@ all spellings of the search string.
 
 ### New feature: Get performance data from aws cloud watch
 
-Information about this feature will appear soon ...
+This feature is to generate .csv files from the cloud watch logs with the metadata, like 
+memory consumption, billing duration etc.
+
+´´´java -jar SeMoDe.jar "awsPerformanceData" "REGION" "LOG GROUP"´´´
+
+0. "awsPerformanceData" is a constant, which specifies the used utility mechanism.
+
+1. Region is the first argument. The AWS region
+information is provided as a string, e.g. "eu-west-1" for Ireland, and is related to the
+location of the function deployment.
+
+2. Log Group Name is the specification, which Lambda function is under investigation.
+The group name is assembled of the prefix "/aws/lambda/" and the Lambda
+function name, as shown in the example above. If the function is not deployed to
+the specified region, the prototype prints an error to the console and terminate the
+execution.

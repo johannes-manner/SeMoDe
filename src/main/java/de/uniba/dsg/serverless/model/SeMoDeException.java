@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.semode.model;
+package de.uniba.dsg.serverless.model;
 
 /**
  * A new exception for the troubleshooting prototype. Copied from {@link Exception}

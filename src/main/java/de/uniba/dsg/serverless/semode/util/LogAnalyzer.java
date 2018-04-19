@@ -8,9 +8,9 @@ import java.util.regex.Matcher;
 
 import com.amazonaws.services.logs.model.OutputLogEvent;
 
-import de.uniba.dsg.serverless.semode.model.FunctionExecutionEvent;
-import de.uniba.dsg.serverless.semode.model.FunctionInstrumentation;
-import de.uniba.dsg.serverless.semode.model.PerformanceData;
+import de.uniba.dsg.serverless.model.FunctionExecutionEvent;
+import de.uniba.dsg.serverless.model.FunctionInstrumentation;
+import de.uniba.dsg.serverless.model.PerformanceData;
 
 /**
  * {@code LogAnaylzer} is an utility class for analyzing log data and a basket

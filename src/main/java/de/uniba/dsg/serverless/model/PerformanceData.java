@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.semode.model;
+package de.uniba.dsg.serverless.model;
 
 import java.time.Instant;
 import java.time.LocalDateTime;

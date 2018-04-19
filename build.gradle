@@ -20,7 +20,7 @@ dependencies {
 jar {
   manifest {
     attributes(
-      'Main-Class': 'de.uniba.dsg.serverless.semode.troubleshooting.SeMoDeMain'
+      'Main-Class': 'de.uniba.dsg.serverless.main.ArgumentProcessor'
     )
   }
   from {
