@@ -16,7 +16,7 @@ SeMoDe prototype is a command line application, buildable with gradle.
 
 This feature is to generate tests automatically from your Lambda function executions.
 
-´´´java -jar SeMoDe.jar "awsSeMoDe" "REGION" "LOG GROUP" "SEARCH STRING"´´´
+```java -jar SeMoDe.jar "awsSeMoDe" "REGION" "LOG GROUP" "SEARCH STRING"```
 
 0. "awsSeMoDe" is a constant, which specifies the used utility mechanism.
 
@@ -41,7 +41,7 @@ all spellings of the search string.
 This feature is to generate .csv files from the cloud watch logs with the metadata, like 
 memory consumption, billing duration etc.
 
-´´´java -jar SeMoDe.jar "awsPerformanceData" "REGION" "LOG GROUP"´´´
+```java -jar SeMoDe.jar "awsPerformanceData" "REGION" "LOG GROUP"```
 
 0. "awsPerformanceData" is a constant, which specifies the used utility mechanism.
 
