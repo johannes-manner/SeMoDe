@@ -12,9 +12,16 @@ dependencies {
  	testImplementation 'junit:junit:4.12'
     
     compile group: 'com.google.guava', name: 'guava', version: '21.0'
+    
+    // aws
     compile group: 'com.amazonaws', name: 'aws-java-sdk-cloudwatch', version: '1.11.214'
     compile group: 'com.amazonaws', name: 'aws-java-sdk-logs', version: '1.11.214'
     compile group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.0'
+    
+    // azure
+    compile group: 'com.microsoft.azure', name: 'azure-core', version: '0.6.0'
+    compile group: 'com.microsoft.azure', name: 'azure-storage', version: '7.0.0'
+    
 }
 
 jar {
