@@ -30,6 +30,7 @@ function name, as shown in the example above. If the function is not deployed to
 the specified region, the prototype prints an error to the console and terminate the
 execution.
 
+
 3. Search String, as its name suggested, is used for searching in all log messages
 in the specified log group. The implementation of the prototype is case sensitive,
 because this enables a finer-grained result set. If various spelling for a search expression
