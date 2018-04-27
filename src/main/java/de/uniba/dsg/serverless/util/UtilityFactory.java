@@ -7,7 +7,8 @@ import java.util.Optional;
 public class UtilityFactory {
 
 	private static List<CustomUtility> utilityList = Arrays.asList(
-			new PerformanceDataUtility("awsPerformanceData"),
+			new AWSPerformanceDataUtility("awsPerformanceData"),
+			new AzurePerformanceDataUtility("azurePerformanceData"),
 			new SeMoDeUtility("awsSeMoDe")
 	);
 
