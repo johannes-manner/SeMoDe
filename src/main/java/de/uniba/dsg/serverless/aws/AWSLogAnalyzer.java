@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.semode.util;
+package de.uniba.dsg.serverless.aws;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +22,7 @@ import de.uniba.dsg.serverless.model.PerformanceData;
  *
  * @version 1.0
  */
-public final class LogAnalyzer {
+public final class AWSLogAnalyzer {
 
 	public static final String HANDLER_CLASS = "HANDLERCLASS";
 	public static final String HANDLER_METHOD = "HANDLERMETHOD";
@@ -37,7 +37,7 @@ public final class LogAnalyzer {
 	private static final String EVENT_MESSAGE_START = "START";
 	private static final String EVENT_MESSAGE_END = "REPORT";
 	
-	private static final Logger logger = Logger.getLogger(LogAnalyzer.class.getName());
+	private static final Logger logger = Logger.getLogger(AWSLogAnalyzer.class.getName());
 
 	/**
 	 * The troubleshoot prefix is used in the logged data to identify the
@@ -80,7 +80,7 @@ public final class LogAnalyzer {
 		for (OutputLogEvent event : logEvents) {
 			message = event.getMessage();
 			if (message.startsWith(EVENT_MESSAGE_START)) {
-				String requestId = LogAnalyzer.extractRequestId(message);
+				String requestId = AWSLogAnalyzer.extractRequestId(message);
 				cohesiveEvent = new FunctionExecutionEvent(functionName, logStream, requestId);
 			}
 			cohesiveEvent.addLogEvent(event);
@@ -214,10 +214,10 @@ public final class LogAnalyzer {
 		long startTime = -1;
 		
 		for(OutputLogEvent logEvent : event.getEvents()) {
-			if(logEvent.getMessage().startsWith(LogAnalyzer.EVENT_MESSAGE_START)) {
+			if(logEvent.getMessage().startsWith(AWSLogAnalyzer.EVENT_MESSAGE_START)) {
 				startTime = logEvent.getTimestamp();
 			}
-			if(logEvent.getMessage().startsWith(LogAnalyzer.EVENT_MESSAGE_END)){
+			if(logEvent.getMessage().startsWith(AWSLogAnalyzer.EVENT_MESSAGE_END)){
 				messageParts = logEvent.getMessage().split(" ");
 				break;
 			}

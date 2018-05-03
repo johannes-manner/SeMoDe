@@ -4,7 +4,7 @@ import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import de.uniba.dsg.serverless.semode.util.LogAnalyzer;
+import de.uniba.dsg.serverless.aws.AWSLogAnalyzer;
 
 /**
  * This class generates instrumentation statements and is closely related to the
@@ -37,20 +37,20 @@ public final class SeMoDeInstrumentation {
 	public static void instrumentFunction(String handlerClass, String handlerMethod, String inputClass, Object input,
 			String outputClass, LambdaLogger logger) {
 
-		String prefix = LogAnalyzer.TROUBLESHOOT_PREFIX + LogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN;
+		String prefix = AWSLogAnalyzer.TROUBLESHOOT_PREFIX + AWSLogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN;
 
-		logger.log(prefix + LogAnalyzer.HANDLER_CLASS + LogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN + handlerClass);
-		logger.log(prefix + LogAnalyzer.HANDLER_METHOD + LogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN + handlerMethod);
-		logger.log(prefix + LogAnalyzer.INPUT_CLASS + LogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN + inputClass);
+		logger.log(prefix + AWSLogAnalyzer.HANDLER_CLASS + AWSLogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN + handlerClass);
+		logger.log(prefix + AWSLogAnalyzer.HANDLER_METHOD + AWSLogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN + handlerMethod);
+		logger.log(prefix + AWSLogAnalyzer.INPUT_CLASS + AWSLogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN + inputClass);
 
 		try {
-			logger.log(prefix + LogAnalyzer.INPUT_JSON + LogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN
+			logger.log(prefix + AWSLogAnalyzer.INPUT_JSON + AWSLogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN
 					+ new ObjectMapper().writeValueAsString(input));
 		} catch (JsonProcessingException e) {
-			logger.log(prefix + LogAnalyzer.INPUT_JSON + LogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN
-					+ LogAnalyzer.ERROR_OBJECT_VALUE);
+			logger.log(prefix + AWSLogAnalyzer.INPUT_JSON + AWSLogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN
+					+ AWSLogAnalyzer.ERROR_OBJECT_VALUE);
 		}
-		logger.log(prefix + LogAnalyzer.OUTPUT_CLASS + LogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN + outputClass);
+		logger.log(prefix + AWSLogAnalyzer.OUTPUT_CLASS + AWSLogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN + outputClass);
 	}
 
 	/**
@@ -64,14 +64,14 @@ public final class SeMoDeInstrumentation {
 	 *            - LambdaLogger from the aws-lambda-java-core
 	 */
 	public static void instrumentFunction(Object output, LambdaLogger logger) {
-		String prefix = LogAnalyzer.TROUBLESHOOT_PREFIX + LogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN;
+		String prefix = AWSLogAnalyzer.TROUBLESHOOT_PREFIX + AWSLogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN;
 
 		try {
-			logger.log(prefix + LogAnalyzer.OUTPUT_JSON + LogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN
+			logger.log(prefix + AWSLogAnalyzer.OUTPUT_JSON + AWSLogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN
 					+ new ObjectMapper().writeValueAsString(output));
 		} catch (JsonProcessingException e) {
-			logger.log(prefix + LogAnalyzer.OUTPUT_JSON + LogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN
-					+ LogAnalyzer.ERROR_OBJECT_VALUE);
+			logger.log(prefix + AWSLogAnalyzer.OUTPUT_JSON + AWSLogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN
+					+ AWSLogAnalyzer.ERROR_OBJECT_VALUE);
 		}
 
 	}

@@ -4,7 +4,7 @@ import java.util.Map;
 
 import com.amazonaws.services.logs.model.OutputLogEvent;
 
-import de.uniba.dsg.serverless.semode.util.LogAnalyzer;
+import de.uniba.dsg.serverless.aws.AWSLogAnalyzer;
 
 /**
  * This class is a model for data which are needed for the instrumentation of the template file to generate test
@@ -64,17 +64,17 @@ public final class FunctionInstrumentation {
 	public Map<String, String> getAttributeMap(){
 		Map<String, String> attributeMap = new HashMap<>();
 		
-		attributeMap.put(LogAnalyzer.HANDLER_CLASS, this.handlerClass);
-		attributeMap.put(LogAnalyzer.HANDLER_METHOD, this.handlerMethod);
-		attributeMap.put(LogAnalyzer.INPUT_CLASS, this.inputClass);
-		attributeMap.put(LogAnalyzer.INPUT_JSON, this.input);
-		attributeMap.put(LogAnalyzer.OUTPUT_CLASS, this.outputClass);
-		attributeMap.put(LogAnalyzer.FILE_NAME, this.fileName);
+		attributeMap.put(AWSLogAnalyzer.HANDLER_CLASS, this.handlerClass);
+		attributeMap.put(AWSLogAnalyzer.HANDLER_METHOD, this.handlerMethod);
+		attributeMap.put(AWSLogAnalyzer.INPUT_CLASS, this.inputClass);
+		attributeMap.put(AWSLogAnalyzer.INPUT_JSON, this.input);
+		attributeMap.put(AWSLogAnalyzer.OUTPUT_CLASS, this.outputClass);
+		attributeMap.put(AWSLogAnalyzer.FILE_NAME, this.fileName);
 		String logContent = "";
 		for(OutputLogEvent event : logEvent.getEvents()) {
 			logContent += event.getMessage() + "\n";
 		}
-		attributeMap.put(LogAnalyzer.FUNCTION_LOG, logContent);
+		attributeMap.put(AWSLogAnalyzer.FUNCTION_LOG, logContent);
 		
 		return attributeMap;
 	}
