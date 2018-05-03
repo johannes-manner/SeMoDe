@@ -28,6 +28,10 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public class AzureLogHandler {
 
+	private static final String FUNCTION_COMPLETED = "Function completed";
+
+	private static final String FUNCTION_STARTED = "Function started";
+
 	private static final Logger logger = Logger.getLogger(AzureLogHandler.class.getName());
 
 	public final String storageConnectionString;
@@ -42,68 +46,11 @@ public class AzureLogHandler {
 		this.storageConnectionString = "DefaultEndpointsProtocol=http;" + "AccountName=" + accountName + ";"
 				+ "AccountKey=" + accountKey;
 	}
-
-	private List<CloudFile> getLogFiles() throws SeMoDeException {
-		// TODO: Implement as writePerformanceDataToFile
-
-		try {
-			CloudStorageAccount storageAccount = CloudStorageAccount.parse(storageConnectionString);
-
-			// Create the Azure Files client.
-			CloudFileClient fileClient = storageAccount.createCloudFileClient();
-
-			CloudFileShare share = fileClient.getShareReference(shareName);
-
-			// Get a reference to the root directory for the share.
-			CloudFileDirectory rootDir = share.getRootDirectoryReference();
-
-			// Get a reference to the directory that contains the file
-			CloudFileDirectory logDir = rootDir
-					.getDirectoryReference("LogFiles/Application/Functions/function/" + functionName);
-
-			List<CloudFile> files = getFilesInDirectory(logDir);
-
-			return files;
-		} catch (InvalidKeyException | URISyntaxException | StorageException e) {
-			throw new SeMoDeException(e);
-		}
-	}
-
-	private List<PerformanceData> getPerformanceData(CloudFile file) throws SeMoDeException {
-		String text;
-		try {
-			text = file.downloadText();
-		} catch (StorageException | IOException e) {
-			e.printStackTrace();
-			throw new SeMoDeException(e);
-		}
-		String lines[] = text.split("\\r?\\n");
-
-		Map<String, LocalDateTime> pendingData = new HashMap<>();
-
-		List<PerformanceData> result = new ArrayList<>();
-
-		for (String line : lines) {
-			String[] lineParts = line.split(" ", 3);
-			String message = lineParts[2];
-			if (message.startsWith("Function started")) {
-				String id = AzureLogAnalyzer.extractRequestId(message);
-				LocalDateTime startTime = AzureLogAnalyzer.parseTime(lineParts[0]);
-				pendingData.put(id, startTime);
-			} else if (message.startsWith("Function completed")) {
-				String id = AzureLogAnalyzer.extractRequestId(message);
-				LocalDateTime startTime = pendingData.remove(id);
-				double duration = AzureLogAnalyzer.extractDuration(message);
-				PerformanceData data = new PerformanceData(functionName, "", id, startTime, duration, -1, -1, -1);
-				result.add(data);
-			} else {
-				continue;
-			}
-		}
-		return result;
-
-	}
-
+	
+	/**
+	 * Retrieves the performance data from the specified cloud storage and saves it to the specified file
+	 * @param fileName name of the output file
+	 */
 	public void writePerformanceDataToFile(String fileName) {
 
 		try {
@@ -132,6 +79,69 @@ public class AzureLogHandler {
 			e.printStackTrace();
 		}
 	}
+
+	private List<CloudFile> getLogFiles() throws SeMoDeException {
+		try {
+			CloudStorageAccount storageAccount = CloudStorageAccount.parse(storageConnectionString);
+
+			// Create the Azure Files client.
+			CloudFileClient fileClient = storageAccount.createCloudFileClient();
+
+			CloudFileShare share = fileClient.getShareReference(shareName);
+
+			// Get a reference to the root directory for the share.
+			CloudFileDirectory rootDir = share.getRootDirectoryReference();
+
+			// Get a reference to the directory that contains the file
+			CloudFileDirectory logDir = rootDir
+					.getDirectoryReference("LogFiles/Application/Functions/function/" + functionName);
+
+			List<CloudFile> files = getFilesInDirectory(logDir);
+
+			return files;
+		} catch (InvalidKeyException | URISyntaxException | StorageException e) {
+			throw new SeMoDeException(e);
+		}
+	}
+
+	private List<PerformanceData> getPerformanceData(CloudFile file) throws SeMoDeException {
+		String text;
+		try {
+			text = file.downloadText();
+		} catch (StorageException | IOException e) {
+			throw new SeMoDeException(e);
+		}
+		// Split the text into lines
+		String lines[] = text.split("\\r?\\n");
+
+		// Stores the start times of functions that are not completed
+		Map<String, LocalDateTime> pendingData = new HashMap<>();
+
+		List<PerformanceData> result = new ArrayList<>();
+
+		for (String line : lines) {
+			String[] lineParts = line.split(" ", 3);
+			String message = lineParts[2];
+			if (message.startsWith(FUNCTION_STARTED)) {
+				// Start message
+				String id = AzureLogAnalyzer.extractRequestId(message);
+				LocalDateTime startTime = AzureLogAnalyzer.parseTime(lineParts[0]);
+				pendingData.put(id, startTime);
+			} else if (message.startsWith(FUNCTION_COMPLETED)) {
+				// Finish Message
+				String id = AzureLogAnalyzer.extractRequestId(message);
+				LocalDateTime startTime = pendingData.remove(id);
+				double duration = AzureLogAnalyzer.extractDuration(message);
+				PerformanceData data = new PerformanceData(functionName, "", id, startTime, duration, -1, -1, -1);
+				result.add(data);
+			} else {
+				// First line or unknown lines
+				continue;
+			}
+		}
+		return result;
+	}
+
 
 	private List<CloudFile> getFilesInDirectory(CloudFileDirectory logDir) throws SeMoDeException {
 		ArrayList<CloudFile> cloudFiles = new ArrayList<>();
