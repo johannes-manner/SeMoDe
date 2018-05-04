@@ -1,8 +1,6 @@
 package de.uniba.dsg.serverless.model;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 public class PerformanceData {
@@ -28,18 +26,6 @@ public class PerformanceData {
 		this.billedDuration = -1;
 		this.memorySize = -1;
 		this.memoryUsed = -1;
-	}
-
-	public PerformanceData(String functionName, String logStream, String requestId, long startTime,
-			double preciseDuration, int billedDuration, int memorySize, int memoryUsed) {
-		this.functionName = functionName;
-		this.logStream = logStream;
-		this.requestId = requestId;
-		this.startTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(startTime), ZoneId.systemDefault());
-		this.preciseDuration = preciseDuration;
-		this.billedDuration = billedDuration;
-		this.memorySize = memorySize;
-		this.memoryUsed = memoryUsed;
 	}
 
 	public PerformanceData(String functionName, String logStream, String requestId, LocalDateTime startTime,

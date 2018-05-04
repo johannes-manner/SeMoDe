@@ -339,7 +339,6 @@ public final class AWSLogHandler {
 			logger.severe("Data handler is terminated due to an error.");
 		} catch (IOException e) {
 			logger.severe("IO Exception occured.");
-			e.printStackTrace();
 		}
 	}
 

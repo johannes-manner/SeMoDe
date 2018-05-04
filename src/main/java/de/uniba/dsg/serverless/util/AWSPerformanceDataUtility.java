@@ -1,5 +1,7 @@
 package de.uniba.dsg.serverless.util;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,8 +27,8 @@ public final class AWSPerformanceDataUtility extends CustomUtility{
 		String region = args.get(0);
 		String logGroupName = args.get(1);
 
-		String fileName = logGroupName.substring("/aws/lambda/".length()) + (System.currentTimeMillis() % 1000)
-				+ ".csv";
+		String dateText = new SimpleDateFormat("MM-dd-HH-mm").format(new Date());
+		String fileName = logGroupName.substring("/aws/lambda/".length()) + "-" + dateText + ".csv";
 
 		new AWSLogHandler(region, logGroupName).writePerformanceDataToFile(fileName);
 	}

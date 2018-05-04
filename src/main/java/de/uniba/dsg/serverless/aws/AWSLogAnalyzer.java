@@ -1,5 +1,8 @@
 package de.uniba.dsg.serverless.aws;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -229,10 +232,12 @@ public final class AWSLogAnalyzer {
 			return new PerformanceData();
 		}
 		
+		LocalDateTime time = LocalDateTime.ofInstant(Instant.ofEpochMilli(startTime), ZoneId.systemDefault());
+		
 		return new PerformanceData(event.getFunctionName(), 
 				event.getLogStream(),
 				event.getRequestId(), 
-				startTime, 
+				time, 
 				Double.parseDouble(messageParts[3]), 
 				Integer.parseInt(messageParts[6]), 
 				Integer.parseInt(messageParts[10]), 

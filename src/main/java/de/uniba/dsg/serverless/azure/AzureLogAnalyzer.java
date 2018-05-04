@@ -7,8 +7,8 @@ import java.util.regex.Pattern;
 
 public class AzureLogAnalyzer {
 
-	public static final String REQUEST_ID_REGEX = "Id=[0-9a-f\\-]+";
-	public static final String DURATION_REGEX = "Duration=[0-9]+";
+	private static final String REQUEST_ID_REGEX = "Id=[0-9a-f\\-]+";
+	private static final String DURATION_REGEX = "Duration=[0-9]+";
 
 	/**
 	 * This method extracts the request id to generate unique files without a naming
@@ -24,10 +24,9 @@ public class AzureLogAnalyzer {
 		Pattern p = Pattern.compile(REQUEST_ID_REGEX);
 		Matcher matcher = p.matcher(logMessage);
 		if (matcher.find()) {
-			// Cut off Id=
-			return matcher.group().substring(3);
+			return matcher.group().substring("Id=".length());
 		} else {
-			throw new IllegalArgumentException("Log Message Corrupted.");
+			throw new IllegalArgumentException("Log Message Corrupted. No Id found.");
 		}
 	}
 
@@ -52,6 +51,11 @@ public class AzureLogAnalyzer {
 		}
 	}
 
+	/**
+	 * This method parses the time provided in the format "yyyy-MM-dd'T'HH:mm:ss.SSS"
+	 * @param logTime time
+	 * @return parsed local date time
+	 */
 	public static LocalDateTime parseTime(String logTime) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 		return LocalDateTime.parse(logTime, formatter);

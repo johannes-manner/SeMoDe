@@ -28,16 +28,20 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public class AzureLogHandler {
 
+	private static final String LOCATION_LOGFILES = "LogFiles/Application/Functions/function/";
+
+	private static final String OUTPUT_DIRECTORY = "performanceData";
+
 	private static final String FUNCTION_COMPLETED = "Function completed";
 
 	private static final String FUNCTION_STARTED = "Function started";
 
 	private static final Logger logger = Logger.getLogger(AzureLogHandler.class.getName());
 
-	public final String storageConnectionString;
+	private final String storageConnectionString;
 
-	public final String shareName;
-	public final String functionName;
+	private final String shareName;
+	private final String functionName;
 
 	public AzureLogHandler(String accountName, String accountKey, String shareName, String functionName) {
 		this.shareName = shareName;
@@ -46,28 +50,27 @@ public class AzureLogHandler {
 		this.storageConnectionString = "DefaultEndpointsProtocol=http;" + "AccountName=" + accountName + ";"
 				+ "AccountKey=" + accountKey;
 	}
-	
+
 	/**
-	 * Retrieves the performance data from the specified cloud storage and saves it to the specified file
-	 * @param fileName name of the output file
+	 * Retrieves the performance data from the specified cloud storage and saves it
+	 * to the specified file
+	 * 
+	 * @param fileName
+	 *            name of the output file
 	 */
 	public void writePerformanceDataToFile(String fileName) {
 
 		try {
-			List<CloudFile> logFiles = getLogFiles();
-			List<PerformanceData> performanceDataList = new ArrayList<>();
-			for (CloudFile file : logFiles) {
-				performanceDataList.addAll(getPerformanceData(file));
-			}
-			if (!Files.exists(Paths.get("performanceData"))) {
-				Files.createDirectory(Paths.get("performanceData"));
+			List<PerformanceData> performanceDataList = getPerformanceData();
+			if (!Files.exists(Paths.get(OUTPUT_DIRECTORY))) {
+				Files.createDirectory(Paths.get(OUTPUT_DIRECTORY));
 			}
 
-			Path file = Files.createFile(Paths.get("performanceData/" + fileName));
-			try (BufferedWriter bw = Files.newBufferedWriter(file)) {
-				bw.write(PerformanceData.getCSVMetadata() + System.lineSeparator());
+			Path file = Files.createFile(Paths.get(OUTPUT_DIRECTORY + "/" + fileName));
+			try (BufferedWriter writer = Files.newBufferedWriter(file)) {
+				writer.write(PerformanceData.getCSVMetadata() + System.lineSeparator());
 				for (PerformanceData performanceData : performanceDataList) {
-					bw.write(performanceData.toCSVString() + System.lineSeparator());
+					writer.write(performanceData.toCSVString() + System.lineSeparator());
 				}
 			}
 
@@ -75,44 +78,28 @@ public class AzureLogHandler {
 			logger.severe(e.getMessage());
 			logger.severe("Data handler is terminated due to an error.");
 		} catch (IOException e) {
-			logger.severe("IO Exception occured.");
-			e.printStackTrace();
+			logger.severe("Writing to CSV file failed.");
 		}
 	}
 
-	private List<CloudFile> getLogFiles() throws SeMoDeException {
-		try {
-			CloudStorageAccount storageAccount = CloudStorageAccount.parse(storageConnectionString);
-
-			// Create the Azure Files client.
-			CloudFileClient fileClient = storageAccount.createCloudFileClient();
-
-			CloudFileShare share = fileClient.getShareReference(shareName);
-
-			// Get a reference to the root directory for the share.
-			CloudFileDirectory rootDir = share.getRootDirectoryReference();
-
-			// Get a reference to the directory that contains the file
-			CloudFileDirectory logDir = rootDir
-					.getDirectoryReference("LogFiles/Application/Functions/function/" + functionName);
-
-			List<CloudFile> files = getFilesInDirectory(logDir);
-
-			return files;
-		} catch (InvalidKeyException | URISyntaxException | StorageException e) {
-			throw new SeMoDeException(e);
+	private List<PerformanceData> getPerformanceData() throws SeMoDeException {
+		List<PerformanceData> performanceDataList = new ArrayList<>();
+		List<CloudFile> logFiles = getLogFiles();
+		for (CloudFile file : logFiles) {
+			String fileContent;
+			try {
+				fileContent = file.downloadText();
+			} catch (StorageException | IOException e) {
+				throw new SeMoDeException("Downloading the text from the specified location failed.", e);
+			}
+			performanceDataList.addAll(getPerformanceData(fileContent));
 		}
+		return performanceDataList;
 	}
 
-	private List<PerformanceData> getPerformanceData(CloudFile file) throws SeMoDeException {
-		String text;
-		try {
-			text = file.downloadText();
-		} catch (StorageException | IOException e) {
-			throw new SeMoDeException(e);
-		}
+	private List<PerformanceData> getPerformanceData(String fileContent) {
 		// Split the text into lines
-		String lines[] = text.split("\\r?\\n");
+		String lines[] = fileContent.split("\\r?\\n");
 
 		// Stores the start times of functions that are not completed
 		Map<String, LocalDateTime> pendingData = new HashMap<>();
@@ -134,26 +121,37 @@ public class AzureLogHandler {
 				double duration = AzureLogAnalyzer.extractDuration(message);
 				PerformanceData data = new PerformanceData(functionName, "", id, startTime, duration, -1, -1, -1);
 				result.add(data);
-			} else {
-				// First line or unknown lines
-				continue;
 			}
 		}
 		return result;
 	}
 
+	private List<CloudFile> getLogFiles() throws SeMoDeException {
+		try {
+			CloudStorageAccount storageAccount = CloudStorageAccount.parse(storageConnectionString);
+			CloudFileClient fileClient = storageAccount.createCloudFileClient();
+			CloudFileShare share = fileClient.getShareReference(shareName);
+			CloudFileDirectory rootDir = share.getRootDirectoryReference();
+			CloudFileDirectory logDir = rootDir.getDirectoryReference(LOCATION_LOGFILES + functionName);
 
-	private List<CloudFile> getFilesInDirectory(CloudFileDirectory logDir) throws SeMoDeException {
+			List<CloudFile> files = getFilesInLogDirectory(logDir);
+			return files;
+		} catch (InvalidKeyException | URISyntaxException | StorageException e) {
+			throw new SeMoDeException(e);
+		}
+	}
+
+	private List<CloudFile> getFilesInLogDirectory(CloudFileDirectory directory) throws SeMoDeException {
 		ArrayList<CloudFile> cloudFiles = new ArrayList<>();
 
-		for (ListFileItem fileItem : logDir.listFilesAndDirectories()) {
+		for (ListFileItem fileItem : directory.listFilesAndDirectories()) {
 			URI fileURI = fileItem.getUri();
 			String fileName = Paths.get(fileURI.getPath()).getFileName().toString();
 			CloudFile file;
 			try {
-				file = logDir.getFileReference(fileName);
+				file = directory.getFileReference(fileName);
 			} catch (URISyntaxException | StorageException e) {
-				throw new SeMoDeException("Exception while loading file from Azure", e);
+				throw new SeMoDeException("Exception while loading log file from Azure", e);
 			}
 			cloudFiles.add(file);
 		}
