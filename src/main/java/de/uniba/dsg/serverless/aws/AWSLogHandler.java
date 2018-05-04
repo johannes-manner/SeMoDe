@@ -2,7 +2,6 @@ package de.uniba.dsg.serverless.aws;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +15,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
-import com.amazonaws.services.logs.model.ResourceNotFoundException;
 import com.amazonaws.services.logs.AWSLogs;
 import com.amazonaws.services.logs.AWSLogsClientBuilder;
 import com.amazonaws.services.logs.model.DescribeLogStreamsRequest;
@@ -25,13 +23,13 @@ import com.amazonaws.services.logs.model.GetLogEventsRequest;
 import com.amazonaws.services.logs.model.GetLogEventsResult;
 import com.amazonaws.services.logs.model.LogStream;
 import com.amazonaws.services.logs.model.OutputLogEvent;
+import com.amazonaws.services.logs.model.ResourceNotFoundException;
 import com.google.common.io.Resources;
 
 import de.uniba.dsg.serverless.model.FunctionExecutionEvent;
 import de.uniba.dsg.serverless.model.FunctionInstrumentation;
 import de.uniba.dsg.serverless.model.PerformanceData;
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.semode.util.LogAnalyzer;
 
 /**
  * This class starts the analysis of the log streams of the specified log group.
@@ -179,7 +177,7 @@ public final class AWSLogHandler {
 		List<FunctionInstrumentation> jsonInstrumentation = new ArrayList<>();
 
 		for (FunctionExecutionEvent logEvent : logEventList) {
-			FunctionInstrumentation instrumentation = LogAnalyzer.generateFunctionInstrumentation(logEvent);
+			FunctionInstrumentation instrumentation = AWSLogAnalyzer.generateFunctionInstrumentation(logEvent);
 			if (instrumentation != null) {
 				jsonInstrumentation.add(instrumentation);
 			}
@@ -195,7 +193,7 @@ public final class AWSLogHandler {
 			logger.log(Level.INFO, "Investigated LogStream " + logStream.getArn());
 			List<OutputLogEvent> logEvents = this.getOutputLogEvent(logStream.getLogStreamName());
 
-			List<FunctionExecutionEvent> logStreamEvents = LogAnalyzer.generateEventList(logEvents, this.logGroupName,
+			List<FunctionExecutionEvent> logStreamEvents = AWSLogAnalyzer.generateEventList(logEvents, this.logGroupName,
 					logStream.getArn());
 
 			logEventList.addAll(logStreamEvents);
@@ -297,7 +295,7 @@ public final class AWSLogHandler {
 	 * An example illustrates this problem: 2 function executions generate log
 	 * events. Assuming, that each execution generates 12 log statements, the
 	 * returned list contains 24 elements, which are ordered but not grouped to the
-	 * function executions. See also {@link LogAnalyzer#generateEventList(List)} for
+	 * function executions. See also {@link AWSLogAnalyzer#generateEventList(List)} for
 	 * grouping these elements logically to function executions.
 	 * 
 	 * @param logStreamName
@@ -307,7 +305,7 @@ public final class AWSLogHandler {
 	 * 
 	 * @see {@link AWSLogHandler#getLogStreams()}
 	 * @see {@link AWSLogHandler#getLogEventList()}
-	 * @see {@link LogAnalyzer#generateEventList(List)}
+	 * @see {@link AWSLogAnalyzer#generateEventList(List)}
 	 */
 	private List<OutputLogEvent> getOutputLogEvent(String logStreamName) {
 		GetLogEventsRequest logsRequest = new GetLogEventsRequest(this.logGroupName, logStreamName);
@@ -321,7 +319,7 @@ public final class AWSLogHandler {
 		try {
 			List<FunctionExecutionEvent> eventList = this.getLogEventList();
 			for (FunctionExecutionEvent e : eventList) {
-				performanceDataList.add(LogAnalyzer.extractInformation(e));
+				performanceDataList.add(AWSLogAnalyzer.extractInformation(e));
 			}
 			
 			if(!Files.exists(Paths.get("performanceData"))){
@@ -341,7 +339,6 @@ public final class AWSLogHandler {
 			logger.severe("Data handler is terminated due to an error.");
 		} catch (IOException e) {
 			logger.severe("IO Exception occured.");
-			e.printStackTrace();
 		}
 	}
 

@@ -6,13 +6,13 @@ SeMoDe is a prototype for troubleshooting Serverless Lambda functions implemente
 
 The tool itself is in an early stage and needs feedback and participation of the GitHub community. Feel free to contribute :)
 
-## Command Line 
+## Command Line
 
 ### Usage
- 
+
 SeMoDe prototype is a command line application, buildable with gradle.
 
-### Test generation feature 
+### Test generation feature
 
 This feature is to generate tests automatically from your Lambda function executions.
 
@@ -38,7 +38,7 @@ all spellings of the search string.
 
 ### New feature: Get performance data from aws cloud watch
 
-This feature is to generate .csv files from the cloud watch logs with the metadata, like 
+This feature is to generate .csv files from the cloud watch logs with the metadata, like
 memory consumption, billing duration etc.
 
 ```java -jar SeMoDe.jar "awsPerformanceData" "REGION" "LOG GROUP"```
@@ -54,3 +54,23 @@ The group name is assembled of the prefix "/aws/lambda/" and the Lambda
 function name, as shown in the example above. If the function is not deployed to
 the specified region, the prototype prints an error to the console and terminate the
 execution.
+
+### New feature: Get performance data from Microsoft Azure
+
+This feature generates .csv files from logs of functions maintained by Microsoft Azure.
+
+Usage:
+
+```java -jar SeMoDe.jar "azurePerformanceData" "STORAGE ACCOUNT NAME" "ACCOUNT KEY" "FILE SHARE" "FUNCTION NAME"```
+
+0. "azurePerformanceData" is a constant, which specifies the used utility mechanism.
+
+1. Storage Account Name of the cloud storage. This is specified in the Azure file service.
+
+2. Access Key of the storage account. Two access keys are provided in the Azure file service under access keys. Either one of both keys can be used.
+
+3. File Share from which the log files are fetched. By default, the name of the file share is the same as the one of the storage account. It may differ as defined when registering the account. It is also specified in the Azure file service.
+
+4. Function Name of the function the log files are fetched from. It is specified under the function apps.
+
+.
