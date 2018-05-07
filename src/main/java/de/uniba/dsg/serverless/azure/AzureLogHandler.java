@@ -33,11 +33,11 @@ public class AzureLogHandler {
 	private final String apiKey;
 	private final String functionName;
 
-	public AzureLogHandler(String accountName, String applicationID, String apiKey, String functionName) {
+	public AzureLogHandler(String applicationID, String apiKey, String functionName) {
 		this.apiKey = apiKey;
 		this.functionName = functionName;
 		
-		this.apiURL = "https://api.applicationinsights.io/v1/apps/" + applicationID + "/query?query=requests";
+		this.apiURL = "https://api.applicationinsights.io/v1/apps/" + applicationID + "/query?query=requests%20%7C%20order%20by%20timestamp%20asc";
 	}
 
 	/**

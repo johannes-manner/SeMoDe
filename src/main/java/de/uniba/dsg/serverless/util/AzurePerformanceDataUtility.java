@@ -18,23 +18,20 @@ public final class AzurePerformanceDataUtility extends CustomUtility {
 
 	public void start(List<String> args) {
 
-		if (args.size() < 4) {
+		if (args.size() < 3) {
 			AzurePerformanceDataUtility.logger.log(Level.SEVERE, "Wrong parameter size: "
-					+ "\n(1) Storage Account Name " + "\n(2) Account Key " + "\n(3) Share" + "n(4) Function Name");
+					+ "\n(1) Application ID " + "\n(2) API Key " + "\n(3) Function Name");
 			return;
 		}
-
-		String storageAccountName = args.get(0);
-		// This can be one of the two account keys provided in Storage Accounts > Access
-		// Keys
-		String applicationID = args.get(1);
-		String apiKey = args.get(2);
-		String functionName = args.get(3);
+		
+		String applicationID = args.get(0);
+		String apiKey = args.get(1);
+		String functionName = args.get(2);
 
 		String dateText = new SimpleDateFormat("MM-dd-HH-mm").format(new Date());
 		String fileName = functionName + "-" + dateText + ".csv";
 
-		new AzureLogHandler(storageAccountName, applicationID, apiKey, functionName)
+		new AzureLogHandler(applicationID, apiKey, functionName)
 				.writePerformanceDataToFile(fileName);
 	}
 }
