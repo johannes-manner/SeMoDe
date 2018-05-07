@@ -27,14 +27,14 @@ public final class AzurePerformanceDataUtility extends CustomUtility {
 		String storageAccountName = args.get(0);
 		// This can be one of the two account keys provided in Storage Accounts > Access
 		// Keys
-		String accountKey = args.get(1);
-		String shareName = args.get(2);
+		String applicationID = args.get(1);
+		String apiKey = args.get(2);
 		String functionName = args.get(3);
 
 		String dateText = new SimpleDateFormat("MM-dd-HH-mm").format(new Date());
 		String fileName = functionName + "-" + dateText + ".csv";
 
-		new AzureLogHandler(storageAccountName, accountKey, shareName, functionName)
+		new AzureLogHandler(storageAccountName, applicationID, apiKey, functionName)
 				.writePerformanceDataToFile(fileName);
 	}
 }
