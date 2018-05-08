@@ -11,7 +11,7 @@ public class AzureLogAnalyzer {
 	 * @return parsed local date time
 	 */
 	public static LocalDateTime parseTime(String logTime) {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.][SSS][SS][S]'Z'");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.][SSSSSSSS][SSSSSSS][SSSSSS][SSSSS][SSSS][SSS][SS][S]'Z'");
 		return LocalDateTime.parse(logTime, formatter);
 	}
 

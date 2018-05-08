@@ -92,8 +92,12 @@ public class AzureLogHandler {
 				double duration = rowNode.get(7).asDouble();
 				String container = rowNode.get(30).asText();
 				
+				String dimJson = rowNode.get(10).asText();
+				String end = mapper.readTree(dimJson).get("EndTime").asText();
+				LocalDateTime endTime = AzureLogAnalyzer.parseTime(end);
+				
 				if (functionName.equals(this.functionName)) {
-					PerformanceData data = new PerformanceData(functionName, container, id, startTime, duration, -1, -1, -1);
+					PerformanceData data = new PerformanceData(functionName, container, id, startTime, endTime, duration, -1, -1, -1);
 					performanceDataList.add(data);
 				}
 			}
