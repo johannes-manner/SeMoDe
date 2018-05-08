@@ -89,10 +89,11 @@ public class AzureLogHandler {
 				LocalDateTime startTime = AzureLogAnalyzer.parseTime(time);
 				String id = rowNode.get(1).asText();
 				String functionName = rowNode.get(3).asText();
-				String duration = rowNode.get(7).asText();
+				double duration = rowNode.get(7).asDouble();
+				String container = rowNode.get(30).asText();
 				
 				if (functionName.equals(this.functionName)) {
-					PerformanceData data = new PerformanceData(functionName, "", id, startTime, Double.parseDouble(duration), -1, -1, -1);
+					PerformanceData data = new PerformanceData(functionName, container, id, startTime, duration, -1, -1, -1);
 					performanceDataList.add(data);
 				}
 			}
