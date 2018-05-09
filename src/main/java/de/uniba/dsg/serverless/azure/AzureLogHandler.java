@@ -121,7 +121,7 @@ public class AzureLogHandler {
 
 			HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
 			con.setDoInput(true);
-			con.setDoInput(false);
+			con.setDoOutput(false);
 			con.setRequestMethod("GET");
 			con.setRequestProperty("Content-Type", "application/json");
 			con.setRequestProperty("x-api-key", apiKey);
