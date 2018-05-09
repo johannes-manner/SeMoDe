@@ -27,7 +27,7 @@ public class AzureLogHandler {
 	private static final String OUTPUT_DIRECTORY = "performanceData";
 
 	private static final Logger logger = Logger.getLogger(AzureLogHandler.class.getName());
-	
+
 	private final String apiURL;
 
 	private final String apiKey;
@@ -36,8 +36,9 @@ public class AzureLogHandler {
 	public AzureLogHandler(String applicationID, String apiKey, String functionName) {
 		this.apiKey = apiKey;
 		this.functionName = functionName;
-		
-		this.apiURL = "https://api.applicationinsights.io/v1/apps/" + applicationID + "/query?query=requests%20%7C%20order%20by%20timestamp%20asc";
+
+		this.apiURL = "https://api.applicationinsights.io/v1/apps/" + applicationID
+				+ "/query?query=requests%20%7C%20order%20by%20timestamp%20asc";
 	}
 
 	/**
@@ -50,7 +51,7 @@ public class AzureLogHandler {
 	public void writePerformanceDataToFile(String fileName) {
 		try {
 			List<PerformanceData> performanceDataList = getPerformanceData();
-			
+
 			if (!Files.exists(Paths.get(OUTPUT_DIRECTORY))) {
 				Files.createDirectory(Paths.get(OUTPUT_DIRECTORY));
 			}
@@ -63,27 +64,27 @@ public class AzureLogHandler {
 				}
 			}
 
-		} /*catch (SeMoDeException e) {
-			logger.severe(e.getMessage());
-			logger.severe("Data handler is terminated due to an error.");
-		}*/ catch (IOException e) {
+		} /*
+			 * catch (SeMoDeException e) { logger.severe(e.getMessage());
+			 * logger.severe("Data handler is terminated due to an error."); }
+			 */ catch (IOException e) {
 			logger.severe("Writing to CSV file failed.");
 		}
 	}
-	
+
 	private List<PerformanceData> getPerformanceData() {
 		List<PerformanceData> performanceDataList = new ArrayList<>();
-		
+
 		JsonFactory factory = new JsonFactory();
 		ObjectMapper mapper = new ObjectMapper(factory);
-		
+
 		String json = getRequests();
 		try {
 			JsonNode tablesNode = mapper.readTree(json).get("tables");
 			JsonNode rowsNode = tablesNode.get(0).get("rows");
-			
+
 			Iterator<JsonNode> it = rowsNode.iterator();
-			while(it.hasNext()) {
+			while (it.hasNext()) {
 				JsonNode rowNode = it.next();
 				String time = rowNode.get(0).asText();
 				LocalDateTime startTime = AzureLogAnalyzer.parseTime(time);
@@ -91,49 +92,47 @@ public class AzureLogHandler {
 				String functionName = rowNode.get(3).asText();
 				double duration = rowNode.get(7).asDouble();
 				String container = rowNode.get(30).asText();
-				
+
 				String dimJson = rowNode.get(10).asText();
 				String end = mapper.readTree(dimJson).get("EndTime").asText();
 				LocalDateTime endTime = AzureLogAnalyzer.parseTime(end);
-				
+
 				if (functionName.equals(this.functionName)) {
-					PerformanceData data = new PerformanceData(functionName, container, id, startTime, endTime, duration, -1, -1, -1);
+					PerformanceData data = new PerformanceData(functionName, container, id, startTime, endTime,
+							duration, -1, -1, -1);
 					performanceDataList.add(data);
 				}
 			}
-			
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		return performanceDataList;
 	}
-	
+
 	private String getRequests() {
 		String requests = "";
-		
+
 		try {
 			URL url = new URL(apiURL);
-			
-		    HttpsURLConnection con = (HttpsURLConnection)url.openConnection();
-		    con.setDoInput(true);
-		    con.setRequestMethod("GET");
-		    con.setRequestProperty("Content-Type", "application/json");
-		    con.setRequestProperty("x-api-key", apiKey);
-	
-	        BufferedReader in;
-				in = new BufferedReader(new InputStreamReader(
-						con.getInputStream()));
-				
-	        String inputLine;
-	        while ((inputLine = in.readLine()) != null) {
-	        	requests = requests.concat(inputLine);
-	        }
-	        in.close();
+
+			HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+			con.setDoInput(true);
+			con.setRequestMethod("GET");
+			con.setRequestProperty("Content-Type", "application/json");
+			con.setRequestProperty("x-api-key", apiKey);
+
+			try (BufferedReader in =  new BufferedReader(new InputStreamReader(con.getInputStream()))) {
+				String inputLine;
+				while ((inputLine = in.readLine()) != null) {
+					requests = requests.concat(inputLine);
+				}
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		return requests;
 	}
 
