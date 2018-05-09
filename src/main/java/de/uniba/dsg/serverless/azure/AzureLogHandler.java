@@ -19,17 +19,18 @@ import javax.net.ssl.HttpsURLConnection;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.CharStreams;
 
 import de.uniba.dsg.serverless.model.PerformanceData;
+import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public class AzureLogHandler {
 
-	private static final String OUTPUT_DIRECTORY = "performanceData";
-
 	private static final Logger logger = Logger.getLogger(AzureLogHandler.class.getName());
 
-	private final String apiURL;
+	private static final String OUTPUT_DIRECTORY = "performanceData";
 
+	private final String apiURL;
 	private final String apiKey;
 	private final String functionName;
 
@@ -64,37 +65,40 @@ public class AzureLogHandler {
 				}
 			}
 
-		} /*
-			 * catch (SeMoDeException e) { logger.severe(e.getMessage());
-			 * logger.severe("Data handler is terminated due to an error."); }
-			 */ catch (IOException e) {
+		} catch (SeMoDeException e) {
+			logger.severe(e.getMessage());
+			logger.severe("Data handler is terminated due to an error.");
+		} catch (IOException e) {
 			logger.severe("Writing to CSV file failed.");
 		}
 	}
 
-	private List<PerformanceData> getPerformanceData() {
+	private List<PerformanceData> getPerformanceData() throws SeMoDeException {
 		List<PerformanceData> performanceDataList = new ArrayList<>();
 
 		JsonFactory factory = new JsonFactory();
 		ObjectMapper mapper = new ObjectMapper(factory);
 
-		String json = getRequests();
+		String requests = getRequestsAsJSON();
+
 		try {
-			JsonNode tablesNode = mapper.readTree(json).get("tables");
+			JsonNode tablesNode = mapper.readTree(requests).get("tables");
 			JsonNode rowsNode = tablesNode.get(0).get("rows");
 
 			Iterator<JsonNode> it = rowsNode.iterator();
 			while (it.hasNext()) {
 				JsonNode rowNode = it.next();
-				String time = rowNode.get(0).asText();
-				LocalDateTime startTime = AzureLogAnalyzer.parseTime(time);
+
+				String start = rowNode.get(0).asText();
 				String id = rowNode.get(1).asText();
 				String functionName = rowNode.get(3).asText();
 				double duration = rowNode.get(7).asDouble();
+				String dimJson = rowNode.get(10).asText();
 				String container = rowNode.get(30).asText();
 
-				String dimJson = rowNode.get(10).asText();
 				String end = mapper.readTree(dimJson).get("EndTime").asText();
+
+				LocalDateTime startTime = AzureLogAnalyzer.parseTime(start);
 				LocalDateTime endTime = AzureLogAnalyzer.parseTime(end);
 
 				if (functionName.equals(this.functionName)) {
@@ -105,35 +109,32 @@ public class AzureLogHandler {
 			}
 
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new SeMoDeException("Error while parsing requests via REST API from Application Insights", e);
 		}
 
 		return performanceDataList;
 	}
 
-	private String getRequests() {
-		String requests = "";
-
+	private String getRequestsAsJSON() throws SeMoDeException {
 		try {
 			URL url = new URL(apiURL);
 
 			HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
 			con.setDoInput(true);
+			con.setDoInput(false);
 			con.setRequestMethod("GET");
 			con.setRequestProperty("Content-Type", "application/json");
 			con.setRequestProperty("x-api-key", apiKey);
 
-			try (BufferedReader in =  new BufferedReader(new InputStreamReader(con.getInputStream()))) {
-				String inputLine;
-				while ((inputLine = in.readLine()) != null) {
-					requests = requests.concat(inputLine);
-				}
+			String requests;
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
+				requests = CharStreams.toString(in);
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			return requests;
 
-		return requests;
+		} catch (IOException e) {
+			throw new SeMoDeException("Error while receiving requests via REST API from Application Insights", e);
+		}
 	}
 
 }
