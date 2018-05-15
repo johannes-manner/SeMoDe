@@ -10,7 +10,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -19,6 +23,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.CharStreams;
+import com.google.common.net.UrlEscapers;
 
 import de.uniba.dsg.serverless.model.PerformanceData;
 import de.uniba.dsg.serverless.model.SeMoDeException;
@@ -29,6 +34,8 @@ public class AzureLogHandler {
 
 	private static final String OUTPUT_DIRECTORY = "performanceData";
 
+	private static final String MESSAGE_HOST_STARTED = "Host started";
+
 	private final String apiURL;
 	private final String apiKey;
 	private final String functionName;
@@ -37,8 +44,7 @@ public class AzureLogHandler {
 		this.apiKey = apiKey;
 		this.functionName = functionName;
 
-		this.apiURL = "https://api.applicationinsights.io/v1/apps/" + applicationID
-				+ "/query?query=requests%20%7C%20order%20by%20timestamp%20asc";
+		this.apiURL = "https://api.applicationinsights.io/v1/apps/" + applicationID + "/query";
 	}
 
 	/**
@@ -75,22 +81,28 @@ public class AzureLogHandler {
 	private List<PerformanceData> getPerformanceData() throws SeMoDeException {
 		List<PerformanceData> performanceData = new ArrayList<>();
 
-		JsonFactory factory = new JsonFactory();
-		ObjectMapper mapper = new ObjectMapper(factory);
+		Set<String> startedContainers = new HashSet<>();
+		Map<String, Double> hostStartupDurations = getHostStartupDurations();
 
 		String functionRequests = getRequestsAsJSON();
 
+		JsonFactory factory = new JsonFactory();
+		ObjectMapper mapper = new ObjectMapper(factory);
+
 		try {
-			JsonNode tablesNode = mapper.readTree(functionRequests).get("tables");
-			JsonNode rowsNode = tablesNode.get(0).get("rows");
+			JsonNode tableNode = mapper.readTree(functionRequests).get("tables").get(0);
+			JsonNode columnsNode = tableNode.get("columns");
+			JsonNode rowsNode = tableNode.get("rows");
+
+			Map<String, Integer> columnsIndex = parseColumns(columnsNode);
 
 			for (JsonNode rowNode : rowsNode) {
-				String start = rowNode.get(0).asText();
-				String id = rowNode.get(1).asText();
-				String functionName = rowNode.get(3).asText();
-				double duration = rowNode.get(7).asDouble();
-				String dimJson = rowNode.get(10).asText();
-				String container = rowNode.get(30).asText();
+				String start = rowNode.get(columnsIndex.get("timestamp")).asText();
+				String id = rowNode.get(columnsIndex.get("id")).asText();
+				String functionName = rowNode.get(columnsIndex.get("name")).asText();
+				double duration = rowNode.get(columnsIndex.get("duration")).asDouble();
+				String dimJson = rowNode.get(columnsIndex.get("customDimensions")).asText();
+				String container = rowNode.get(columnsIndex.get("cloud_RoleInstance")).asText();
 
 				String end = mapper.readTree(dimJson).get("EndTime").asText();
 
@@ -98,8 +110,15 @@ public class AzureLogHandler {
 				LocalDateTime endTime = AzureLogAnalyzer.parseTime(end);
 
 				if (functionName.equals(this.functionName)) {
+					// TODO: Find a better solution to add the host startup time to a function
+					double startupDuration = 0;
+					if (!startedContainers.contains(container)) {
+						startupDuration = hostStartupDurations.get(container);
+						startedContainers.add(container);
+					}
+
 					PerformanceData data = new PerformanceData(functionName, container, id, startTime, endTime,
-							duration, -1, -1, -1);
+							startupDuration, duration, -1, -1, -1);
 					performanceData.add(data);
 				}
 			}
@@ -111,9 +130,54 @@ public class AzureLogHandler {
 		return performanceData;
 	}
 
-	private String getRequestsAsJSON() throws SeMoDeException {
+	private Map<String, Double> getHostStartupDurations() throws SeMoDeException {
+		Map<String, Double> hostStartupDurations = new HashMap<>();
+
+		String functionTraces = getTracesAsJSON();
+
+		JsonFactory factory = new JsonFactory();
+		ObjectMapper mapper = new ObjectMapper(factory);
+
 		try {
-			URL url = new URL(apiURL);
+			JsonNode tableNode = mapper.readTree(functionTraces).get("tables").get(0);
+			JsonNode columnsNode = tableNode.get("columns");
+			JsonNode rowsNode = tableNode.get("rows");
+
+			Map<String, Integer> columnsIndex = parseColumns(columnsNode);
+
+			for (JsonNode rowNode : rowsNode) {
+				String message = rowNode.get(columnsIndex.get("message")).asText();
+
+				if (message.startsWith(MESSAGE_HOST_STARTED)) {
+					String container = rowNode.get(columnsIndex.get("cloud_RoleInstance")).asText();
+					double hostStartupDuration = AzureLogAnalyzer.parseHostStartupDuration(message);
+
+					hostStartupDurations.put(container, hostStartupDuration);
+				}
+			}
+		} catch (IOException e) {
+			throw new SeMoDeException("Exception while parsing traces via REST API from Application Insights", e);
+		}
+
+		return hostStartupDurations;
+	}
+
+	private String getRequestsAsJSON() throws SeMoDeException {
+		return runQuery("requests | order by timestamp asc");
+	}
+
+	private String getTracesAsJSON() throws SeMoDeException {
+		return runQuery("traces | order by timestamp asc");
+	}
+
+	private String getApiUrlForQuery(String query) {
+		String escapedQuery = UrlEscapers.urlPathSegmentEscaper().escape(query);
+		return apiURL + "?query=" + escapedQuery;
+	}
+
+	private String runQuery(String query) throws SeMoDeException {
+		try {
+			URL url = new URL(getApiUrlForQuery(query));
 
 			HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
 			con.setDoInput(true);
@@ -128,6 +192,19 @@ public class AzureLogHandler {
 		} catch (IOException e) {
 			throw new SeMoDeException("Exception while receiving requests via REST API from Application Insights", e);
 		}
+	}
+
+	private Map<String, Integer> parseColumns(JsonNode columnsNode) {
+		Map<String, Integer> map = new HashMap<>();
+
+		int index = 0;
+		for (JsonNode columnNode : columnsNode) {
+			String name = columnNode.get("name").asText();
+			map.put(name, index);
+			index++;
+		}
+
+		return map;
 	}
 
 }
