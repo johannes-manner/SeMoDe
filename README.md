@@ -61,16 +61,12 @@ This feature generates .csv files from logs of functions maintained by Microsoft
 
 Usage:
 
-```java -jar SeMoDe.jar "azurePerformanceData" "STORAGE ACCOUNT NAME" "ACCOUNT KEY" "FILE SHARE" "FUNCTION NAME"```
+```java -jar SeMoDe.jar "azurePerformanceData" "APPLICATION ID" "API KEY" "FUNCTION NAME"```
 
 0. "azurePerformanceData" is a constant, which specifies the used utility mechanism.
 
-1. Storage Account Name of the cloud storage. This is specified in the Azure file service.
+1. Application ID of the Application Insights account. It is specified under "API Access" in Application Insights.
 
-2. Access Key of the storage account. Two access keys are provided in the Azure file service under access keys. Either one of both keys can be used.
+2. API Key of the Application Insights account. A key can be created under "API Access" in Application Insights.
 
-3. File Share from which the log files are fetched. By default, the name of the file share is the same as the one of the storage account. It may differ as defined when registering the account. It is also specified in the Azure file service.
-
-4. Function Name of the function the log files are fetched from. It is specified under the function apps.
-
-.
+3. Function Name of the function the performance data are fetched from. It is specified under the function apps.
