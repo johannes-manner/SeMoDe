@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -74,21 +73,18 @@ public class AzureLogHandler {
 	}
 
 	private List<PerformanceData> getPerformanceData() throws SeMoDeException {
-		List<PerformanceData> performanceDataList = new ArrayList<>();
+		List<PerformanceData> performanceData = new ArrayList<>();
 
 		JsonFactory factory = new JsonFactory();
 		ObjectMapper mapper = new ObjectMapper(factory);
 
-		String requests = getRequestsAsJSON();
+		String functionRequests = getRequestsAsJSON();
 
 		try {
-			JsonNode tablesNode = mapper.readTree(requests).get("tables");
+			JsonNode tablesNode = mapper.readTree(functionRequests).get("tables");
 			JsonNode rowsNode = tablesNode.get(0).get("rows");
 
-			Iterator<JsonNode> it = rowsNode.iterator();
-			while (it.hasNext()) {
-				JsonNode rowNode = it.next();
-
+			for (JsonNode rowNode : rowsNode) {
 				String start = rowNode.get(0).asText();
 				String id = rowNode.get(1).asText();
 				String functionName = rowNode.get(3).asText();
@@ -104,15 +100,15 @@ public class AzureLogHandler {
 				if (functionName.equals(this.functionName)) {
 					PerformanceData data = new PerformanceData(functionName, container, id, startTime, endTime,
 							duration, -1, -1, -1);
-					performanceDataList.add(data);
+					performanceData.add(data);
 				}
 			}
 
 		} catch (IOException e) {
-			throw new SeMoDeException("Error while parsing requests via REST API from Application Insights", e);
+			throw new SeMoDeException("Exception while parsing requests via REST API from Application Insights", e);
 		}
 
-		return performanceDataList;
+		return performanceData;
 	}
 
 	private String getRequestsAsJSON() throws SeMoDeException {
@@ -126,14 +122,11 @@ public class AzureLogHandler {
 			con.setRequestProperty("Content-Type", "application/json");
 			con.setRequestProperty("x-api-key", apiKey);
 
-			String requests;
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
-				requests = CharStreams.toString(in);
+				return CharStreams.toString(in);
 			}
-			return requests;
-
 		} catch (IOException e) {
-			throw new SeMoDeException("Error while receiving requests via REST API from Application Insights", e);
+			throw new SeMoDeException("Exception while receiving requests via REST API from Application Insights", e);
 		}
 	}
 
