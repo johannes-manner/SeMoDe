@@ -19,6 +19,12 @@ public class AzureLogAnalyzer {
 		return LocalDateTime.parse(logTime, formatter);
 	}
 	
+	/**
+	 * Parses the log message of a started host and returns the host startup duration.
+	 * 
+	 * @param logMessage The log message of a started host (starting with "Host started").
+	 * @return The host startup duration extracted from the log message.
+	 */
 	public static double parseHostStartupDuration(String logMessage) {
 		Pattern p = Pattern.compile(HOST_STARTED_DURATION_REGEX);
 		Matcher matcher = p.matcher(logMessage);

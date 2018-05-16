@@ -53,7 +53,7 @@ public class AzureLogHandler {
 	}
 
 	/**
-	 * Retrieves the performance data from the specified cloud storage and saves it
+	 * Retrieves the performance data from Application Insights and saves it
 	 * to the specified file
 	 * 
 	 * @param fileName
@@ -83,6 +83,12 @@ public class AzureLogHandler {
 		}
 	}
 
+	/**
+	 * Retrieves the performance data from Application Insights via its REST API.
+	 * 
+	 * @return The list of performance data.
+	 * @throws SeMoDeException If there was an exception while retrieving or parsing the performance data.
+	 */
 	private List<PerformanceData> getPerformanceData() throws SeMoDeException {
 		List<PerformanceData> performanceData = new ArrayList<>();
 
@@ -135,6 +141,12 @@ public class AzureLogHandler {
 		return performanceData;
 	}
 
+	/**
+	 * Retrieves the host startup times from Application Insights via its REST API.
+	 * 
+	 * @return A map that assigns the startup duration to the container id.
+	 * @throws SeMoDeException If retrieving or parsing the host startup times failed.
+	 */
 	private Map<String, Double> getHostStartupDurations() throws SeMoDeException {
 		Map<String, Double> hostStartupDurations = new HashMap<>();
 
@@ -164,6 +176,13 @@ public class AzureLogHandler {
 		return hostStartupDurations;
 	}
 
+	/**
+	 * Calls the REST API of Application Insights to retrieve the function requests 
+	 * and returns the response as JSON-formatted string.
+	 * 
+	 * @return Response of the REST API as a JSON-formatted string.
+	 * @throws SeMoDeException If calling the REST API failed.
+	 */
 	private String getRequestsAsJSON() throws SeMoDeException {
 		return runQuery("requests " 
 				+ "| where timestamp > todatetime('" + this.startTime.format(QUERY_DATE_FORMATTER) + "') "
@@ -171,6 +190,13 @@ public class AzureLogHandler {
 				+ "| order by timestamp asc");
 	}
 
+	/**
+	 * Calls the REST API of Application Insights to retrieve the traces 
+	 * and returns the response as JSON-formatted string.
+	 * 
+	 * @return Response of the REST API as a JSON-formatted string.
+	 * @throws SeMoDeException If calling the REST API failed.
+	 */
 	private String getTracesAsJSON() throws SeMoDeException {
 		return runQuery("traces " 
 				+ "| where message startswith 'Host started' " 
@@ -179,11 +205,24 @@ public class AzureLogHandler {
 				+ "| order by timestamp asc");
 	}
 
+	/**
+	 * Returns the url of the REST API of Application Insights for a given query.
+	 * 
+	 * @param query The query to declare what to fetch from Application Insights.
+	 * @return The url of the REST API
+	 */
 	private String getApiUrlForQuery(String query) {
 		String escapedQuery = UrlEscapers.urlPathSegmentEscaper().escape(query);
 		return apiURL + "?query=" + escapedQuery;
 	}
 
+	/**
+	 * Runs a query via the REST API of Application Insights and returns the response as string.
+	 * 
+	 * @param query The query to declare what to fetch from Application Insights.
+	 * @return The response as string.
+	 * @throws SeMoDeException If calling the REST API failed.
+	 */
 	private String runQuery(String query) throws SeMoDeException {
 		try {
 			URL url = new URL(getApiUrlForQuery(query));
@@ -203,6 +242,13 @@ public class AzureLogHandler {
 		}
 	}
 
+	/**
+	 * Parses the columns of the JSON-formatted answer to later reference items by its name 
+	 * instead of its position in the array.
+	 * 
+	 * @param columnsNode The columns node of the server response.
+	 * @return A map assigning each column the index in the array.
+	 */
 	private Map<String, Integer> parseColumns(JsonNode columnsNode) {
 		Map<String, Integer> map = new HashMap<>();
 
