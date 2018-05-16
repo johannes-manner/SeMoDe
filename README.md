@@ -61,7 +61,7 @@ This feature generates .csv files from logs of functions maintained by Microsoft
 
 Usage:
 
-```java -jar SeMoDe.jar "azurePerformanceData" "APPLICATION ID" "API KEY" "FUNCTION NAME"```
+```java -jar SeMoDe.jar "azurePerformanceData" "APPLICATION ID" "API KEY" "FUNCTION NAME" "START TIME FILTER" "END TIME FILTER"```
 
 0. "azurePerformanceData" is a constant, which specifies the used utility mechanism.
 
@@ -70,3 +70,7 @@ Usage:
 2. API Key of the Application Insights account. A key can be created under "API Access" in Application Insights.
 
 3. Function Name of the function the performance data are fetched from. It is specified under the function apps.
+
+4. Desired start time filter. Only logs after specified time are taken into account. It has the format yyyy-MM-dd_HH:mm or yyyy-MM-dd .
+
+5. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm or yyyy-MM-dd .
