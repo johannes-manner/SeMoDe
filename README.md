@@ -71,6 +71,6 @@ Usage:
 
 3. Function Name of the function the performance data are fetched from. It is specified under the function apps.
 
-4. Desired start time filter. Only logs after specified time are taken into account. It has the format yyyy-MM-dd_HH:mm or yyyy-MM-dd .
+4. Desired start time filter. Only logs after specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
 
-5. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm or yyyy-MM-dd .
+5. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
