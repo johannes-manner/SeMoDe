@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,16 +34,20 @@ public class AzureLogHandler {
 	private static final Logger logger = Logger.getLogger(AzureLogHandler.class.getName());
 
 	private static final String OUTPUT_DIRECTORY = "performanceData";
-
-	private static final String MESSAGE_HOST_STARTED = "Host started";
+	private static final DateTimeFormatter QUERY_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
 
 	private final String apiURL;
 	private final String apiKey;
 	private final String functionName;
+	private final LocalDateTime startTime;
+	private final LocalDateTime endTime;
 
-	public AzureLogHandler(String applicationID, String apiKey, String functionName) {
+	public AzureLogHandler(String applicationID, String apiKey, String functionName, LocalDateTime startTime,
+			LocalDateTime endTime) {
 		this.apiKey = apiKey;
 		this.functionName = functionName;
+		this.startTime = startTime;
+		this.endTime = endTime;
 
 		this.apiURL = "https://api.applicationinsights.io/v1/apps/" + applicationID + "/query";
 	}
@@ -147,13 +152,10 @@ public class AzureLogHandler {
 
 			for (JsonNode rowNode : rowsNode) {
 				String message = rowNode.get(columnsIndex.get("message")).asText();
+				String container = rowNode.get(columnsIndex.get("cloud_RoleInstance")).asText();
+				double hostStartupDuration = AzureLogAnalyzer.parseHostStartupDuration(message);
 
-				if (message.startsWith(MESSAGE_HOST_STARTED)) {
-					String container = rowNode.get(columnsIndex.get("cloud_RoleInstance")).asText();
-					double hostStartupDuration = AzureLogAnalyzer.parseHostStartupDuration(message);
-
-					hostStartupDurations.put(container, hostStartupDuration);
-				}
+				hostStartupDurations.put(container, hostStartupDuration);
 			}
 		} catch (IOException e) {
 			throw new SeMoDeException("Exception while parsing traces via REST API from Application Insights", e);
@@ -163,11 +165,18 @@ public class AzureLogHandler {
 	}
 
 	private String getRequestsAsJSON() throws SeMoDeException {
-		return runQuery("requests | order by timestamp asc");
+		return runQuery("requests " 
+				+ "| where timestamp > todatetime('" + this.startTime.format(QUERY_DATE_FORMATTER) + "') "
+				+ "and timestamp < todatetime('" + this.endTime.format(QUERY_DATE_FORMATTER) + "') "
+				+ "| order by timestamp asc");
 	}
 
 	private String getTracesAsJSON() throws SeMoDeException {
-		return runQuery("traces | order by timestamp asc");
+		return runQuery("traces " 
+				+ "| where message startswith 'Host started' " 
+				+ "and timestamp > todatetime('" + this.startTime.format(QUERY_DATE_FORMATTER) + "') " 
+				+ "and timestamp < todatetime('" + this.endTime.format(QUERY_DATE_FORMATTER) + "') " 
+				+ "| order by timestamp asc");
 	}
 
 	private String getApiUrlForQuery(String query) {
