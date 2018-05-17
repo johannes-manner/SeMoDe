@@ -238,6 +238,8 @@ public final class AWSLogAnalyzer {
 				event.getLogStream(),
 				event.getRequestId(), 
 				time, 
+				LocalDateTime.MIN,
+				0, 
 				Double.parseDouble(messageParts[3]), 
 				Integer.parseInt(messageParts[6]), 
 				Integer.parseInt(messageParts[10]), 
