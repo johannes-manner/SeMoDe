@@ -6,7 +6,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -54,9 +59,7 @@ public class BenchmarkExecutor {
 		ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 		switch (mode) {
 		case CONCURRENT:
-			for (int i = 0; i < numberOfRequests; i++) {
-				triggerFunction();
-			}
+			executeConcurrentBenchmark();
 			return;
 		case SEQUENTIAL_INTERVAL:
 			System.out.println("start");
@@ -89,6 +92,45 @@ public class BenchmarkExecutor {
 			break;
 		default:
 			return;
+		}
+	}
+	
+	private int executeConcurrentBenchmark() {
+		ExecutorService executorService = Executors.newCachedThreadPool();
+		
+		List<Future<String>> responses = new ArrayList<>();
+		for (int i = 0; i < numberOfRequests; i++) {
+			Future<String> future = executorService.submit(new FunctionTrigger(url));
+			responses.add(future);
+		}
+		
+		shutdownExecutorAndAwaitTermination(executorService);
+
+		int failedRequests = 0;
+		for(Future<String> future : responses) {
+			try {
+				System.out.println(future.get());
+			} catch (ExecutionException | InterruptedException e) {
+				failedRequests++;
+			}
+		}
+		
+		return failedRequests;
+	}
+	
+	/**
+	 * waits 300 sec for the Executor to shutdown; 
+	 * otherwise the Executor is forced to shutdown immediately.
+	 * @param executor
+	 */
+	private void shutdownExecutorAndAwaitTermination(ExecutorService executorService) {
+		executorService.shutdown();
+		try {
+			if (!executorService.awaitTermination(300, TimeUnit.SECONDS)) {
+				executorService.shutdownNow();
+			}
+		} catch (InterruptedException e) {
+			executorService.shutdownNow();
 		}
 	}
 
