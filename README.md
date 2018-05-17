@@ -74,3 +74,30 @@ Usage:
 4. Desired start time filter. Only logs after specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
 
 5. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
+
+
+### New feature: Benchmarking Tool for Microsoft Azure functions and AWS lambdas
+
+This feature triggers Azure functions or AWS lambdas to benchmark them in a controlled environment. It provides three modes:
+
+1. Concurrent triggering of a function (mode: "concurrent")
+
+2. Sequential triggering of a function with a fixed time interval between triggering it (mode: "sequentialInterval")
+
+3. Sequential triggering of a function with a fixed time between the function finished and the next triggering (mode: "sequentialWait")
+
+Usage:
+
+```java -jar SeMoDe.jar "benchmark" "URL" "MODE" "NUMBER OF EXECUTIONS" "TIME"```
+
+0. "benchmark" is a constant, which specifies the used utility mechanism.
+
+1. URL is the HTTP endpoint of the function to trigger it.
+
+2. Mode can be "concurrent", "sequentialInterval" or "sequentialWait". See above for the description of the modes.
+
+3. Number of triggerings. For the mode "concurrent" this is the number of concurrent requests to the URL. For the other two modes is the number of sequential requests.
+
+4. [Only for mode "sequentialInterval" and "sequentialWait"] Time between requests in milliseconds.
+
+
