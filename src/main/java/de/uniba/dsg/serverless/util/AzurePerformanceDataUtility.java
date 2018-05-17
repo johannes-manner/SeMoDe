@@ -57,6 +57,12 @@ public final class AzurePerformanceDataUtility extends CustomUtility {
 				.writePerformanceDataToFile(fileName);
 	}
 	
+	/**
+	 * Parses the start and end time parameter to a LocalDateTime.
+	 * 
+	 * @param time The time as string.
+	 * @return The time as LocalDateTime.
+	 */
 	private static LocalDateTime parseTime(String time) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'_'HH:mm");
 		return LocalDateTime.parse(time, formatter);
