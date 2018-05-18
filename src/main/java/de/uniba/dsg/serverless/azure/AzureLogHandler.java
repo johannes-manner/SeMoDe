@@ -12,10 +12,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -92,9 +90,6 @@ public class AzureLogHandler {
 	private List<PerformanceData> getPerformanceData() throws SeMoDeException {
 		List<PerformanceData> performanceData = new ArrayList<>();
 
-		Set<String> startedContainers = new HashSet<>();
-		Map<String, Double> hostStartupDurations = getHostStartupDurations();
-
 		String functionRequests = getRequestsAsJSON();
 
 		JsonFactory factory = new JsonFactory();
@@ -108,30 +103,30 @@ public class AzureLogHandler {
 			Map<String, Integer> columnsIndex = parseColumns(columnsNode);
 
 			for (JsonNode rowNode : rowsNode) {
-				String start = rowNode.get(columnsIndex.get("timestamp")).asText();
-				String id = rowNode.get(columnsIndex.get("id")).asText();
-				String functionName = rowNode.get(columnsIndex.get("name")).asText();
-				double duration = rowNode.get(columnsIndex.get("duration")).asDouble();
-				String dimJson = rowNode.get(columnsIndex.get("customDimensions")).asText();
-				String container = rowNode.get(columnsIndex.get("cloud_RoleInstance")).asText();
-
-				String end = mapper.readTree(dimJson).get("EndTime").asText();
+				// Function execution data
+				String functionName = rowNode.get(columnsIndex.get("r_name")).asText();
+				String container = rowNode.get(columnsIndex.get("r_container")).asText();
+				String id = rowNode.get(columnsIndex.get("r_id")).asText();
+				String start = rowNode.get(columnsIndex.get("r_timestamp")).asText();
+				String customJson = rowNode.get(columnsIndex.get("r_custom")).asText();
+				String end = mapper.readTree(customJson).get("EndTime").asText();
+				double duration = rowNode.get(columnsIndex.get("r_duration")).asDouble();
 
 				LocalDateTime startTime = AzureLogAnalyzer.parseTime(start);
 				LocalDateTime endTime = AzureLogAnalyzer.parseTime(end);
-
-				if (functionName.equals(this.functionName)) {
-					// TODO: Find a better solution to add the host startup time to a function
-					double startupDuration = 0;
-					if (!startedContainers.contains(container)) {
-						startupDuration = hostStartupDurations.get(container);
-						startedContainers.add(container);
-					}
-
-					PerformanceData data = new PerformanceData(functionName, container, id, startTime, endTime,
-							startupDuration, duration, -1, -1, -1);
-					performanceData.add(data);
+				
+				// Host startup data
+				String message = rowNode.get(columnsIndex.get("t_message")).asText();
+				
+				double hostStartupDuration = -1;
+				// If host was not started for the request, left join is empty and message is empty string
+				if (!message.equals("")) {
+					hostStartupDuration = AzureLogAnalyzer.parseHostStartupDuration(message);
 				}
+
+				PerformanceData data = new PerformanceData(functionName, container, id, startTime, endTime,
+						hostStartupDuration, duration, -1, -1, -1);
+				performanceData.add(data);
 			}
 
 		} catch (IOException e) {
@@ -142,41 +137,6 @@ public class AzureLogHandler {
 	}
 
 	/**
-	 * Retrieves the host startup times from Application Insights via its REST API.
-	 * 
-	 * @return A map that assigns the startup duration to the container id.
-	 * @throws SeMoDeException If retrieving or parsing the host startup times failed.
-	 */
-	private Map<String, Double> getHostStartupDurations() throws SeMoDeException {
-		Map<String, Double> hostStartupDurations = new HashMap<>();
-
-		String functionTraces = getTracesAsJSON();
-
-		JsonFactory factory = new JsonFactory();
-		ObjectMapper mapper = new ObjectMapper(factory);
-
-		try {
-			JsonNode tableNode = mapper.readTree(functionTraces).get("tables").get(0);
-			JsonNode columnsNode = tableNode.get("columns");
-			JsonNode rowsNode = tableNode.get("rows");
-
-			Map<String, Integer> columnsIndex = parseColumns(columnsNode);
-
-			for (JsonNode rowNode : rowsNode) {
-				String message = rowNode.get(columnsIndex.get("message")).asText();
-				String container = rowNode.get(columnsIndex.get("cloud_RoleInstance")).asText();
-				double hostStartupDuration = AzureLogAnalyzer.parseHostStartupDuration(message);
-
-				hostStartupDurations.put(container, hostStartupDuration);
-			}
-		} catch (IOException e) {
-			throw new SeMoDeException("Exception while parsing traces via REST API from Application Insights", e);
-		}
-
-		return hostStartupDurations;
-	}
-
-	/**
 	 * Calls the REST API of Application Insights to retrieve the function requests 
 	 * and returns the response as JSON-formatted string.
 	 * 
@@ -184,25 +144,21 @@ public class AzureLogHandler {
 	 * @throws SeMoDeException If calling the REST API failed.
 	 */
 	private String getRequestsAsJSON() throws SeMoDeException {
-		return runQuery("requests " 
-				+ "| where timestamp > todatetime('" + this.startTime.format(QUERY_DATE_FORMATTER) + "') "
-				+ "and timestamp < todatetime('" + this.endTime.format(QUERY_DATE_FORMATTER) + "') "
-				+ "| order by timestamp asc");
-	}
-
-	/**
-	 * Calls the REST API of Application Insights to retrieve the traces 
-	 * and returns the response as JSON-formatted string.
-	 * 
-	 * @return Response of the REST API as a JSON-formatted string.
-	 * @throws SeMoDeException If calling the REST API failed.
-	 */
-	private String getTracesAsJSON() throws SeMoDeException {
-		return runQuery("traces " 
-				+ "| where message startswith 'Host started' " 
-				+ "and timestamp > todatetime('" + this.startTime.format(QUERY_DATE_FORMATTER) + "') " 
-				+ "and timestamp < todatetime('" + this.endTime.format(QUERY_DATE_FORMATTER) + "') " 
-				+ "| order by timestamp asc");
+		String tracesJoin = "traces "
+				+ "| project t_timestamp=timestamp, t_message=message, t_container=cloud_RoleInstance, t_itemId = substring(itemId, 9) "
+				+ "| where t_timestamp > todatetime('" + this.startTime.format(QUERY_DATE_FORMATTER) + "') "
+				+ "and t_timestamp < todatetime('" + this.endTime.format(QUERY_DATE_FORMATTER) + "') "
+				+ "and t_message startswith 'Host started'";
+		
+		String query = "requests "
+				+ "| project r_timestamp=timestamp, r_id=id, r_name=name, r_duration=duration, r_custom=customDimensions, r_container=cloud_RoleInstance, r_itemId = substring(itemId,9) "
+				+ "| where r_timestamp > todatetime('" + this.startTime.format(QUERY_DATE_FORMATTER) + "') "
+				+ "and r_timestamp < todatetime('" + this.endTime.format(QUERY_DATE_FORMATTER) + "') "
+				+ "and r_name == '" + functionName + "' "
+				+ "| join kind=leftouter (" + tracesJoin + ") on $left.r_itemId == $right.t_itemId "
+				+ "| order by r_timestamp asc";
+		
+		return runQuery(query);
 	}
 
 	/**
