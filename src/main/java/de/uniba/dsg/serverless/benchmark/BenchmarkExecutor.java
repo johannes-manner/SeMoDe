@@ -1,160 +1,166 @@
 package de.uniba.dsg.serverless.benchmark;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
-import javax.net.ssl.HttpsURLConnection;
-
-import com.google.common.io.CharStreams;
-
-import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public class BenchmarkExecutor {
 
 	private static URL url;
-	private int numberOfRequests;
+	private TimeUnit TIME_UNIT = TimeUnit.SECONDS;
 
-	public BenchmarkExecutor(URL url, int numberOfRequests) {
+	/**
+	 * Creates a new BenchmarkExecutor.
+	 * 
+	 * @param url
+	 * @param numberOfRequests
+	 */
+	public BenchmarkExecutor(URL url) {
 		BenchmarkExecutor.url = url;
-		this.numberOfRequests = numberOfRequests;
 	}
 
 	/**
-	 * Executes a benchmark in one of three modes:<br>
-	 * {@link BenchmarkMode#CONCURRENT}<br>
-	 * Executes the function numberOfRequests times without delay.
-	 * <p>
-	 * {@link BenchmarkMode#SEQUENTIAL_INTERVAL}<br>
-	 * Executes the function at the given fixed rate. The first execution will
-	 * commence immediately. Further ones will be executed at <math>(T +
-	 * delay)</math>, <math>(T + 2 * delay)</math> and so on. If a function
-	 * execution exceeds the delay, further executions are delayed and not executed
-	 * concurrently.
-	 * <p>
-	 * {@link BenchmarkMode#SEQUENTIAL_INTERVAL}<br>
-	 * Executes the function at the given delay after the function execution time.
-	 * The first execution will commence immediately. Furhter ones will be executed
-	 * at <math>(T + executionTime1 + delay)</math> and so on.
+	 * Executes the benchmark in mode {@link BenchmarkMode#CONCURRENT}<br>
+	 * This mode executes the function numberOfRequests times without delay.
 	 * 
-	 * @param delay
-	 *            delay between function executions (0 for concurrent)
-	 * @param mode
-	 *            Mode of the Benchmark
-	 * @throws SeMoDeException
+	 * @param numberOfRequests
+	 * @return number of failed requests
 	 */
-	public void executeBenchmark(int delay, BenchmarkMode mode) throws SeMoDeException {
-		ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-		switch (mode) {
-		case CONCURRENT:
-			executeConcurrentBenchmark();
-			return;
-		case SEQUENTIAL_INTERVAL:
-			System.out.println("start");
-			ScheduledFuture<?> handle = executorService.scheduleAtFixedRate(BenchmarkExecutor::triggerFunction, 0,
-					delay, TimeUnit.SECONDS);
-
-			long totalExecutionTime = numberOfRequests * delay;
-			executorService.schedule(new Runnable() {
-				public void run() {
-					handle.cancel(true);
-				}
-			}, totalExecutionTime, TimeUnit.SECONDS);
-			
-			executorService.shutdown();
-			try {
-				System.out.println("Executor terminated in time = "
-						+ executorService.awaitTermination(totalExecutionTime * 5, TimeUnit.SECONDS));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			break;
-		case SEQUENTIAL_WAIT:
-			for (int i = 0; i < numberOfRequests; i++) {
-				triggerFunction();
-				try {
-					TimeUnit.SECONDS.sleep(delay);
-				} catch (InterruptedException e) {
-				}
-			}
-			break;
-		default:
-			return;
-		}
-	}
-	
-	private int executeConcurrentBenchmark() {
+	public int executeConcurrentBenchmark(int numberOfRequests) {
 		ExecutorService executorService = Executors.newCachedThreadPool();
-		
+
 		List<Future<String>> responses = new ArrayList<>();
 		for (int i = 0; i < numberOfRequests; i++) {
 			Future<String> future = executorService.submit(new FunctionTrigger(url));
 			responses.add(future);
 		}
-		
-		shutdownExecutorAndAwaitTermination(executorService);
+
+		shutdownExecutorAndAwaitTermination(executorService, 5);
 
 		int failedRequests = 0;
-		for(Future<String> future : responses) {
+		for (Future<String> future : responses) {
 			try {
-				System.out.println(future.get());
-			} catch (ExecutionException | InterruptedException e) {
+				future.get();
+			} catch (CancellationException | ExecutionException | InterruptedException e) {
 				failedRequests++;
 			}
 		}
-		
 		return failedRequests;
 	}
-	
+
 	/**
-	 * waits 300 sec for the Executor to shutdown; 
-	 * otherwise the Executor is forced to shutdown immediately.
-	 * @param executor
+	 * Executes the benchmark in mode {@link BenchmarkMode#SEQUENTIAL_INTERVAL}<br>
+	 * This mode executes the function at the given fixed rate. The first execution
+	 * will commence immediately. Further ones will be executed at <math>(T +
+	 * delay)</math>, <math>(T + 2 * delay)</math> and so on.
+	 * 
+	 * @param numberOfRequests
+	 * @param delay
+	 *            delays between starts of function executions in minutes
+	 * @return number of failed requests
 	 */
-	private void shutdownExecutorAndAwaitTermination(ExecutorService executorService) {
+	public int executeSequentialIntervalBenchmark(int numberOfRequests, int delay) {
+		ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+		List<Future<String>> responses = new ArrayList<>();
+		for (int i = 0; i < numberOfRequests; i++) {
+			// schedule function execution at (T + i * delay) minutes
+			responses.add(executorService.schedule(new FunctionTrigger(url), i * delay, TIME_UNIT));
+		}
+		shutdownExecutorAndAwaitTermination(executorService, 5);
+
+		int failedRequests = 0;
+		for (Future<String> future : responses) {
+			try {
+				future.get();
+			} catch (CancellationException | ExecutionException | InterruptedException e) {
+				failedRequests++;
+			}
+		}
+		return failedRequests;
+	}
+
+	/**
+	 * Executes the Benchmark in mode {@link BenchmarkMode#SEQUENTIAL_WAIT}. <br>
+	 * This mode executes the function at the given delay after the function
+	 * execution time. The first execution will commence immediately. Furhter ones
+	 * will be executed at <math>(T + executionTimeLast + delay)</math> and so on.
+	 * <p>
+	 * 
+	 * @param numberOfRequests
+	 * @param delay
+	 *            between the end of execution n and the start of execution n+1 in
+	 *            minutes
+	 * @return number of failed requests
+	 */
+	public int executeSequentialWaitBenchmark(int numberOfRequests, int delay) {
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+		int failedRequests = 0;
+		for (int i = 0; i < numberOfRequests; i++) {
+			Future<String> future = executorService.submit(new FunctionTrigger(url));
+			try {
+				future.get();
+			} catch (CancellationException | ExecutionException | InterruptedException e) {
+				failedRequests++;
+			}
+			try {
+				TIME_UNIT.sleep(delay);
+			} catch (InterruptedException ignored) {
+			}
+		}
+		shutdownExecutorAndAwaitTermination(executorService, 1);
+		return failedRequests;
+	}
+
+	/**
+	 * Executes the Benchmark in mode {@link BenchmarkMode#SEQUENTIAL_CONCURRENT}.
+	 * <br>
+	 * The mode executes functions in groups of concurrent requests. The group
+	 * executions are delayed, group g + 1 will start after group g terminated +
+	 * delay.
+	 * 
+	 * @param numberOfGroups
+	 * @param numberOfRequestsEachGroup
+	 * @param delay
+	 *            between the end of group execution g and the start of group
+	 *            execution g+1 in minutes
+	 * @return number of failed requests
+	 */
+	public int executeSequentialConcurrentBenchmark(int numberOfGroups, int numberOfRequestsEachGroup, int delay) {
+		int failedRequests = 0;
+		for (int burst = 0; burst < numberOfGroups; burst++) {
+			failedRequests += executeConcurrentBenchmark(numberOfRequestsEachGroup);
+			try {
+				TIME_UNIT.sleep(delay);
+			} catch (InterruptedException ignored) {
+			}
+		}
+		return failedRequests;
+	}
+
+	/**
+	 * Waits for the Executor to shut down; After the maximum wait time, the
+	 * Executor is forced to shutdown immediately.
+	 * 
+	 * @param executor
+	 * @param maxWaitTime
+	 *            the maximum time to wait in minutes
+	 */
+	private void shutdownExecutorAndAwaitTermination(ExecutorService executorService, int maxWaitTime) {
 		executorService.shutdown();
 		try {
-			if (!executorService.awaitTermination(300, TimeUnit.SECONDS)) {
+			if (!executorService.awaitTermination(maxWaitTime, TimeUnit.MINUTES)) {
 				executorService.shutdownNow();
 			}
 		} catch (InterruptedException e) {
 			executorService.shutdownNow();
-		}
-	}
-
-	private static void triggerFunction() throws RuntimeException {
-		try {
-			HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
-			con.setDoOutput(true);
-			con.setRequestMethod("POST");
-			OutputStream os = con.getOutputStream();
-			OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
-			osw.write("5");
-			osw.flush();
-			osw.close();
-			os.close();
-			con.connect();
-
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
-				System.out.println("Response: " + CharStreams.toString(in));
-				return;
-			}
-		} catch (IOException e) {
-
-			System.err.println(e.getMessage());
-			throw new RuntimeException("Function execution was not possible.", e);
 		}
 	}
 

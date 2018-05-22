@@ -78,17 +78,19 @@ Usage:
 
 ### New feature: Benchmarking Tool for Microsoft Azure functions and AWS lambdas
 
-This feature triggers Azure functions or AWS lambdas to benchmark them in a controlled environment. It provides three modes:
+This feature triggers API requests in a controlled environment. It provides four modes:
 
 1. Concurrent triggering of a function (mode: "concurrent")
 
 2. Sequential triggering of a function with a fixed time interval between triggering it (mode: "sequentialInterval")
 
-3. Sequential triggering of a function with a fixed time between the function finished and the next triggering (mode: "sequentialWait")
+3. Sequential triggering of a function with a fixed time between the execution termination and the next triggering/ request (mode: "sequentialWait")
+
+4. Sequential combined with concurrent triggering of a function. Multiple sequential groups of requests execute functions concurrently. (mode: "sequentialConcurrent")
 
 Usage:
 
-```java -jar SeMoDe.jar "benchmark" "URL" "MODE" "NUMBER OF EXECUTIONS" "TIME"```
+```java -jar SeMoDe.jar "benchmark" "URL" "MODE" <additional parameters>```
 
 0. "benchmark" is a constant, which specifies the used utility mechanism.
 
@@ -96,8 +98,20 @@ Usage:
 
 2. Mode can be "concurrent", "sequentialInterval" or "sequentialWait". See above for the description of the modes.
 
-3. Number of triggerings. For the mode "concurrent" this is the number of concurrent requests to the URL. For the other two modes is the number of sequential requests.
+Usage for each mode:  
 
-4. [Only for mode "sequentialInterval" and "sequentialWait"] Time between requests in milliseconds.
+```java -jar SeMoDe.jar "URL" "concurrent" "NUMBER_OF_REQUESTS"```  
+3. Number of function executions.
 
+```java -jar SeMoDe.jar "URL" "sequentialInterval" "NUMBER_OF_REQUESTS" "DELAY"```  
+3. Number of function executions.
+4. Time between request execution start times in minutes.
 
+```java -jar SeMoDe.jar "URL" "sequentailWait" "NUMBER_OF_REQUESTS" "DELAY"```  
+3. Number of requests.
+4. Delay between termination of function execution n and start of execution n + 1 in minutes.
+
+```java -jar SeMoDe.jar "URL" "sequentialConcurrent" "NUMBER_OF_GROUPS" "NUMBER_OF_REQUESTS_GROUP" "DELAY"```  
+3. Number of execution groups.
+4. Number of requests in each group.
+5. Delay between termination of group g and start of group g + 1 in minutes.
