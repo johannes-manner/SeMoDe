@@ -1,7 +1,6 @@
 package de.uniba.dsg.serverless.util;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -15,11 +14,13 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
 public class BenchmarkUtility extends CustomUtility {
 
 	private static final Logger logger = Logger.getLogger(BenchmarkUtility.class.getName());
-	private URL url;
+	
+	private String url;
+	private String path;
+	private String jsonInput;
 	private BenchmarkMode mode;
-	int numberOfRequests;
-
-	int delay;
+	private int numberOfRequests;
+	private int delay;
 
 	public BenchmarkUtility(String name) {
 		super(name);
@@ -37,9 +38,9 @@ public class BenchmarkUtility extends CustomUtility {
 			return;
 		}
 		try {
-			BenchmarkExecutor executor = new BenchmarkExecutor(url, numberOfRequests);
+			BenchmarkExecutor executor = new BenchmarkExecutor(url, path, jsonInput, numberOfRequests);
 			executor.executeBenchmark(delay, mode);
-		} catch (SeMoDeException e) {
+		} catch (SeMoDeException | MalformedURLException e) {
 			logger.log(Level.SEVERE, "Exception during benchmark execution.", e);
 			return;
 		}
@@ -47,30 +48,34 @@ public class BenchmarkUtility extends CustomUtility {
 	}
 
 	private void initParameters(List<String> args) throws SeMoDeException {
-		if (args.size() < 3) {
+		if (args.size() < 4) {
 			throw new SeMoDeException("Wrong parameter size.");
 		}
 		try {
-			url = new URL(args.get(0));
-			mode = Objects.requireNonNull(BenchmarkMode.fromString(args.get(1)));
-			numberOfRequests = Integer.parseInt(args.get(2));
-		} catch (MalformedURLException e) {
-			throw new SeMoDeException("The URL could not be parsed.", e);
-		} catch (NullPointerException e) {
-			throw new SeMoDeException("Mode " + args.get(1) + " is unknown.", e);
+			url = Objects.requireNonNull(args.get(0));
+			jsonInput = this.readJsonInput(args.get(1));
+			mode = Objects.requireNonNull(BenchmarkMode.fromString(args.get(2)));
+			numberOfRequests = Integer.parseInt(args.get(3));
+		}  catch (NullPointerException e) {
+			throw new SeMoDeException("A parameter is missing. Check your command.", e);
 		} catch (NumberFormatException e) {
 			throw new SeMoDeException("Number of Requests must be a number.", e);
 		}
 
 		if (mode == BenchmarkMode.SEQUENTIAL_INTERVAL || mode == BenchmarkMode.SEQUENTIAL_WAIT) {
-			if (args.size() < 4) {
+			if (args.size() < 5) {
 				throw new SeMoDeException("Time Parameter missing for Mode Sequential");
 			}
-			if (!isNumeric(args.get(3))) {
+			if (!isNumeric(args.get(4))) {
 				throw new SeMoDeException("Number of Requests must be a number.");
 			}
-			delay = Integer.parseInt(args.get(3));
+			delay = Integer.parseInt(args.get(4));
 		}
+	}
+
+	private String readJsonInput(String string) {
+		// TODO:
+		return "{\"number\": 30}";
 	}
 
 	private static boolean isNumeric(String s) {

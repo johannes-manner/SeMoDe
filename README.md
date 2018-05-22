@@ -94,10 +94,12 @@ Usage:
 
 1. URL is the HTTP endpoint of the function to trigger it.
 
-2. Mode can be "concurrent", "sequentialInterval" or "sequentialWait". See above for the description of the modes.
+2. Local filename to read json, which is used within the POST request body.
 
-3. Number of triggerings. For the mode "concurrent" this is the number of concurrent requests to the URL. For the other two modes is the number of sequential requests.
+3. Mode can be "concurrent", "sequentialInterval" or "sequentialWait". See above for the description of the modes.
 
-4. [Only for mode "sequentialInterval" and "sequentialWait"] Time between requests in milliseconds.
+4. Number of triggerings. For the mode "concurrent" this is the number of concurrent requests to the URL. For the other two modes is the number of sequential requests.
+
+5. [Only for mode "sequentialInterval" and "sequentialWait"] Time between requests in seconds.
 
 

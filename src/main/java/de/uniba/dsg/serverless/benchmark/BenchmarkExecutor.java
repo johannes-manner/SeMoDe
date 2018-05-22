@@ -1,34 +1,55 @@
 package de.uniba.dsg.serverless.benchmark;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.HttpsURLConnection;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
-import com.google.common.io.CharStreams;
+import com.google.common.util.concurrent.Uninterruptibles;
+import com.sun.istack.logging.Logger;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public class BenchmarkExecutor {
+	
+	private static final int PLATFORM_FUNCTION_TIMEOUT = 300;
 
-	private static URL url;
-	private int numberOfRequests;
+	private static final Logger logger = Logger.getLogger(BenchmarkExecutor.class);
 
-	public BenchmarkExecutor(URL url, int numberOfRequests) {
-		BenchmarkExecutor.url = url;
+	private final String host;
+	private final String path;
+	private final String jsonInput;
+	private final int numberOfRequests;
+	private final Map<String, String> queryParameters;
+	
+	public BenchmarkExecutor(String urlString, String path, String jsonInput, int numberOfRequests) throws MalformedURLException {
+		URL url = new URL(urlString);
+		this.host = url.getProtocol() + "://" + url.getHost();
+		this.path = url.getPath();
+		
+		this.queryParameters = new HashMap<>();
+		String[] queries = url.getQuery().split("\\?");
+		for(String query : queries) {
+			int pos = query.indexOf('=');
+			this.queryParameters.put(query.substring(0, pos), query.substring(pos+1));
+		}
+		this.jsonInput = jsonInput;
 		this.numberOfRequests = numberOfRequests;
 	}
 
@@ -56,106 +77,129 @@ public class BenchmarkExecutor {
 	 * @throws SeMoDeException
 	 */
 	public void executeBenchmark(int delay, BenchmarkMode mode) throws SeMoDeException {
-		ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 		switch (mode) {
 		case CONCURRENT:
-			executeConcurrentBenchmark();
-			return;
+			this.executeConcurrentBenchmark();
+			break;
 		case SEQUENTIAL_INTERVAL:
-			System.out.println("start");
-			ScheduledFuture<?> handle = executorService.scheduleAtFixedRate(BenchmarkExecutor::triggerFunction, 0,
-					delay, TimeUnit.SECONDS);
-
-			long totalExecutionTime = numberOfRequests * delay;
-			executorService.schedule(new Runnable() {
-				public void run() {
-					handle.cancel(true);
-				}
-			}, totalExecutionTime, TimeUnit.SECONDS);
-			
-			executorService.shutdown();
-			try {
-				System.out.println("Executor terminated in time = "
-						+ executorService.awaitTermination(totalExecutionTime * 5, TimeUnit.SECONDS));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			this.executeSequentialInterval(delay);
 			break;
 		case SEQUENTIAL_WAIT:
-			for (int i = 0; i < numberOfRequests; i++) {
-				triggerFunction();
-				try {
-					TimeUnit.SECONDS.sleep(delay);
-				} catch (InterruptedException e) {
-				}
-			}
+			this.executeSequentialWait(delay);
 			break;
 		default:
 			return;
 		}
 	}
-	
-	private int executeConcurrentBenchmark() {
+
+	/**
+	 * 
+	 * 
+	 * @param delay
+	 * @throws SeMoDeException
+	 */
+	private void executeSequentialWait(int delay) throws SeMoDeException {
+		for (int i = 0; i < numberOfRequests; i++) {
+			try {
+				String result = this.createFunctionTrigger().call();
+				logger.info(result);
+			} catch (Exception callException) {
+				logger.warning("An error occured while executing the callable.");
+				throw new SeMoDeException("An error occured while executing the callable.", callException);
+			}
+			
+			Uninterruptibles.sleepUninterruptibly(delay, TimeUnit.SECONDS);
+		}
+	}
+
+	private void executeSequentialInterval(int delay) {
 		ExecutorService executorService = Executors.newCachedThreadPool();
 		
 		List<Future<String>> responses = new ArrayList<>();
-		for (int i = 0; i < numberOfRequests; i++) {
-			Future<String> future = executorService.submit(new FunctionTrigger(url));
+		for(int i = 0 ; i < numberOfRequests ; i++) {
+			Future<String> future = executorService.submit(this.createFunctionTrigger());
 			responses.add(future);
+			
+			Uninterruptibles.sleepUninterruptibly(delay, TimeUnit.SECONDS);
 		}
 		
 		shutdownExecutorAndAwaitTermination(executorService);
+		
+		for (Future<String> future : responses) {
+			try {
+				System.out.println(future.get());
+			} catch (ExecutionException | InterruptedException e) {
+				System.out.println("Execution failed due to an error.");
+			}
+		}
+	}
+
+	private int executeConcurrentBenchmark() {
+		ExecutorService executorService = Executors.newCachedThreadPool();
+
+		List<Future<String>> responses = new ArrayList<>();
+		for (int i = 0; i < numberOfRequests; i++) {
+			Future<String> future = executorService.submit(this.createFunctionTrigger());
+			responses.add(future);
+		}
+
+		shutdownExecutorAndAwaitTermination(executorService);
 
 		int failedRequests = 0;
-		for(Future<String> future : responses) {
+		for (Future<String> future : responses) {
 			try {
 				System.out.println(future.get());
 			} catch (ExecutionException | InterruptedException e) {
 				failedRequests++;
 			}
 		}
-		
+
 		return failedRequests;
 	}
-	
+
 	/**
-	 * waits 300 sec for the Executor to shutdown; 
-	 * otherwise the Executor is forced to shutdown immediately.
+	 * waits 300 sec for the Executor to shutdown; otherwise the Executor is forced
+	 * to shutdown immediately.
+	 * 
 	 * @param executor
 	 */
 	private void shutdownExecutorAndAwaitTermination(ExecutorService executorService) {
 		executorService.shutdown();
 		try {
-			if (!executorService.awaitTermination(300, TimeUnit.SECONDS)) {
+			if (!executorService.awaitTermination(PLATFORM_FUNCTION_TIMEOUT, TimeUnit.SECONDS)) {
 				executorService.shutdownNow();
 			}
 		} catch (InterruptedException e) {
 			executorService.shutdownNow();
 		}
 	}
-
-	private static void triggerFunction() throws RuntimeException {
-		try {
-			HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
-			con.setDoOutput(true);
-			con.setRequestMethod("POST");
-			OutputStream os = con.getOutputStream();
-			OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
-			osw.write("5");
-			osw.flush();
-			osw.close();
-			os.close();
-			con.connect();
-
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
-				System.out.println("Response: " + CharStreams.toString(in));
-				return;
+	
+	
+	private Callable<String> createFunctionTrigger(){
+		return new Callable<String>() {
+			public String call() {
+				
+				String uuid = UUID.randomUUID().toString();
+				logger.info("START " + uuid);
+				
+				Client client = ClientBuilder.newClient();
+				WebTarget target = client.target(host)
+						.path(path);
+				
+				for(String key : queryParameters.keySet()) {
+					target = target.queryParam(key, queryParameters.get(key));
+				}
+				
+				Response response = target.request(MediaType.APPLICATION_JSON_TYPE)
+						.post(Entity.entity("{\r\n" + 
+								"    \"name\": \"Azure\",\r\n" + 
+								"    \"number\": 41\r\n" + 
+								"}", MediaType.APPLICATION_JSON));
+				String responseValue = response.getStatus() + " " + response.getEntity();
+				
+				logger.info("END " + uuid);
+				return responseValue;
 			}
-		} catch (IOException e) {
-
-			System.err.println(e.getMessage());
-			throw new RuntimeException("Function execution was not possible.", e);
-		}
+		};
 	}
-
 }
