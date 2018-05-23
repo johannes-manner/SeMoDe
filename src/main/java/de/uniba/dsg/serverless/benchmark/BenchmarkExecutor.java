@@ -201,7 +201,7 @@ public class BenchmarkExecutor {
 				}
 
 				Response response = target.request(MediaType.APPLICATION_JSON_TYPE)
-						.post(Entity.entity("{\r\n" + "    \"name\": \"Azure\",\r\n" + "    \"number\": 41\r\n" + "}",
+						.post(Entity.entity(jsonInput,
 								MediaType.APPLICATION_JSON));
 				String responseValue = response.getStatus() + " " + response.getEntity();
 
