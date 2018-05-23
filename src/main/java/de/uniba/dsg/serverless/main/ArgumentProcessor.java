@@ -17,7 +17,7 @@ public class ArgumentProcessor {
 	// defining dynamic properties for log4j2
 	static {
 		System.setProperty("logFilename", "benchmarking_" + new SimpleDateFormat("MM-dd-HH-mm-ss").format(new Date()));
-		System.setProperty("CSV_SEPARATOR", ",");
+		System.setProperty("CSV_SEPARATOR", ";");
 	}
 
 	public static void main(String[] args) {

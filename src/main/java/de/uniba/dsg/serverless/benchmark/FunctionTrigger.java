@@ -20,7 +20,7 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public class FunctionTrigger implements Callable<String> {
 	
-	// only use the logger in this class for logging the performance data - see log4j2-test.xml
+	// only use the logger in this class for logging the REST data - see log4j2-test.xml
 	private static final Logger logger  = LogManager.getLogger(FunctionTrigger.class.getName());
 	
 	private static final String CSV_SEPARATOR = System.getProperty("CSV_SEPARATOR");

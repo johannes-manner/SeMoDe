@@ -11,9 +11,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.amazonaws.services.logs.AWSLogs;
 import com.amazonaws.services.logs.AWSLogsClientBuilder;
@@ -44,7 +45,7 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
  */
 public final class AWSLogHandler {
 
-	private static final Logger logger = Logger.getLogger(AWSLogHandler.class.getName());
+	private static final Logger logger = LogManager.getLogger(AWSLogHandler.class.getName());
 
 	private static final String TEMPLATE_FILE = "TestTemplate.txt";
 	private static final String GENERATION_PATH = "generatedTests";
@@ -101,10 +102,10 @@ public final class AWSLogHandler {
 				this.generateTestClass(jsonInstrumentation);
 			}
 
-			logger.log(Level.INFO, "Number of test files generated: " + jsonInstrumentationList.size());
+			logger.info("Number of test files generated: " + jsonInstrumentationList.size());
 		} catch (SeMoDeException e) {
-			logger.log(Level.SEVERE, e.getMessage());
-			logger.log(Level.INFO, "Prototype is terminated");
+			logger.fatal(e.getMessage());
+			logger.info("Prototype is terminated");
 		}
 	}
 
@@ -142,9 +143,9 @@ public final class AWSLogHandler {
 			}
 			this.createDirectoryIfNotExist();
 			Files.write(file, content.getBytes(CHARSET));
-			logger.log(Level.INFO, "File generated: " + file);
+			logger.info("File generated: " + file);
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, "IO-Exception during file writing. file path: " + file);
+			logger.fatal("IO-Exception during file writing. file path: " + file);
 		}
 	}
 
@@ -190,7 +191,7 @@ public final class AWSLogHandler {
 		List<FunctionExecutionEvent> logEventList = new ArrayList<>();
 
 		for (LogStream logStream : this.getLogStreams()) {
-			logger.log(Level.INFO, "Investigated LogStream " + logStream.getArn());
+			logger.info("Investigated LogStream " + logStream.getArn());
 			List<OutputLogEvent> logEvents = this.getOutputLogEvent(logStream.getLogStreamName());
 
 			List<FunctionExecutionEvent> logStreamEvents = AWSLogAnalyzer.generateEventList(logEvents, this.logGroupName,
@@ -263,7 +264,6 @@ public final class AWSLogHandler {
 
 				logResponse = this.amazonCloudLogs.describeLogStreams(logRequest);
 				
-				System.out.println("Number of Log streams: " + logResponse.getLogStreams().size());
 				List<LogStream> responseStreams = logResponse.getLogStreams();
 				
 				if(responseStreams.isEmpty()) {
@@ -277,6 +277,7 @@ public final class AWSLogHandler {
 
 			} while (furtherLogRequest);//logResponse.getLogStreams().size() > 0);
 
+			logger.info("Number of Log streams: " + streams.size());
 			return streams;
 		} catch (ResourceNotFoundException e) {
 			throw new SeMoDeException(
@@ -335,10 +336,10 @@ public final class AWSLogHandler {
 			}
 
 		} catch (SeMoDeException e) {
-			logger.severe(e.getMessage());
-			logger.severe("Data handler is terminated due to an error.");
+			logger.fatal(e.getMessage());
+			logger.fatal("Data handler is terminated due to an error.");
 		} catch (IOException e) {
-			logger.severe("IO Exception occured.");
+			logger.fatal("IO Exception occured.");
 		}
 	}
 

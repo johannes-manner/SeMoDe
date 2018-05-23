@@ -16,7 +16,7 @@ public class PerformanceData {
 	private final int memorySize;
 	private final int memoryUsed;
 
-	private static final String CSV_SEPARATOR = ";";
+	private static final String CSV_SEPARATOR = System.getProperty("CSV_SEPARATOR");
 	private static final DateTimeFormatter CSV_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH:mm:ss.SSS");
 
 	public PerformanceData() {
@@ -57,15 +57,15 @@ public class PerformanceData {
 
 	public static String getCSVMetadata() {
 		return "FunctionName" + CSV_SEPARATOR + "LogStream" + CSV_SEPARATOR + "RequestID" + CSV_SEPARATOR + "StartTime"
-				+ CSV_SEPARATOR + "EndTime" + CSV_SEPARATOR + "StartupDuration" + CSV_SEPARATOR + "PreciseDuration" + CSV_SEPARATOR + "BilledDuration"
-				+ CSV_SEPARATOR + "MemorySize" + CSV_SEPARATOR + "MemoryUsed";
+				+ CSV_SEPARATOR + "EndTime" + CSV_SEPARATOR + "StartupDuration" + CSV_SEPARATOR + "PreciseDuration"
+				+ CSV_SEPARATOR + "BilledDuration" + CSV_SEPARATOR + "MemorySize" + CSV_SEPARATOR + "MemoryUsed";
 	}
 
 	public String toCSVString() {
 		return this.functionName + CSV_SEPARATOR + this.logStream + CSV_SEPARATOR + this.requestId + CSV_SEPARATOR
 				+ this.startTime.format(CSV_FORMATTER) + CSV_SEPARATOR + this.endTime.format(CSV_FORMATTER)
-				+ CSV_SEPARATOR + this.startupDuration + CSV_SEPARATOR + this.preciseDuration + CSV_SEPARATOR + this.billedDuration + CSV_SEPARATOR
-				+ this.memorySize + CSV_SEPARATOR + this.memoryUsed;
+				+ CSV_SEPARATOR + this.startupDuration + CSV_SEPARATOR + this.preciseDuration + CSV_SEPARATOR
+				+ this.billedDuration + CSV_SEPARATOR + this.memorySize + CSV_SEPARATOR + this.memoryUsed;
 	}
 
 }

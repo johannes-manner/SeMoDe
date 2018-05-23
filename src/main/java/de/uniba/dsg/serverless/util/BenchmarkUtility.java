@@ -8,9 +8,10 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import de.uniba.dsg.serverless.benchmark.BenchmarkExecutor;
 import de.uniba.dsg.serverless.benchmark.BenchmarkMode;
@@ -18,7 +19,7 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public class BenchmarkUtility extends CustomUtility {
 
-	private static final Logger logger = Logger.getLogger(BenchmarkUtility.class.getName());
+	private static final Logger logger = LogManager.getLogger(BenchmarkUtility.class.getName());
 
 	private URL url;
 	private String jsonInput;
@@ -37,22 +38,21 @@ public class BenchmarkUtility extends CustomUtility {
 		try {
 			initParameters(args);
 		} catch (SeMoDeException e) {
-			BenchmarkUtility.logger.log(Level.SEVERE, "Input Parameters not of currect format.", e);
+			logger.fatal("Input Parameters not of currect format.", e);
 			logUsage();
 			return;
 		}
 		try {
 			executeBenchmark();
 		} catch (SeMoDeException e) {
-			logger.log(Level.SEVERE, "Exception during benchmark execution.", e);
+			logger.fatal("Exception during benchmark execution.", e);
 			return;
 		}
 
 	}
 
 	private void logUsage() {
-		BenchmarkUtility.logger.log(Level.SEVERE,
-				"Usage for each mode:\n"
+		logger.fatal("Usage for each mode:\n"
 						+ "(Mode 1) URL JSONINPUT concurrent NUMBER_OF_REQUESTS\n"
 						+ "(Mode 2) URL JSONINPUT sequentialInterval NUMBER_OF_REQUESTS DELAY\n"
 						+ "(Mode 3) URL JSONINPUT sequentailWait NUMBER_OF_REQUESTS DELAY\n"
