@@ -103,17 +103,25 @@ Usage:
 Usage for each mode:  
 
 ```java -jar SeMoDe.jar "URL" "FILENAME.json" "concurrent" "NUMBER_OF_REQUESTS"```  
+
 4. Number of function executions.
 
 ```java -jar SeMoDe.jar "URL" "FILENAME.json" "sequentialInterval" "NUMBER_OF_REQUESTS" "DELAY"```  
+
 4. Number of function executions.
+
 5. Time between request execution start times in minutes.
 
 ```java -jar SeMoDe.jar "URL" "FILENAME.json" "sequentailWait" "NUMBER_OF_REQUESTS" "DELAY"```  
+
 4. Number of requests.
+
 5. Delay between termination of function execution n and start of execution n + 1 in minutes.
 
-```java -jar SeMoDe.jar "URL" "FILENAME.json" "sequentialConcurrent" "NUMBER_OF_GROUPS" "NUMBER_OF_REQUESTS_GROUP" "DELAY"```  
+```java -jar SeMoDe.jar "URL" "FILENAME.json" "sequentialConcurrent" "NUMBER_OF_GROUPS" "NUMBER_OF_REQUESTS_GROUP" "DELAY"```
+
 4. Number of execution groups.
+
 5. Number of requests in each group.
+
 6. Delay between termination of group g and start of group g + 1 in minutes.
