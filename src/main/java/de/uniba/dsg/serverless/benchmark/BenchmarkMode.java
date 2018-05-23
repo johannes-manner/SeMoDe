@@ -1,5 +1,7 @@
 package de.uniba.dsg.serverless.benchmark;
 
+import de.uniba.dsg.serverless.model.SeMoDeException;
+
 public enum BenchmarkMode {
 	CONCURRENT("concurrent"),
 	SEQUENTIAL_INTERVAL("sequentialInterval"),
@@ -16,12 +18,19 @@ public enum BenchmarkMode {
 		return this.text;
 	}
 
-	public static BenchmarkMode fromString(String text) {
+	/**
+	 * Returns the {@link BenchmarkMode} associated to the given tag. Returns null
+	 * when no value exists for the given tag.
+	 * 
+	 * @param tag
+	 * @return
+	 */
+	public static BenchmarkMode fromString(String tag) throws SeMoDeException {
 		for (BenchmarkMode b : BenchmarkMode.values()) {
-			if (b.text.equalsIgnoreCase(text)) {
+			if (b.text.equalsIgnoreCase(tag)) {
 				return b;
 			}
 		}
-		return null;
+		throw new SeMoDeException("Mode is unknown. Entered mode = " + tag);
 	}
 }

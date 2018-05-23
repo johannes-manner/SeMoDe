@@ -1,6 +1,8 @@
 package de.uniba.dsg.serverless.util;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
@@ -18,14 +20,13 @@ public class BenchmarkUtility extends CustomUtility {
 
 	private static final Logger logger = Logger.getLogger(BenchmarkUtility.class.getName());
 
-	private String url;
-	private String path;
+	private URL url;
 	private String jsonInput;
 	private BenchmarkMode mode;
 	private int numberOfRequests;
 	private int delay;
-	int numberOfGroups;
-	int numberOfRequestsEachGroup;
+	private int numberOfGroups;
+	private int numberOfRequestsEachGroup;
 
 	public BenchmarkUtility(String name) {
 		super(name);
@@ -59,16 +60,15 @@ public class BenchmarkUtility extends CustomUtility {
 	}
 
 	private int executeBenchmark() throws SeMoDeException {
-		BenchmarkExecutor executor = new BenchmarkExecutor(url, path, jsonInput);
+		BenchmarkExecutor executor = new BenchmarkExecutor(url, jsonInput);
+
 		switch (mode) {
 		case CONCURRENT:
 			return executor.executeConcurrentBenchmark(numberOfRequests);
 		case SEQUENTIAL_INTERVAL:
-			executor.executeSequentialIntervalBenchmark(numberOfRequests, delay);
-			return 1;
+			return executor.executeSequentialIntervalBenchmark(numberOfRequests, delay);
 		case SEQUENTIAL_WAIT:
-			executor.executeSequentialWaitBenchmark(numberOfRequests, delay);
-			return 1;
+			return executor.executeSequentialWaitBenchmark(numberOfRequests, delay);
 		case SEQUENTIAL_CONCURRENT:
 			return executor.executeSequentialConcurrentBenchmark(numberOfGroups, numberOfRequestsEachGroup, delay);
 		default:
@@ -77,9 +77,10 @@ public class BenchmarkUtility extends CustomUtility {
 	}
 
 	private void initParameters(List<String> args) throws SeMoDeException {
+
 		validateArgumentSize(args, 4);
 		try {
-			url = Objects.requireNonNull(args.get(0));
+			url = new URL(args.get(0));
 			jsonInput = this.readJsonInput(args.get(1));
 			mode = Objects.requireNonNull(BenchmarkMode.fromString(args.get(2)));
 
@@ -102,14 +103,15 @@ public class BenchmarkUtility extends CustomUtility {
 				delay = Integer.parseInt(args.get(5));
 				break;
 			}
-
 		} catch (NullPointerException e) {
 			throw new SeMoDeException("A parameter is null. Check your command.", e);
 		} catch (NumberFormatException e) {
 			throw new SeMoDeException("Number of Requests must be a number.", e);
+		} catch(MalformedURLException e) {
+			throw new SeMoDeException("Malformed URL " + args.get(0), e);
 		} catch (IOException | InvalidPathException e) {
 			throw new SeMoDeException("Error by reading the json from the file " + args.get(1), e);
-		}
+		} 
 	}
 
 	private void validateArgumentSize(List<String> args, int size) throws SeMoDeException {
