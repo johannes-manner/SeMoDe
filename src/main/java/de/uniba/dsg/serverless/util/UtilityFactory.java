@@ -9,7 +9,8 @@ public class UtilityFactory {
 	private static List<CustomUtility> utilityList = Arrays.asList(
 			new AWSPerformanceDataUtility("awsPerformanceData"),
 			new AzurePerformanceDataUtility("azurePerformanceData"),
-			new SeMoDeUtility("awsSeMoDe")
+			new SeMoDeUtility("awsSeMoDe"),
+			new BenchmarkUtility("benchmark")
 	);
 
 	public static Optional<CustomUtility> getUtilityClass(String name) {

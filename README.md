@@ -74,3 +74,46 @@ Usage:
 4. Desired start time filter. Only logs after specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
 
 5. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
+
+
+### New feature: Benchmarking Tool for Microsoft Azure functions and AWS lambdas
+
+This feature triggers API requests in a controlled environment. It provides four modes:
+
+1. Concurrent triggering of a function (mode: "concurrent")
+
+2. Sequential triggering of a function with a fixed time interval between triggering it (mode: "sequentialInterval")
+
+3. Sequential triggering of a function with a fixed time between the execution termination and the next triggering/ request (mode: "sequentialWait")
+
+4. Sequential combined with concurrent triggering of a function. Multiple sequential groups of requests execute functions concurrently. (mode: "sequentialConcurrent")
+
+Usage:
+
+```java -jar SeMoDe.jar "benchmark" "URL" "MODE" <additional parameters>```
+
+0. "benchmark" is a constant, which specifies the used utility mechanism.
+
+1. URL is the HTTP endpoint of the function to trigger it.
+
+2. Local filename to read json, which is used within the POST request body.
+
+3. Mode can be "concurrent", "sequentialInterval" or "sequentialWait". See above for the description of the modes.
+
+Usage for each mode:  
+
+```java -jar SeMoDe.jar "URL" "FILENAME.json" "concurrent" "NUMBER_OF_REQUESTS"```  
+4. Number of function executions.
+
+```java -jar SeMoDe.jar "URL" "FILENAME.json" "sequentialInterval" "NUMBER_OF_REQUESTS" "DELAY"```  
+4. Number of function executions.
+5. Time between request execution start times in minutes.
+
+```java -jar SeMoDe.jar "URL" "FILENAME.json" "sequentailWait" "NUMBER_OF_REQUESTS" "DELAY"```  
+4. Number of requests.
+5. Delay between termination of function execution n and start of execution n + 1 in minutes.
+
+```java -jar SeMoDe.jar "URL" "FILENAME.json" "sequentialConcurrent" "NUMBER_OF_GROUPS" "NUMBER_OF_REQUESTS_GROUP" "DELAY"```  
+4. Number of execution groups.
+5. Number of requests in each group.
+6. Delay between termination of group g and start of group g + 1 in minutes.

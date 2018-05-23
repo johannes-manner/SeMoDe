@@ -27,6 +27,9 @@ dependencies {
     compile group: 'com.microsoft.azure', name: 'azure-core', version: '0.6.0'
     compile group: 'com.microsoft.azure', name: 'azure-storage', version: '7.0.0'
     
+    // jersey client
+    compile group: 'org.glassfish.jersey.core', name: 'jersey-client', version: '2.25'
+    compile group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.25'
 }
 
 jar {
