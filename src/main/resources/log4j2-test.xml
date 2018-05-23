@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+	<Properties>
+		<Property name="CSV_SEPA">${sys:CSV_SEPARATOR}</Property>
+		<Property name="filePath">logs</Property>
+	</Properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+        <File name="BenchmarkingFile" fileName="${filePath}/${sys:logFilename}.log" immediateFlush="false" append="false">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS}${CSV_SEPA}[%t]${CSV_SEPA}%-5level${CSV_SEPA}%logger{36}${CSV_SEPA}%msg%n" />
+        </File>
+    </Appenders>
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="Console" />
+        </Root>
+        <!-- Only write the benchmarking logs from the function trigger's call method to the file -->
+        <Logger name="de.uniba.dsg.serverless.benchmark.FunctionTrigger" level="debug">
+            <AppenderRef ref="BenchmarkingFile"/>
+        </Logger>
+    </Loggers>
+</Configuration>

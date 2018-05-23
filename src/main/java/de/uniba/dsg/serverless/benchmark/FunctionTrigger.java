@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -14,12 +13,18 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public class FunctionTrigger implements Callable<String> {
 	
-	private static final Logger logger = Logger.getLogger(FunctionTrigger.class.getName());
+	// only use the logger in this class for logging the performance data - see log4j2-test.xml
+	private static final Logger logger  = LogManager.getLogger(FunctionTrigger.class.getName());
 	
+	private static final String CSV_SEPARATOR = System.getProperty("CSV_SEPARATOR");
+		
 	private final String host;
 	private final String path;
 	private final Map<String, String> queryParameters;
@@ -43,8 +48,7 @@ public class FunctionTrigger implements Callable<String> {
 	@Override
 	public String call() throws SeMoDeException {
 		String uuid = UUID.randomUUID().toString();
-		logger.info("START " + uuid);
-
+		logger.info("START" + CSV_SEPARATOR + uuid);
 		Client client = ClientBuilder.newClient();
 		WebTarget target = client.target(host).path(path);
 
@@ -57,7 +61,7 @@ public class FunctionTrigger implements Callable<String> {
 						MediaType.APPLICATION_JSON));
 		String responseValue = response.getStatus() + " " + response.getEntity();
 
-		logger.info("END " + uuid);
+		logger.info("END" + CSV_SEPARATOR + uuid);
 		return responseValue;
 	}
 

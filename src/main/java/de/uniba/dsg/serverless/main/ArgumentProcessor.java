@@ -1,20 +1,31 @@
 package de.uniba.dsg.serverless.main;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import de.uniba.dsg.serverless.util.CustomUtility;
 import de.uniba.dsg.serverless.util.UtilityFactory;
 
 public class ArgumentProcessor {
-
-	private static final Logger logger = Logger.getLogger(ArgumentProcessor.class.getName());
+	
+	// defining dynamic properties for log4j2
+	static {
+		System.setProperty("logFilename", "benchmarking_" + new SimpleDateFormat("MM-dd-HH-mm-ss").format(new Date()));
+		System.setProperty("CSV_SEPARATOR", ",");
+	}
 
 	public static void main(String[] args) {
+		
+		Logger logger = LogManager.getLogger(ArgumentProcessor.class.getName());
+		 
 		if (args == null || args.length < 2) {
-			logger.warning("Please specify cli arguments. Program exited.");
+			logger.warn("Please specify cli arguments. Program exited.");
 			return;
 		}
 
@@ -27,7 +38,7 @@ public class ArgumentProcessor {
 		if (utility.isPresent()) {
 			utility.get().start(argumentList);
 		} else {
-			logger.warning("The utility mechanism is not supported. Select a supported one");
+			logger.warn("The utility mechanism is not supported. Select a supported one");
 		}
 	}
 }

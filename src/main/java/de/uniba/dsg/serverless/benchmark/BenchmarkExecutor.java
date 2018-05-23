@@ -11,15 +11,17 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.sun.istack.logging.Logger;
 
 public class BenchmarkExecutor {
 
 	private static final int PLATFORM_FUNCTION_TIMEOUT = 300;
 	private static final TimeUnit TIME_UNIT = TimeUnit.SECONDS;
 
-	private static final Logger logger = Logger.getLogger(BenchmarkExecutor.class);
+	private static final Logger logger = LogManager.getLogger(BenchmarkExecutor.class);
 
 	private final URL url;
 	private final String jsonInput;
@@ -34,6 +36,7 @@ public class BenchmarkExecutor {
 	public BenchmarkExecutor(URL url, String jsonInput) {
 		this.url = url;
 		this.jsonInput = jsonInput;
+		logger.debug("Created BenchmarkExecutor" + url.toString() + " - " + jsonInput);
 	}
 
 	/**
