@@ -1,9 +1,14 @@
 package de.uniba.dsg.serverless.util;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import de.uniba.dsg.serverless.benchmark.BenchmarkExecutor;
 import de.uniba.dsg.serverless.benchmark.BenchmarkMode;
@@ -102,6 +107,8 @@ public class BenchmarkUtility extends CustomUtility {
 			throw new SeMoDeException("A parameter is null. Check your command.", e);
 		} catch (NumberFormatException e) {
 			throw new SeMoDeException("Number of Requests must be a number.", e);
+		} catch (IOException | InvalidPathException e) {
+			throw new SeMoDeException("Error by reading the json from the file " + args.get(1), e);
 		}
 	}
 
@@ -111,9 +118,9 @@ public class BenchmarkUtility extends CustomUtility {
 		}
 	}
 
-	private String readJsonInput(String string) {
-		// TODO:
-		return "{\"number\": 30}";
+	private String readJsonInput(String path) throws IOException, InvalidPathException {
+		List<String> lines = Files.readAllLines(Paths.get(path));
+		return lines.stream().collect(Collectors.joining(System.lineSeparator()));
 	}
 
 }
