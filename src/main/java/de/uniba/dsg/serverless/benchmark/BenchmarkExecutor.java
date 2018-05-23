@@ -27,7 +27,7 @@ import com.sun.istack.logging.Logger;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public class BenchmarkExecutor {
-	
+
 	private static final int PLATFORM_FUNCTION_TIMEOUT = 300;
 
 	private static final Logger logger = Logger.getLogger(BenchmarkExecutor.class);
@@ -35,70 +35,41 @@ public class BenchmarkExecutor {
 	private final String host;
 	private final String path;
 	private final String jsonInput;
-	private final int numberOfRequests;
 	private final Map<String, String> queryParameters;
-	
-	public BenchmarkExecutor(String urlString, String path, String jsonInput, int numberOfRequests) throws MalformedURLException {
-		URL url = new URL(urlString);
+
+	public BenchmarkExecutor(String urlString, String path, String jsonInput) throws SeMoDeException {
+		URL url;
+		try {
+			url = new URL(urlString);
+		} catch (MalformedURLException e) {
+			throw new SeMoDeException("URL not well formed.", e);
+		}
 		this.host = url.getProtocol() + "://" + url.getHost();
 		this.path = url.getPath();
-		
+
 		this.queryParameters = new HashMap<>();
 		String[] queries = url.getQuery().split("\\?");
-		for(String query : queries) {
+		for (String query : queries) {
 			int pos = query.indexOf('=');
-			this.queryParameters.put(query.substring(0, pos), query.substring(pos+1));
+			this.queryParameters.put(query.substring(0, pos), query.substring(pos + 1));
 		}
 		this.jsonInput = jsonInput;
-		this.numberOfRequests = numberOfRequests;
 	}
 
 	/**
-	 * Executes a benchmark in one of three modes:<br>
-	 * {@link BenchmarkMode#CONCURRENT}<br>
-	 * Executes the function numberOfRequests times without delay.
+	 * Executes the Benchmark in mode {@link BenchmarkMode#SEQUENTIAL_WAIT}. <br>
+	 * This mode executes the function at the given delay after the function
+	 * execution time. The first execution will commence immediately. Furhter ones
+	 * will be executed at <math>(T + executionTimeLast + delay)</math> and so on.
 	 * <p>
-	 * {@link BenchmarkMode#SEQUENTIAL_INTERVAL}<br>
-	 * Executes the function at the given fixed rate. The first execution will
-	 * commence immediately. Further ones will be executed at <math>(T +
-	 * delay)</math>, <math>(T + 2 * delay)</math> and so on. If a function
-	 * execution exceeds the delay, further executions are delayed and not executed
-	 * concurrently.
-	 * <p>
-	 * {@link BenchmarkMode#SEQUENTIAL_INTERVAL}<br>
-	 * Executes the function at the given delay after the function execution time.
-	 * The first execution will commence immediately. Furhter ones will be executed
-	 * at <math>(T + executionTime1 + delay)</math> and so on.
 	 * 
+	 * @param numberOfRequests
 	 * @param delay
-	 *            delay between function executions (0 for concurrent)
-	 * @param mode
-	 *            Mode of the Benchmark
-	 * @throws SeMoDeException
+	 *            between the end of execution n and the start of execution n+1 in
+	 *            minutes
+	 * @return number of failed requests
 	 */
-	public void executeBenchmark(int delay, BenchmarkMode mode) throws SeMoDeException {
-		switch (mode) {
-		case CONCURRENT:
-			this.executeConcurrentBenchmark();
-			break;
-		case SEQUENTIAL_INTERVAL:
-			this.executeSequentialInterval(delay);
-			break;
-		case SEQUENTIAL_WAIT:
-			this.executeSequentialWait(delay);
-			break;
-		default:
-			return;
-		}
-	}
-
-	/**
-	 * 
-	 * 
-	 * @param delay
-	 * @throws SeMoDeException
-	 */
-	private void executeSequentialWait(int delay) throws SeMoDeException {
+	public void executeSequentialWaitBenchmark(int numberOfRequests, int delay) throws SeMoDeException {
 		for (int i = 0; i < numberOfRequests; i++) {
 			try {
 				String result = this.createFunctionTrigger().call();
@@ -107,24 +78,35 @@ public class BenchmarkExecutor {
 				logger.warning("An error occured while executing the callable.");
 				throw new SeMoDeException("An error occured while executing the callable.", callException);
 			}
-			
+
 			Uninterruptibles.sleepUninterruptibly(delay, TimeUnit.SECONDS);
 		}
 	}
 
-	private void executeSequentialInterval(int delay) {
+	/**
+	 * Executes the benchmark in mode {@link BenchmarkMode#SEQUENTIAL_INTERVAL}<br>
+	 * This mode executes the function at the given fixed rate. The first execution
+	 * will commence immediately. Further ones will be executed at <math>(T +
+	 * delay)</math>, <math>(T + 2 * delay)</math> and so on.
+	 * 
+	 * @param numberOfRequests
+	 * @param delay
+	 *            delays between starts of function executions in minutes
+	 * @return number of failed requests
+	 */
+	public void executeSequentialIntervalBenchmark(int numberOfRequests, int delay) {
 		ExecutorService executorService = Executors.newCachedThreadPool();
-		
+
 		List<Future<String>> responses = new ArrayList<>();
-		for(int i = 0 ; i < numberOfRequests ; i++) {
+		for (int i = 0; i < numberOfRequests; i++) {
 			Future<String> future = executorService.submit(this.createFunctionTrigger());
 			responses.add(future);
-			
+
 			Uninterruptibles.sleepUninterruptibly(delay, TimeUnit.SECONDS);
 		}
-		
+
 		shutdownExecutorAndAwaitTermination(executorService);
-		
+
 		for (Future<String> future : responses) {
 			try {
 				System.out.println(future.get());
@@ -134,7 +116,14 @@ public class BenchmarkExecutor {
 		}
 	}
 
-	private int executeConcurrentBenchmark() {
+	/**
+	 * Executes the benchmark in mode {@link BenchmarkMode#CONCURRENT}<br>
+	 * This mode executes the function numberOfRequests times without delay.
+	 * 
+	 * @param numberOfRequests
+	 * @return number of failed requests
+	 */
+	public int executeConcurrentBenchmark(int numberOfRequests) {
 		ExecutorService executorService = Executors.newCachedThreadPool();
 
 		List<Future<String>> responses = new ArrayList<>();
@@ -148,7 +137,7 @@ public class BenchmarkExecutor {
 		int failedRequests = 0;
 		for (Future<String> future : responses) {
 			try {
-				System.out.println(future.get());
+				future.get();
 			} catch (ExecutionException | InterruptedException e) {
 				failedRequests++;
 			}
@@ -156,9 +145,32 @@ public class BenchmarkExecutor {
 
 		return failedRequests;
 	}
+	
+	/**
+	 * Executes the Benchmark in mode {@link BenchmarkMode#SEQUENTIAL_CONCURRENT}.
+	 * <br>
+	 * The mode executes functions in groups of concurrent requests. The group
+	 * executions are delayed, group g + 1 will start after group g terminated +
+	 * delay.
+	 * 
+	 * @param numberOfGroups
+	 * @param numberOfRequestsEachGroup
+	 * @param delay
+	 *            between the end of group execution g and the start of group
+	 *            execution g+1 in minutes
+	 * @return number of failed requests
+	 */
+	public int executeSequentialConcurrentBenchmark(int numberOfGroups, int numberOfRequestsEachGroup, int delay) {
+		int failedRequests = 0;
+		for (int burst = 0; burst < numberOfGroups; burst++) {
+			failedRequests += executeConcurrentBenchmark(numberOfRequestsEachGroup);
+			Uninterruptibles.sleepUninterruptibly(delay, TimeUnit.SECONDS);
+		}
+		return failedRequests;
+	}
 
 	/**
-	 * waits 300 sec for the Executor to shutdown; otherwise the Executor is forced
+	 * waits for the Executor to shutdown; After a timeout, the Executor is forced
 	 * to shutdown immediately.
 	 * 
 	 * @param executor
@@ -173,30 +185,26 @@ public class BenchmarkExecutor {
 			executorService.shutdownNow();
 		}
 	}
-	
-	
-	private Callable<String> createFunctionTrigger(){
+
+	private Callable<String> createFunctionTrigger() {
 		return new Callable<String>() {
 			public String call() {
-				
+
 				String uuid = UUID.randomUUID().toString();
 				logger.info("START " + uuid);
-				
+
 				Client client = ClientBuilder.newClient();
-				WebTarget target = client.target(host)
-						.path(path);
-				
-				for(String key : queryParameters.keySet()) {
+				WebTarget target = client.target(host).path(path);
+
+				for (String key : queryParameters.keySet()) {
 					target = target.queryParam(key, queryParameters.get(key));
 				}
-				
+
 				Response response = target.request(MediaType.APPLICATION_JSON_TYPE)
-						.post(Entity.entity("{\r\n" + 
-								"    \"name\": \"Azure\",\r\n" + 
-								"    \"number\": 41\r\n" + 
-								"}", MediaType.APPLICATION_JSON));
+						.post(Entity.entity("{\r\n" + "    \"name\": \"Azure\",\r\n" + "    \"number\": 41\r\n" + "}",
+								MediaType.APPLICATION_JSON));
 				String responseValue = response.getStatus() + " " + response.getEntity();
-				
+
 				logger.info("END " + uuid);
 				return responseValue;
 			}

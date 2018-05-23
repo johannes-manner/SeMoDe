@@ -1,7 +1,10 @@
 package de.uniba.dsg.serverless.benchmark;
 
 public enum BenchmarkMode {
-	CONCURRENT("concurrent"), SEQUENTIAL_INTERVAL("sequentialInterval"), SEQUENTIAL_WAIT("sequentialWait");
+	CONCURRENT("concurrent"),
+	SEQUENTIAL_INTERVAL("sequentialInterval"),
+	SEQUENTIAL_WAIT("sequentialWait"),
+	SEQUENTIAL_CONCURRENT("sequentialConcurrent");
 
 	private String text;
 
