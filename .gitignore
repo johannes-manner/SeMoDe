@@ -103,12 +103,10 @@ gradle-app.setting
 # # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
 # gradle/wrapper/gradle-wrapper.properties
 
-#property-files - explicitly
-*.properties
-
 #directories
 generatedTests/
 template/
 performanceData/
+logs/
 
 # End of https://www.gitignore.io/api/git,java,gradle,eclipse

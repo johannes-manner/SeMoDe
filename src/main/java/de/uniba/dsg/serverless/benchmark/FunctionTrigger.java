@@ -1,39 +1,68 @@
 package de.uniba.dsg.serverless.benchmark;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
-import javax.net.ssl.HttpsURLConnection;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
-import com.google.common.io.CharStreams;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public class FunctionTrigger implements Callable<String> {
 	
-	private final URL url;
+	// only use the logger in this class for logging the performance data - see log4j2-test.xml
+	private static final Logger logger  = LogManager.getLogger(FunctionTrigger.class.getName());
 	
-	public FunctionTrigger(URL url) {
-		this.url = url;
+	private static final String CSV_SEPARATOR = System.getProperty("CSV_SEPARATOR");
+		
+	private final String host;
+	private final String path;
+	private final Map<String, String> queryParameters;
+	private final String jsonInput;
+	
+	public FunctionTrigger(String jsonInput, URL url) {
+		
+		this.jsonInput = jsonInput;
+		
+		this.host = url.getProtocol() + "://" + url.getHost();
+		this.path = url.getPath();
+
+		this.queryParameters = new HashMap<>();
+		String[] queries = url.getQuery().split("\\?");
+		for (String query : queries) {
+			int pos = query.indexOf('=');
+			this.queryParameters.put(query.substring(0, pos), query.substring(pos + 1));
+		}
 	}
 
 	@Override
 	public String call() throws SeMoDeException {
-		try {
-			HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
-			con.setDoOutput(false);
-			con.setRequestMethod("GET");
-			con.connect();
+		String uuid = UUID.randomUUID().toString();
+		logger.info("START" + CSV_SEPARATOR + uuid);
+		Client client = ClientBuilder.newClient();
+		WebTarget target = client.target(host).path(path);
 
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
-				return CharStreams.toString(in);
-			}
-		} catch (IOException e) {
-			throw new SeMoDeException("Function execution was not possible.", e);
+		for (String key : queryParameters.keySet()) {
+			target = target.queryParam(key, queryParameters.get(key));
 		}
+
+		Response response = target.request(MediaType.APPLICATION_JSON_TYPE)
+				.post(Entity.entity(jsonInput,
+						MediaType.APPLICATION_JSON));
+		String responseValue = response.getStatus() + " " + response.getEntity();
+
+		logger.info("END" + CSV_SEPARATOR + uuid);
+		return responseValue;
 	}
 
 }

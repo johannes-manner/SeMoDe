@@ -78,26 +78,50 @@ Usage:
 
 ### New feature: Benchmarking Tool for Microsoft Azure functions and AWS lambdas
 
-This feature triggers Azure functions or AWS lambdas to benchmark them in a controlled environment. It provides three modes:
+This feature triggers API requests in a controlled environment. It provides four modes:
 
 1. Concurrent triggering of a function (mode: "concurrent")
 
 2. Sequential triggering of a function with a fixed time interval between triggering it (mode: "sequentialInterval")
 
-3. Sequential triggering of a function with a fixed time between the function finished and the next triggering (mode: "sequentialWait")
+3. Sequential triggering of a function with a fixed time between the execution termination and the next triggering/ request (mode: "sequentialWait")
+
+4. Sequential combined with concurrent triggering of a function. Multiple sequential groups of requests execute functions concurrently. (mode: "sequentialConcurrent")
 
 Usage:
 
-```java -jar SeMoDe.jar "benchmark" "URL" "MODE" "NUMBER OF EXECUTIONS" "TIME"```
+```java -jar SeMoDe.jar "benchmark" "URL" "MODE" <additional parameters>```
 
 0. "benchmark" is a constant, which specifies the used utility mechanism.
 
 1. URL is the HTTP endpoint of the function to trigger it.
 
-2. Mode can be "concurrent", "sequentialInterval" or "sequentialWait". See above for the description of the modes.
+2. Local filename to read json, which is used within the POST request body.
 
-3. Number of triggerings. For the mode "concurrent" this is the number of concurrent requests to the URL. For the other two modes is the number of sequential requests.
+3. Mode can be "concurrent", "sequentialInterval" or "sequentialWait". See above for the description of the modes.
 
-4. [Only for mode "sequentialInterval" and "sequentialWait"] Time between requests in milliseconds.
+Usage for each mode:  
 
+```java -jar SeMoDe.jar "URL" "FILENAME.json" "concurrent" "NUMBER_OF_REQUESTS"```  
 
+4. Number of function executions.
+
+```java -jar SeMoDe.jar "URL" "FILENAME.json" "sequentialInterval" "NUMBER_OF_REQUESTS" "DELAY"```  
+
+4. Number of function executions.
+
+5. Time between request execution start times in minutes.
+
+```java -jar SeMoDe.jar "URL" "FILENAME.json" "sequentailWait" "NUMBER_OF_REQUESTS" "DELAY"```  
+
+4. Number of requests.
+
+5. Delay between termination of function execution n and start of execution n + 1 in minutes.
+
+```java -jar SeMoDe.jar "URL" "FILENAME.json" "sequentialConcurrent" "NUMBER_OF_GROUPS" "NUMBER_OF_REQUESTS_GROUP" "DELAY"```
+
+4. Number of execution groups.
+
+5. Number of requests in each group.
+
+6. Delay between termination of group g and start of group g + 1 in minutes.
