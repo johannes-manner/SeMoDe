@@ -6,8 +6,10 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.amazonaws.services.logs.model.OutputLogEvent;
 
@@ -40,7 +42,7 @@ public final class AWSLogAnalyzer {
 	private static final String EVENT_MESSAGE_START = "START";
 	private static final String EVENT_MESSAGE_END = "REPORT";
 	
-	private static final Logger logger = Logger.getLogger(AWSLogAnalyzer.class.getName());
+	private static final Logger logger = LogManager.getLogger(AWSLogAnalyzer.class.getName());
 
 	/**
 	 * The troubleshoot prefix is used in the logged data to identify the
@@ -183,8 +185,6 @@ public final class AWSLogAnalyzer {
 					throw new IllegalArgumentException(
 							"Instrumentation data is corrupted: Message - " + event.getMessage());
 				}
-				System.out.println(jsonInput);
-
 			}
 		}
 		return new FunctionInstrumentation(handlerClass, handlerMethod, inputClass, jsonInput, outputClass, jsonOutput,
@@ -227,7 +227,7 @@ public final class AWSLogAnalyzer {
 		}
 		
 		if(messageParts == null || messageParts.length != STRING_IN_END_MESSAGE) {
-			logger.severe("The investigated log event does not contain an end message with performance data.");
+			logger.fatal("The investigated log event does not contain an end message with performance data.");
 			logger.info("Split of the report message : " + Arrays.toString(messageParts));
 			return new PerformanceData();
 		}

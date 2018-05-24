@@ -5,14 +5,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import de.uniba.dsg.serverless.azure.AzureLogHandler;
 
 public final class AzurePerformanceDataUtility extends CustomUtility {
 
-	private static final Logger logger = Logger.getLogger(AzurePerformanceDataUtility.class.getName());
+	private static final Logger logger = LogManager.getLogger(AzurePerformanceDataUtility.class.getName());
 
 	private static final String DATETIME_FORMAT_PATTERN =  "\\d{4}-\\d{2}-\\d{2}_\\d{2}:\\d{2}";
 
@@ -23,7 +24,7 @@ public final class AzurePerformanceDataUtility extends CustomUtility {
 	public void start(List<String> args) {
 
 		if (args.size() < 5) {
-			AzurePerformanceDataUtility.logger.log(Level.SEVERE, "Wrong parameter size: "
+			logger.fatal("Wrong parameter size: "
 					+ "\n(1) Application ID " 
 					+ "\n(2) API Key " 
 					+ "\n(3) Function Name"
@@ -39,11 +40,11 @@ public final class AzurePerformanceDataUtility extends CustomUtility {
 		String endTimeString = args.get(4);
 		
 		if (!startTimeString.matches(DATETIME_FORMAT_PATTERN)) {
-			AzurePerformanceDataUtility.logger.log(Level.SEVERE, "Start time is no valid datetime with the format: yyyy-MM-dd_HH:mm");
+			logger.fatal("Start time is no valid datetime with the format: yyyy-MM-dd_HH:mm");
 			return;
 		}
 		if (!endTimeString.matches(DATETIME_FORMAT_PATTERN)) {
-			AzurePerformanceDataUtility.logger.log(Level.SEVERE, "End time is no valid datetime with the format: yyyy-MM-dd_HH:mm");
+			logger.fatal("End time is no valid datetime with the format: yyyy-MM-dd_HH:mm");
 			return;
 		}
 		
