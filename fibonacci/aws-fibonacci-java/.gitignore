@@ -1,0 +1,17 @@
+# serverless directory
+.serverless
+
+# gradle
+.gradle
+/build/
+/bin/
+
+# eclipse
+.project
+.classpath
+/.settings/
+
+# package
+*.jar
+*.war
+*.ear
