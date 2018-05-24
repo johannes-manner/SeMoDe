@@ -10,7 +10,8 @@ public class UtilityFactory {
 			new AWSPerformanceDataUtility("awsPerformanceData"),
 			new AzurePerformanceDataUtility("azurePerformanceData"),
 			new SeMoDeUtility("awsSeMoDe"),
-			new BenchmarkUtility("benchmark")
+			new BenchmarkUtility("benchmark"),
+			new DeploymentSizeUtility("deploymentSize")
 	);
 
 	public static Optional<CustomUtility> getUtilityClass(String name) {
