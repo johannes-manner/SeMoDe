@@ -14,9 +14,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import javax.net.ssl.HttpsURLConnection;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -29,7 +31,7 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public class AzureLogHandler {
 
-	private static final Logger logger = Logger.getLogger(AzureLogHandler.class.getName());
+	private static final Logger logger = LogManager.getLogger(AzureLogHandler.class.getName());
 
 	private static final String OUTPUT_DIRECTORY = "performanceData";
 	private static final DateTimeFormatter QUERY_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
@@ -74,10 +76,10 @@ public class AzureLogHandler {
 			}
 
 		} catch (SeMoDeException e) {
-			logger.severe(e.getMessage());
-			logger.severe("Data handler is terminated due to an error.");
+			logger.fatal(e.getMessage());
+			logger.fatal("Data handler is terminated due to an error.");
 		} catch (IOException e) {
-			logger.severe("Writing to CSV file failed.");
+			logger.fatal("Writing to CSV file failed.");
 		}
 	}
 
