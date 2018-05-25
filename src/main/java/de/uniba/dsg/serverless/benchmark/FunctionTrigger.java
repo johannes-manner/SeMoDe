@@ -89,7 +89,7 @@ public class FunctionTrigger implements Callable<String> {
 		String responseValue = response.getStatus() + " " + responseEntity;
 
 		logger.info("END" + CSV_SEPARATOR + uuid);
-		logger.info("PLATFORMID" + CSV_SEPARATOR + uuid + CSV_SEPARATOR  + platformId);
+		logger.info(platformId + CSV_SEPARATOR + uuid + CSV_SEPARATOR  + "PLATFORMID");
 		
 		return responseValue;
 	}
