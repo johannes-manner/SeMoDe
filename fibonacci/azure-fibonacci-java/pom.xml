@@ -14,7 +14,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <functionAppName>fibbenchmark</functionAppName>
-        <functionAppRegion>westus</functionAppRegion>
+        <functionAppRegion>northeurope</functionAppRegion>
         <stagingDirectory>${project.build.directory}/azure-functions/${functionAppName}</stagingDirectory>
         <functionResourceGroup>${functionAppName}-rg</functionResourceGroup>
     </properties>

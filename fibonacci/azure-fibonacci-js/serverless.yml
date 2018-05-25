@@ -19,7 +19,7 @@ service: fibonacci-benchmark-js
 
 provider:
   name: azure
-  location: West US
+  location: North Europe
 
 plugins:
   - serverless-azure-functions
