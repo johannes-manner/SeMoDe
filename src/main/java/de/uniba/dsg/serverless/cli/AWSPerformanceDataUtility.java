@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.util;
+package de.uniba.dsg.serverless.cli;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

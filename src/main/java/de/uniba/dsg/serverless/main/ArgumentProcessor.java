@@ -9,8 +9,8 @@ import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.uniba.dsg.serverless.util.CustomUtility;
-import de.uniba.dsg.serverless.util.UtilityFactory;
+import de.uniba.dsg.serverless.cli.CustomUtility;
+import de.uniba.dsg.serverless.cli.UtilityFactory;
 
 public class ArgumentProcessor {
 	
