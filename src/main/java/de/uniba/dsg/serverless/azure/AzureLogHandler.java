@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,13 +28,12 @@ import com.google.common.net.UrlEscapers;
 import de.uniba.dsg.serverless.model.LocalRESTEvent;
 import de.uniba.dsg.serverless.model.PerformanceData;
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.model.WritableEvent;
 import de.uniba.dsg.serverless.service.LogHandler;
 
 public class AzureLogHandler implements LogHandler{
 
 	private static final Logger logger = LogManager.getLogger(AzureLogHandler.class.getName());
-
-	private static final String OUTPUT_DIRECTORY = "performanceData";
 	private static final DateTimeFormatter QUERY_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
 
 	private final String apiURL;
@@ -54,38 +52,6 @@ public class AzureLogHandler implements LogHandler{
 		this.apiURL = "https://api.applicationinsights.io/v1/apps/" + applicationID + "/query";
 	}
 
-	/**
-	 * Retrieves the performance data from Application Insights and saves it
-	 * to the specified file
-	 * 
-	 * @param fileName
-	 *            name of the output file
-	 * 
-	 */
-	@Override
-	public void writePerformanceDataToFile(String fileName) {
-		try {
-			List<PerformanceData> performanceDataList = getPerformanceData();
-
-			if (!Files.exists(Paths.get(OUTPUT_DIRECTORY))) {
-				Files.createDirectory(Paths.get(OUTPUT_DIRECTORY));
-			}
-
-			Path file = Files.createFile(Paths.get(OUTPUT_DIRECTORY + "/" + fileName));
-			try (BufferedWriter writer = Files.newBufferedWriter(file)) {
-				writer.write(PerformanceData.getCSVMetadata() + System.lineSeparator());
-				for (PerformanceData performanceData : performanceDataList) {
-					writer.write(performanceData.toCSVString() + System.lineSeparator());
-				}
-			}
-
-		} catch (SeMoDeException e) {
-			logger.fatal(e.getMessage());
-			logger.fatal("Data handler is terminated due to an error.");
-		} catch (IOException e) {
-			logger.fatal("Writing to CSV file failed.");
-		}
-	}
 
 	/**
 	 * Retrieves the performance data from Application Insights via its REST API.
@@ -93,8 +59,9 @@ public class AzureLogHandler implements LogHandler{
 	 * @return The list of performance data.
 	 * @throws SeMoDeException If there was an exception while retrieving or parsing the performance data.
 	 */
-	private List<PerformanceData> getPerformanceData() throws SeMoDeException {
-		List<PerformanceData> performanceData = new ArrayList<>();
+	@Override
+	public Map<String, WritableEvent> getPerformanceData() throws SeMoDeException {
+		Map<String, WritableEvent> performanceData = new HashMap<>();
 
 		String functionRequests = getRequestsAsJSON();
 
@@ -132,7 +99,7 @@ public class AzureLogHandler implements LogHandler{
 
 				PerformanceData data = new PerformanceData(functionName, container, id, startTime, endTime,
 						hostStartupDuration, duration, -1, -1, -1);
-				performanceData.add(data);
+				performanceData.put(id, data);
 			}
 
 		} catch (IOException e) {
@@ -222,12 +189,6 @@ public class AzureLogHandler implements LogHandler{
 		}
 
 		return map;
-	}
-
-	@Override
-	public void addLocalRESTEvents(Map<String, LocalRESTEvent> localRESTEvents) {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

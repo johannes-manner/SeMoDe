@@ -3,7 +3,6 @@ package de.uniba.dsg.serverless.util;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -18,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 
 import de.uniba.dsg.serverless.model.LocalRESTEvent;
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.model.WritableEvent;
 
 public class BenchmarkingRESTAnalyzer {
 
@@ -40,9 +40,9 @@ public class BenchmarkingRESTAnalyzer {
 	 * @return
 	 * @throws SeMoDeException
 	 */
-	public Map<String, LocalRESTEvent> extractRESTEvents() throws SeMoDeException {
-
-		Map<String, LocalRESTEvent> extractedEvents = new HashMap<>();
+	public Map<String, WritableEvent> extractRESTEvents() throws SeMoDeException {
+		
+		Map<String, WritableEvent> extractedEvents = new HashMap<>();
 
 		Map<String, Map<String, LocalDateTime>> temporaryMap = new HashMap<>();
 
@@ -88,10 +88,9 @@ public class BenchmarkingRESTAnalyzer {
 			}
 
 		} catch (IOException e) {
-			logger.warn("Error while reading the file " + benchmarkingFile.toString());
-			throw new SeMoDeException(e);
+			throw new SeMoDeException("Error while reading the file " + benchmarkingFile.toString(), e);
 		}
-
+		
 		return extractedEvents;
 	}
 }

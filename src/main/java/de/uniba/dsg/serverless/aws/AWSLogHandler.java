@@ -319,12 +319,8 @@ public final class AWSLogHandler implements LogHandler{
 	@Override
 	public void writePerformanceDataToFile(String fileName) {
 
-		List<PerformanceData> performanceDataList = new ArrayList<>();
 		try {
-			List<FunctionExecutionEvent> eventList = this.getLogEventList();
-			for (FunctionExecutionEvent e : eventList) {
-				performanceDataList.add(AWSLogAnalyzer.extractInformation(e));
-			}
+			List<PerformanceData> performanceDataList = this.getPerformanceData();
 			
 			if(!Files.exists(Paths.get("performanceData"))){
 				Files.createDirectory(Paths.get("performanceData"));
@@ -350,6 +346,18 @@ public final class AWSLogHandler implements LogHandler{
 	public void addLocalRESTEvents(Map<String, LocalRESTEvent> localRESTEvents) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public List<PerformanceData> getPerformanceData() throws SeMoDeException {
+		List<PerformanceData> performanceDataList = new ArrayList<>();
+		
+		List<FunctionExecutionEvent> eventList = this.getLogEventList();
+		for (FunctionExecutionEvent e : eventList) {
+			performanceDataList.add(AWSLogAnalyzer.extractInformation(e));
+		}
+		
+		return performanceDataList;
 	}
 
 }
