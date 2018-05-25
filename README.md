@@ -130,3 +130,19 @@ Usage for each mode:
 5. Number of requests in each group.
 
 6. Delay between termination of group g and start of group g + 1 in minutes.
+
+### New feature: Deployment Package Size Utility
+
+This feature inflates the size of a file by adding a comment.
+
+Usage:
+
+```java -jar SeMoDe.jar "deploymentSize" "FILE_NAME" "SIZE" "COMMENT_START"```
+
+0. "deploymentSize" is a constant, which specifies the used utility mechanism.
+
+1. Path to the file.
+
+2. Desired size of the file in bytes.
+
+3. Single line comment start string (e.g. "//" for Java files).
