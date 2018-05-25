@@ -26,10 +26,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.CharStreams;
 import com.google.common.net.UrlEscapers;
 
+import de.uniba.dsg.serverless.model.LocalRESTEvent;
 import de.uniba.dsg.serverless.model.PerformanceData;
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.service.LogHandler;
 
-public class AzureLogHandler {
+public class AzureLogHandler implements LogHandler{
 
 	private static final Logger logger = LogManager.getLogger(AzureLogHandler.class.getName());
 
@@ -58,7 +60,9 @@ public class AzureLogHandler {
 	 * 
 	 * @param fileName
 	 *            name of the output file
+	 * 
 	 */
+	@Override
 	public void writePerformanceDataToFile(String fileName) {
 		try {
 			List<PerformanceData> performanceDataList = getPerformanceData();
@@ -218,6 +222,12 @@ public class AzureLogHandler {
 		}
 
 		return map;
+	}
+
+	@Override
+	public void addLocalRESTEvents(Map<String, LocalRESTEvent> localRESTEvents) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

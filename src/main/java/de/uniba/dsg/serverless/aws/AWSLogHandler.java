@@ -29,8 +29,10 @@ import com.google.common.io.Resources;
 
 import de.uniba.dsg.serverless.model.FunctionExecutionEvent;
 import de.uniba.dsg.serverless.model.FunctionInstrumentation;
+import de.uniba.dsg.serverless.model.LocalRESTEvent;
 import de.uniba.dsg.serverless.model.PerformanceData;
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.service.LogHandler;
 
 /**
  * This class starts the analysis of the log streams of the specified log group.
@@ -43,7 +45,7 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
  * @version 1.0
  *
  */
-public final class AWSLogHandler {
+public final class AWSLogHandler implements LogHandler{
 
 	private static final Logger logger = LogManager.getLogger(AWSLogHandler.class.getName());
 
@@ -314,6 +316,7 @@ public final class AWSLogHandler {
 		return logEvents.getEvents();
 	}
 
+	@Override
 	public void writePerformanceDataToFile(String fileName) {
 
 		List<PerformanceData> performanceDataList = new ArrayList<>();
@@ -341,6 +344,12 @@ public final class AWSLogHandler {
 		} catch (IOException e) {
 			logger.fatal("IO Exception occured.");
 		}
+	}
+
+	@Override
+	public void addLocalRESTEvents(Map<String, LocalRESTEvent> localRESTEvents) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
