@@ -29,7 +29,8 @@ public final class AzurePerformanceDataUtility extends CustomUtility {
 					+ "\n(2) API Key " 
 					+ "\n(3) Function Name"
 					+ "\n(4) Start time filter of performance data"
-					+ "\n(5) End time filter of performance data");
+					+ "\n(5) End time filter of performance data"
+					+ "\n(6) Optional - REST calls file");
 			return;
 		}
 		
@@ -53,9 +54,13 @@ public final class AzurePerformanceDataUtility extends CustomUtility {
 
 		String dateText = new SimpleDateFormat("MM-dd-HH-mm").format(new Date());
 		String fileName = functionName + "-" + dateText + ".csv";
+		
+		if(args.size()==6) {
+			args.get(6);
+		}
 
-		new AzureLogHandler(applicationID, apiKey, functionName, startTime, endTime)
-				.writePerformanceDataToFile(fileName);
+		AzureLogHandler azureLogHandler = new AzureLogHandler(applicationID, apiKey, functionName, startTime, endTime);
+		azureLogHandler.writePerformanceDataToFile(fileName);
 	}
 	
 	/**

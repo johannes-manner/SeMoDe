@@ -41,7 +41,7 @@ all spellings of the search string.
 This feature is to generate .csv files from the cloud watch logs with the metadata, like
 memory consumption, billing duration etc.
 
-```java -jar SeMoDe.jar "awsPerformanceData" "REGION" "LOG GROUP"```
+```java -jar SeMoDe.jar "awsPerformanceData" "REGION" "LOG GROUP" ["REST CALLS FILE"]```
 
 0. "awsPerformanceData" is a constant, which specifies the used utility mechanism.
 
@@ -55,13 +55,16 @@ function name, as shown in the example above. If the function is not deployed to
 the specified region, the prototype prints an error to the console and terminate the
 execution.
 
+3. Optional - File name of the benchmarking log files, which was generated during the execution of the benchmarking utility.
+It contains the start and end timestamps from the local REST calls on the developer's machine. 
+
 ### New feature: Get performance data from Microsoft Azure
 
 This feature generates .csv files from logs of functions maintained by Microsoft Azure.
 
 Usage:
 
-```java -jar SeMoDe.jar "azurePerformanceData" "APPLICATION ID" "API KEY" "FUNCTION NAME" "START TIME FILTER" "END TIME FILTER"```
+```java -jar SeMoDe.jar "azurePerformanceData" "APPLICATION ID" "API KEY" "FUNCTION NAME" "START TIME FILTER" "END TIME FILTER" ["REST CALLS FILE"]```
 
 0. "azurePerformanceData" is a constant, which specifies the used utility mechanism.
 
@@ -75,6 +78,8 @@ Usage:
 
 5. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
 
+6. Optional - File name of the benchmarking log files, which was generated during the execution of the benchmarking utility.
+It contains the start and end timestamps from the local REST calls on the developer's machine. 
 
 ### New feature: Benchmarking Tool for Microsoft Azure functions and AWS lambdas
 
