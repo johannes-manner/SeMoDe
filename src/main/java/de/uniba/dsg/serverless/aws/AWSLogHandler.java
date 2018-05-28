@@ -7,11 +7,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -54,6 +59,8 @@ public final class AWSLogHandler implements LogHandler{
 
 	private final String region;
 	private final String logGroupName;
+	private final LocalDateTime startTime;
+	private final LocalDateTime endTime;
 
 	private final AWSLogs amazonCloudLogs;
 
@@ -67,10 +74,12 @@ public final class AWSLogHandler implements LogHandler{
 	 * @param logGroupName
 	 *            - the complete log group name
 	 */
-	public AWSLogHandler(String region, String logGroupName) {
+	public AWSLogHandler(String region, String logGroupName, LocalDateTime startTime, LocalDateTime endTime) {
 
 		this.region = region;
 		this.logGroupName = logGroupName;
+		this.startTime = startTime;
+		this.endTime = endTime;
 
 		this.amazonCloudLogs = this.buildAmazonCloudLogsClient();
 	}
@@ -279,12 +288,31 @@ public final class AWSLogHandler implements LogHandler{
 			} while (furtherLogRequest);//logResponse.getLogStreams().size() > 0);
 
 			logger.info("Number of Log streams: " + streams.size());
-			return streams;
+			
+			return this.filterLogStreams(streams);
 		} catch (ResourceNotFoundException e) {
 			throw new SeMoDeException(
 					"Resource not found. Please check the deployment of the specified function and the corresponding region!",
 					e);
 		}
+	}
+
+	/**
+	 * Filters the log streams, based on the start and end time specified in this class.
+	 * 
+	 * @param logStreams
+	 * @return
+	 */
+	private List<LogStream> filterLogStreams(List<LogStream> logStreams) {
+
+		long startMillis = startTime.toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli();
+		long endMillis = endTime.toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli();
+		
+		Predicate<LogStream> startEndFilter = (LogStream stream) -> {
+			return stream.getLastIngestionTime() - startMillis >= 0 && endMillis - stream.getFirstEventTimestamp() >= 0;
+		};
+		
+		return logStreams.stream().filter(startEndFilter).collect(Collectors.toList());
 	}
 
 	/**

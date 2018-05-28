@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.cli;
 
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,9 +39,12 @@ public final class AWSPerformanceDataUtility extends CustomUtility {
 		try {
 			this.validateStartEnd(startTimeString, endTimeString);
 			String fileName = this.generateFileName(logGroupName.substring("/aws/lambda/".length()));
+			
+			LocalDateTime startTime = this.parseTime(startTimeString);
+			LocalDateTime endTime = this.parseTime(endTimeString);
 
 			List<Map<String, WritableEvent>> elementList = new ArrayList<>();
-			AWSLogHandler logHandler = new AWSLogHandler(region, logGroupName);
+			AWSLogHandler logHandler = new AWSLogHandler(region, logGroupName, startTime, endTime);
 
 			elementList.add(logHandler.getPerformanceData());
 			

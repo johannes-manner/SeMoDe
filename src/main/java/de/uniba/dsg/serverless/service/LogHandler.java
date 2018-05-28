@@ -27,7 +27,11 @@ public interface LogHandler {
 				
 				// Writing header line
 				for(Map<String, WritableEvent> map : maps) {
-					writer.write(map.get(map.keySet().iterator().next()).getCSVMetadata());
+					if(map.isEmpty()) {
+						throw new SeMoDeException("The platform map is empty. The most likely reason is the wrong start and end time.");
+					} else {
+						writer.write(map.get(map.keySet().iterator().next()).getCSVMetadata());
+					}
 				}
 				writer.write(System.lineSeparator());
 				
