@@ -118,8 +118,6 @@ public final class AWSLogAnalyzer {
 	 * collision.</br>
 	 * An example for a start message is:</br>
 	 * {@code "START RequestId: 8999e97a-f879-11e7-b329-35e05c633669 Version: $LATEST"}</br>
-	 * To use the request id as a suffix for the test class file, the - are replaced
-	 * in _
 	 * 
 	 * @param message
 	 *            the start message of the log data
@@ -132,7 +130,7 @@ public final class AWSLogAnalyzer {
 	private static String extractRequestId(String message) {
 		String[] elements = message.split(" ");
 		if (elements.length == 5) {
-			return elements[2].replaceAll("-", "_");
+			return elements[2];
 		} else {
 			throw new IllegalArgumentException("Start message corrupted: " + message + " An investigation is needed");
 		}
