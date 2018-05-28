@@ -221,19 +221,32 @@ public final class AWSLogHandler implements LogHandler{
 	 * log event list contains 24 elements, which are ordered but not grouped to the
 	 * function executions. </br>
 	 * This function enables the grouping and returns the list of cohesive log data.
+	 * </br>
+	 * The function generates only for the first failed execution a test file. 
+	 * If there is a retry mechanism specified in AWS, the function does not tackle
+	 * subsequent calls.
 	 * 
 	 * @return List of {@link FunctionExecutionEvent}
 	 * @throws SeMoDeException
 	 */
 	public List<FunctionExecutionEvent> getLogEventList(String searchString) throws SeMoDeException {
 
+		Map<String, FunctionExecutionEvent> logEventMap = new HashMap<>();
 		List<FunctionExecutionEvent> logEventList = new ArrayList<>();
 		List<FunctionExecutionEvent> preparedEventList = this.prepareLogEventList();
 
 		for (FunctionExecutionEvent event : preparedEventList) {
-			if (event.containsSearchString(searchString)) {
-				logEventList.add(event);
+			if(logEventMap.containsKey(event.getRequestId())) {
+				logger.info("Your function has an implemented retry mechanism: Request -" + event.getRequestId());
+			}else {
+				if (event.containsSearchString(searchString)) {
+					logEventMap.put(event.getRequestId(), event);
+				}
 			}
+		}
+	
+		for(String requestId : logEventMap.keySet()) {
+			logEventList.add(logEventMap.get(requestId));
 		}
 		return logEventList;
 	}
