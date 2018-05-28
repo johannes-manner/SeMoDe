@@ -34,6 +34,8 @@ public class FunctionTrigger implements Callable<String> {
 	private static final String PLATFORM_ID = "platformId";
 	
 	private static final ObjectReader jsonReader = new ObjectMapper().reader();
+
+	private static final int REQUEST_PASSED_STATUS = 200;
 		
 	private final String host;
 	private final String path;
@@ -48,10 +50,13 @@ public class FunctionTrigger implements Callable<String> {
 		this.path = url.getPath();
 
 		this.queryParameters = new HashMap<>();
-		String[] queries = url.getQuery().split("\\?");
-		for (String query : queries) {
-			int pos = query.indexOf('=');
-			this.queryParameters.put(query.substring(0, pos), query.substring(pos + 1));
+		String queryString = url.getQuery();
+		if(queryString != null) {
+			String[] queries  = url.getQuery().split("&");
+			for (String query : queries) {
+				int pos = query.indexOf('=');
+				this.queryParameters.put(query.substring(0, pos), query.substring(pos + 1));
+			}
 		}
 	}
 
@@ -71,6 +76,10 @@ public class FunctionTrigger implements Callable<String> {
 		Response response = target.request(MediaType.APPLICATION_JSON_TYPE)
 				.post(Entity.entity(jsonInput,
 						MediaType.APPLICATION_JSON));
+		
+		if(response.getStatus() != REQUEST_PASSED_STATUS) {
+			throw new SeMoDeException("Request exited with an error: " + response.getStatus() + " - " + response.getStatusInfo());
+		}
 		
 		// the response entity has to be a json representation with a platformId and a result key
 		String responseEntity = response.readEntity(String.class);
