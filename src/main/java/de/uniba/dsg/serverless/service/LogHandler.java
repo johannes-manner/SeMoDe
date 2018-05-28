@@ -35,7 +35,12 @@ public interface LogHandler {
 				Map<String, WritableEvent> keyMap = maps.get(0);
 				for(String key : keyMap.keySet()) {
 					for(Map<String, WritableEvent> map : maps) {
-						writer.write(map.get(key).toCSVString());
+						// if the first map contains more elements, than the others
+						// a "left outer join" is made here
+						WritableEvent event = map.get(key);
+						if(event != null) {
+							writer.write(event.toCSVString());
+						}
 					}
 					writer.write(System.lineSeparator());
 				}

@@ -234,15 +234,20 @@ public final class AWSLogAnalyzer {
 		
 		LocalDateTime time = LocalDateTime.ofInstant(Instant.ofEpochMilli(startTime), ZoneId.systemDefault());
 		
+		double preciseDuration = Double.parseDouble(messageParts[3]);
+		int billedDuration = Integer.parseInt(messageParts[6]);
+		int memorySize = Integer.parseInt(messageParts[10]);
+		int memoryUsed = Integer.parseInt(messageParts[14]);
+		
 		return new PerformanceData(event.getFunctionName(), 
 				event.getLogStream(),
 				event.getRequestId(), 
 				time, 
-				LocalDateTime.MIN,
+				time.plusNanos((long)(preciseDuration*1_000_000)),
 				0, 
-				Double.parseDouble(messageParts[3]), 
-				Integer.parseInt(messageParts[6]), 
-				Integer.parseInt(messageParts[10]), 
-				Integer.parseInt(messageParts[14]));
+				preciseDuration, 
+				billedDuration,
+				memorySize,
+				memoryUsed);
 	}
 }

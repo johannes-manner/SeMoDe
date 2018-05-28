@@ -21,8 +21,6 @@ public final class AzurePerformanceDataUtility extends CustomUtility {
 
 	private static final Logger logger = LogManager.getLogger(AzurePerformanceDataUtility.class.getName());
 
-	private static final String DATETIME_FORMAT_PATTERN = "\\d{4}-\\d{2}-\\d{2}_\\d{2}:\\d{2}";
-
 	public AzurePerformanceDataUtility(String name) {
 		super(name);
 	}
@@ -42,51 +40,30 @@ public final class AzurePerformanceDataUtility extends CustomUtility {
 		String startTimeString = args.get(3);
 		String endTimeString = args.get(4);
 
-		if (!startTimeString.matches(DATETIME_FORMAT_PATTERN)) {
-			logger.fatal("Start time is no valid datetime with the format: yyyy-MM-dd_HH:mm");
-			return;
-		}
-		if (!endTimeString.matches(DATETIME_FORMAT_PATTERN)) {
-			logger.fatal("End time is no valid datetime with the format: yyyy-MM-dd_HH:mm");
-			return;
-		}
-
-		LocalDateTime startTime = parseTime(startTimeString);
-		LocalDateTime endTime = parseTime(endTimeString);
-
-		String dateText = new SimpleDateFormat("MM-dd-HH-mm").format(new Date());
-		String fileName = functionName + "-" + dateText + ".csv";
-
 		try {
+			this.validateStartEnd(startTimeString, endTimeString);
+
+			LocalDateTime startTime = this.parseTime(startTimeString);
+			LocalDateTime endTime = this.parseTime(endTimeString);
+
+			String fileName = this.generateFileName(functionName);
+
 			List<Map<String, WritableEvent>> elementList = new ArrayList<>();
+
+			AzureLogHandler azureLogHandler = new AzureLogHandler(applicationID, apiKey, functionName, startTime,
+					endTime);
 			
-			AzureLogHandler azureLogHandler = new AzureLogHandler(applicationID, apiKey, functionName, startTime,endTime);
 			elementList.add(azureLogHandler.getPerformanceData());
-			
+
 			// if a benchmarking file is selected
 			if (args.size() == 6) {
 				BenchmarkingRESTAnalyzer restAnalyzer = new BenchmarkingRESTAnalyzer(Paths.get(args.get(5)));
 				elementList.add(restAnalyzer.extractRESTEvents());
 			}
-			
+
 			azureLogHandler.writePerformanceDataToFile(fileName, elementList);
 		} catch (SeMoDeException e) {
 			logger.fatal(e.getMessage());
-			return;
 		}
-
 	}
-
-	/**
-	 * Parses the start and end time parameter to a LocalDateTime.
-	 * 
-	 * @param time
-	 *            The time as string.
-	 * @return The time as LocalDateTime.
-	 */
-	private static LocalDateTime parseTime(String time) {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'_'HH:mm");
-		return LocalDateTime.parse(time, formatter);
-	}
-
 }

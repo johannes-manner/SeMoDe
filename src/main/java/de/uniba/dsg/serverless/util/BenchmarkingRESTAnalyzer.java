@@ -51,7 +51,7 @@ public class BenchmarkingRESTAnalyzer {
 		try {
 			List<String> lines = Files.readAllLines(benchmarkingFile);
 			Predicate<String> isNotEmpty = s -> !s.trim().isEmpty();
-			Function<String, String[]> splitLine = s -> s.split(";"); // System.getProperty("CSV_SEPARATOR"));
+			Function<String, String[]> splitLine = s -> s.split(System.getProperty("CSV_SEPARATOR"));
 			Consumer<String[]> insertEvent = (String[] s) -> {
 				String uuid = s[5].trim();
 				if (temporaryMap.get(uuid) == null) {

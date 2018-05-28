@@ -1,6 +1,5 @@
 package de.uniba.dsg.serverless.aws;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -9,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -29,9 +29,8 @@ import com.google.common.io.Resources;
 
 import de.uniba.dsg.serverless.model.FunctionExecutionEvent;
 import de.uniba.dsg.serverless.model.FunctionInstrumentation;
-import de.uniba.dsg.serverless.model.LocalRESTEvent;
-import de.uniba.dsg.serverless.model.PerformanceData;
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.model.WritableEvent;
 import de.uniba.dsg.serverless.service.LogHandler;
 
 /**
@@ -315,49 +314,17 @@ public final class AWSLogHandler implements LogHandler{
 		GetLogEventsResult logEvents = this.amazonCloudLogs.getLogEvents(logsRequest);
 		return logEvents.getEvents();
 	}
-
+	
 	@Override
-	public void writePerformanceDataToFile(String fileName) {
-
-		try {
-			List<PerformanceData> performanceDataList = this.getPerformanceData();
-			
-			if(!Files.exists(Paths.get("performanceData"))){
-				Files.createDirectory(Paths.get("performanceData"));
-			}
-			
-			Path file = Files.createFile(Paths.get("performanceData/" + fileName));
-			try (BufferedWriter bw = Files.newBufferedWriter(file)) {
-				bw.write(PerformanceData.getCSVMetadata() + System.lineSeparator());
-				for (PerformanceData performanceData : performanceDataList) {
-					bw.write(performanceData.toCSVString() + System.lineSeparator());
-				}
-			}
-
-		} catch (SeMoDeException e) {
-			logger.fatal(e.getMessage());
-			logger.fatal("Data handler is terminated due to an error.");
-		} catch (IOException e) {
-			logger.fatal("IO Exception occured.");
-		}
-	}
-
-	@Override
-	public void addLocalRESTEvents(Map<String, LocalRESTEvent> localRESTEvents) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public List<PerformanceData> getPerformanceData() throws SeMoDeException {
-		List<PerformanceData> performanceDataList = new ArrayList<>();
+	public Map<String, WritableEvent> getPerformanceData() throws SeMoDeException {
+		Map<String, WritableEvent> performanceData = new HashMap<>();
 		
 		List<FunctionExecutionEvent> eventList = this.getLogEventList();
 		for (FunctionExecutionEvent e : eventList) {
-			performanceDataList.add(AWSLogAnalyzer.extractInformation(e));
+			performanceData.put(e.getRequestId(), AWSLogAnalyzer.extractInformation(e));
 		}
 		
-		return performanceDataList;
+		return performanceData;
 	}
 
 }
