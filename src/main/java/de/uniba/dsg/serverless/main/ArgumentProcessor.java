@@ -9,8 +9,8 @@ import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.uniba.dsg.serverless.util.CustomUtility;
-import de.uniba.dsg.serverless.util.UtilityFactory;
+import de.uniba.dsg.serverless.cli.CustomUtility;
+import de.uniba.dsg.serverless.cli.UtilityFactory;
 
 public class ArgumentProcessor {
 	
@@ -18,6 +18,7 @@ public class ArgumentProcessor {
 	static {
 		System.setProperty("logFilename", "benchmarking_" + new SimpleDateFormat("MM-dd-HH-mm-ss").format(new Date()));
 		System.setProperty("CSV_SEPARATOR", ";");
+		System.setProperty("DATE_TIME_FORMAT", "yyyy-MM-dd HH:mm:ss.SSS");
 	}
 
 	public static void main(String[] args) {

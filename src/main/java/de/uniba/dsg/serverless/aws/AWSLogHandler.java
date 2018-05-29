@@ -1,6 +1,5 @@
 package de.uniba.dsg.serverless.aws;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -8,14 +7,20 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.services.logs.AWSLogs;
 import com.amazonaws.services.logs.AWSLogsClientBuilder;
 import com.amazonaws.services.logs.model.DescribeLogStreamsRequest;
@@ -29,8 +34,9 @@ import com.google.common.io.Resources;
 
 import de.uniba.dsg.serverless.model.FunctionExecutionEvent;
 import de.uniba.dsg.serverless.model.FunctionInstrumentation;
-import de.uniba.dsg.serverless.model.PerformanceData;
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.model.WritableEvent;
+import de.uniba.dsg.serverless.service.LogHandler;
 
 /**
  * This class starts the analysis of the log streams of the specified log group.
@@ -43,7 +49,7 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
  * @version 1.0
  *
  */
-public final class AWSLogHandler {
+public final class AWSLogHandler implements LogHandler{
 
 	private static final Logger logger = LogManager.getLogger(AWSLogHandler.class.getName());
 
@@ -53,6 +59,8 @@ public final class AWSLogHandler {
 
 	private final String region;
 	private final String logGroupName;
+	private final LocalDateTime startTime;
+	private final LocalDateTime endTime;
 
 	private final AWSLogs amazonCloudLogs;
 
@@ -66,10 +74,12 @@ public final class AWSLogHandler {
 	 * @param logGroupName
 	 *            - the complete log group name
 	 */
-	public AWSLogHandler(String region, String logGroupName) {
+	public AWSLogHandler(String region, String logGroupName, LocalDateTime startTime, LocalDateTime endTime) {
 
 		this.region = region;
 		this.logGroupName = logGroupName;
+		this.startTime = startTime;
+		this.endTime = endTime;
 
 		this.amazonCloudLogs = this.buildAmazonCloudLogsClient();
 	}
@@ -211,19 +221,32 @@ public final class AWSLogHandler {
 	 * log event list contains 24 elements, which are ordered but not grouped to the
 	 * function executions. </br>
 	 * This function enables the grouping and returns the list of cohesive log data.
+	 * </br>
+	 * The function generates only for the first failed execution a test file. 
+	 * If there is a retry mechanism specified in AWS, the function does not tackle
+	 * subsequent calls.
 	 * 
 	 * @return List of {@link FunctionExecutionEvent}
 	 * @throws SeMoDeException
 	 */
 	public List<FunctionExecutionEvent> getLogEventList(String searchString) throws SeMoDeException {
 
+		Map<String, FunctionExecutionEvent> logEventMap = new HashMap<>();
 		List<FunctionExecutionEvent> logEventList = new ArrayList<>();
 		List<FunctionExecutionEvent> preparedEventList = this.prepareLogEventList();
 
 		for (FunctionExecutionEvent event : preparedEventList) {
-			if (event.containsSearchString(searchString)) {
-				logEventList.add(event);
+			if(logEventMap.containsKey(event.getRequestId())) {
+				logger.info("Your function has an implemented retry mechanism: Request -" + event.getRequestId());
+			}else {
+				if (event.containsSearchString(searchString)) {
+					logEventMap.put(event.getRequestId(), event);
+				}
 			}
+		}
+	
+		for(String requestId : logEventMap.keySet()) {
+			logEventList.add(logEventMap.get(requestId));
 		}
 		return logEventList;
 	}
@@ -278,12 +301,31 @@ public final class AWSLogHandler {
 			} while (furtherLogRequest);//logResponse.getLogStreams().size() > 0);
 
 			logger.info("Number of Log streams: " + streams.size());
-			return streams;
+			
+			return this.filterLogStreams(streams);
 		} catch (ResourceNotFoundException e) {
-			throw new SeMoDeException(
-					"Resource not found. Please check the deployment of the specified function and the corresponding region!",
-					e);
+			throw new SeMoDeException("Resource not found. Please check the deployment of the specified function and the corresponding region!", e);
+		} catch (SdkClientException e) {
+			throw new SeMoDeException("A SDK client exception occurred. Open an issue on Github", e);
 		}
+	}
+
+	/**
+	 * Filters the log streams, based on the start and end time specified in this class.
+	 * 
+	 * @param logStreams
+	 * @return
+	 */
+	private List<LogStream> filterLogStreams(List<LogStream> logStreams) {
+
+		long startMillis = startTime.toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli();
+		long endMillis = endTime.toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli();
+		
+		Predicate<LogStream> startEndFilter = (LogStream stream) -> {
+			return stream.getLastIngestionTime() - startMillis >= 0 && endMillis - stream.getFirstEventTimestamp() >= 0;
+		};
+		
+		return logStreams.stream().filter(startEndFilter).collect(Collectors.toList());
 	}
 
 	/**
@@ -313,34 +355,17 @@ public final class AWSLogHandler {
 		GetLogEventsResult logEvents = this.amazonCloudLogs.getLogEvents(logsRequest);
 		return logEvents.getEvents();
 	}
-
-	public void writePerformanceDataToFile(String fileName) {
-
-		List<PerformanceData> performanceDataList = new ArrayList<>();
-		try {
-			List<FunctionExecutionEvent> eventList = this.getLogEventList();
-			for (FunctionExecutionEvent e : eventList) {
-				performanceDataList.add(AWSLogAnalyzer.extractInformation(e));
-			}
-			
-			if(!Files.exists(Paths.get("performanceData"))){
-				Files.createDirectory(Paths.get("performanceData"));
-			}
-			
-			Path file = Files.createFile(Paths.get("performanceData/" + fileName));
-			try (BufferedWriter bw = Files.newBufferedWriter(file)) {
-				bw.write(PerformanceData.getCSVMetadata() + System.lineSeparator());
-				for (PerformanceData performanceData : performanceDataList) {
-					bw.write(performanceData.toCSVString() + System.lineSeparator());
-				}
-			}
-
-		} catch (SeMoDeException e) {
-			logger.fatal(e.getMessage());
-			logger.fatal("Data handler is terminated due to an error.");
-		} catch (IOException e) {
-			logger.fatal("IO Exception occured.");
+	
+	@Override
+	public Map<String, WritableEvent> getPerformanceData() throws SeMoDeException {
+		Map<String, WritableEvent> performanceData = new HashMap<>();
+		
+		List<FunctionExecutionEvent> eventList = this.getLogEventList();
+		for (FunctionExecutionEvent e : eventList) {
+			performanceData.put(e.getRequestId(), AWSLogAnalyzer.extractInformation(e));
 		}
+		
+		return performanceData;
 	}
 
 }

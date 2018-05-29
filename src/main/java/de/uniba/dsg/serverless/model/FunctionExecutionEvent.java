@@ -70,12 +70,14 @@ public final class FunctionExecutionEvent {
 	
 	/**
 	 * Generates a unique file name for the naming of the java test classes.
+	 * "-" are a problem for the class names. Therefore the "-" are replaced with "_".
 	 * 
 	 * @return
 	 * 		a unique filename based on the function name and request Id
 	 */
 	public String getUniqueFileName() {
-		return this.functionName + "_" + this.requestId;
+		String uniqueFileName = this.functionName + "_" + this.requestId;
+		return uniqueFileName.replace("-", "_");
 	}
 	
 	public String getLogStream() {

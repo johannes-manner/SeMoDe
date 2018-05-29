@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.util;
+package de.uniba.dsg.serverless.cli;
 
 import java.io.IOException;
 import java.net.MalformedURLException;

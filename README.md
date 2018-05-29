@@ -12,11 +12,13 @@ The tool itself is in an early stage and needs feedback and participation of the
 
 SeMoDe prototype is a command line application, buildable with gradle.
 
-### Test generation feature
+### Test Generation Feature
+
+#### AWS Lambda Test Generation
 
 This feature is to generate tests automatically from your Lambda function executions.
 
-```java -jar SeMoDe.jar "awsSeMoDe" "REGION" "LOG GROUP" "SEARCH STRING"```
+```java -jar SeMoDe.jar "awsSeMoDe" "REGION" "LOG GROUP" "SEARCH STRING" "START TIME FILTER" "END TIME FILTER"```
 
 0. "awsSeMoDe" is a constant, which specifies the used utility mechanism.
 
@@ -36,12 +38,18 @@ because this enables a finer-grained result set. If various spelling for a searc
 exists, an user of the prototype must repeat the prototype invocation with
 all spellings of the search string.
 
-### New feature: Get performance data from aws cloud watch
+4. Desired start time filter. Only logs after specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
+
+5. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
+
+### Performance Data Feature
+
+#### Get Performance Data from AWS Cloud Watch
 
 This feature is to generate .csv files from the cloud watch logs with the metadata, like
 memory consumption, billing duration etc.
 
-```java -jar SeMoDe.jar "awsPerformanceData" "REGION" "LOG GROUP"```
+```java -jar SeMoDe.jar "awsPerformanceData" "REGION" "LOG GROUP" "START TIME FILTER" "END TIME FILTER" ["REST CALLS FILE"]```
 
 0. "awsPerformanceData" is a constant, which specifies the used utility mechanism.
 
@@ -55,13 +63,20 @@ function name, as shown in the example above. If the function is not deployed to
 the specified region, the prototype prints an error to the console and terminate the
 execution.
 
-### New feature: Get performance data from Microsoft Azure
+3. Desired start time filter. Only logs after specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
+
+4. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
+
+5. Optional - File name of the benchmarking log files, which was generated during the execution of the benchmarking utility.
+It contains the start and end timestamps from the local REST calls on the developer's machine. 
+
+#### Get Performance Data from Microsoft Azure
 
 This feature generates .csv files from logs of functions maintained by Microsoft Azure.
 
 Usage:
 
-```java -jar SeMoDe.jar "azurePerformanceData" "APPLICATION ID" "API KEY" "FUNCTION NAME" "START TIME FILTER" "END TIME FILTER"```
+```java -jar SeMoDe.jar "azurePerformanceData" "APPLICATION ID" "API KEY" "FUNCTION NAME" "START TIME FILTER" "END TIME FILTER" ["REST CALLS FILE"]```
 
 0. "azurePerformanceData" is a constant, which specifies the used utility mechanism.
 
@@ -75,10 +90,15 @@ Usage:
 
 5. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
 
+6. Optional - File name of the benchmarking log files, which was generated during the execution of the benchmarking utility.
+It contains the start and end timestamps from the local REST calls on the developer's machine. 
 
-### New feature: Benchmarking Tool for Microsoft Azure functions and AWS lambdas
+### Benchmarking Tool for REST Interfaces
 
-This feature triggers API requests in a controlled environment. It provides four modes:
+This feature triggers API requests in a controlled environment. It also logs the start and end time of the request to get 
+insights into the performance of the corresponding REST interface. The logged start and end times are consistent, because
+local timestamps via log4j2 are used on the execution machine.
+It provides four modes:
 
 1. Concurrent triggering of a function (mode: "concurrent")
 
@@ -126,7 +146,11 @@ Usage for each mode:
 
 6. Delay between termination of group g and start of group g + 1 in minutes.
 
-### New feature: Deployment Package Size Utility
+### Utility Features
+
+This category lists utility features for performing benchmarks in a REST environment.
+
+#### Deployment Package Size Utility
 
 This feature inflates the size of a file by adding a comment.
 
