@@ -77,6 +77,8 @@ public class FunctionTrigger implements Callable<String> {
 				.post(Entity.entity(jsonInput,
 						MediaType.APPLICATION_JSON));
 		
+		logger.info("END" + CSV_SEPARATOR + uuid);
+		
 		if(response.getStatus() != REQUEST_PASSED_STATUS) {
 			throw new SeMoDeException("Request exited with an error: " + response.getStatus() + " - " + response.getStatusInfo());
 		}
@@ -87,7 +89,9 @@ public class FunctionTrigger implements Callable<String> {
 		
 		try {
 			JsonNode responseNode = jsonReader.readTree(responseEntity);
-			platformId = responseNode.get(PLATFORM_ID).asText();
+			if(responseNode.has(PLATFORM_ID)) {
+				platformId = responseNode.get(PLATFORM_ID).asText();
+			}
 		} catch (IOException e) {
 			// swallow the exception, because the platformId is an optional parameter and not 
 			// only relevant when linking the local and remote execution on the platform
@@ -97,7 +101,6 @@ public class FunctionTrigger implements Callable<String> {
 		
 		String responseValue = response.getStatus() + " " + responseEntity;
 
-		logger.info("END" + CSV_SEPARATOR + uuid);
 		logger.info(platformId + CSV_SEPARATOR + uuid + CSV_SEPARATOR  + "PLATFORMID");
 		
 		return responseValue;

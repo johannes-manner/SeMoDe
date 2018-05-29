@@ -53,15 +53,18 @@ public class BenchmarkingRESTAnalyzer {
 			Predicate<String> isNotEmpty = s -> !s.trim().isEmpty();
 			Function<String, String[]> splitLine = s -> s.split(System.getProperty("CSV_SEPARATOR"));
 			Consumer<String[]> insertEvent = (String[] s) -> {
-				String uuid = s[5].trim();
-				if (temporaryMap.get(uuid) == null) {
-					Map<String, LocalDateTime> temp = new HashMap<>();
-					temporaryMap.put(uuid, temp);
+				// minimum 6, otherwise an error message is logged and can not be computed in this way
+				if(s.length >= 6) {
+					String uuid = s[5].trim();
+					if (temporaryMap.containsKey(uuid) == false) {
+						Map<String, LocalDateTime> temp = new HashMap<>();
+						temporaryMap.put(uuid, temp);
+					}
+	
+					// parse other parameters
+					Map<String, LocalDateTime> temp = temporaryMap.get(uuid);
+					temp.put(s[4], LocalDateTime.parse(s[0], formatter));
 				}
-
-				// parse other parameters
-				Map<String, LocalDateTime> temp = temporaryMap.get(uuid);
-				temp.put(s[4], LocalDateTime.parse(s[0], formatter));
 			};
 
 			lines.stream()

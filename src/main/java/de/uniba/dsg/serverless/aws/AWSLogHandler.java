@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,6 +20,7 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.services.logs.AWSLogs;
 import com.amazonaws.services.logs.AWSLogsClientBuilder;
 import com.amazonaws.services.logs.model.DescribeLogStreamsRequest;
@@ -304,9 +304,9 @@ public final class AWSLogHandler implements LogHandler{
 			
 			return this.filterLogStreams(streams);
 		} catch (ResourceNotFoundException e) {
-			throw new SeMoDeException(
-					"Resource not found. Please check the deployment of the specified function and the corresponding region!",
-					e);
+			throw new SeMoDeException("Resource not found. Please check the deployment of the specified function and the corresponding region!", e);
+		} catch (SdkClientException e) {
+			throw new SeMoDeException("A SDK client exception occurred. Open an issue on Github", e);
 		}
 	}
 

@@ -47,7 +47,7 @@ public abstract class CustomUtility {
 	}
 	
 	protected String generateFileName(String functionName) {
-		String dateText = new SimpleDateFormat("MM-dd-HH-mm").format(new Date());
+		String dateText = new SimpleDateFormat("MM-dd-HH-mm-ss").format(new Date());
 		String fileName = functionName + "-" + dateText + ".csv";
 		return fileName;
 	}
