@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.azure;
+package de.uniba.dsg.serverless.provider.azure;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

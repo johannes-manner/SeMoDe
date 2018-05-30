@@ -4,6 +4,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import de.uniba.dsg.serverless.cli.performance.AWSPerformanceDataUtility;
+import de.uniba.dsg.serverless.cli.performance.AzurePerformanceDataUtility;
+
 public class UtilityFactory {
 
 	private static List<CustomUtility> utilityList = Arrays.asList(

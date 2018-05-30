@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.service;
+package de.uniba.dsg.serverless.provider;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

@@ -6,8 +6,8 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.uniba.dsg.serverless.aws.AWSLogHandler;
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.provider.aws.AWSLogHandler;
 
 /**
  * 
