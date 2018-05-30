@@ -4,7 +4,7 @@ import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import de.uniba.dsg.serverless.aws.AWSLogAnalyzer;
+import de.uniba.dsg.serverless.provider.aws.AWSLogAnalyzer;
 
 /**
  * This class generates instrumentation statements and is closely related to the

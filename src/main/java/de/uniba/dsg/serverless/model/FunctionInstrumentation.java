@@ -4,7 +4,7 @@ import java.util.Map;
 
 import com.amazonaws.services.logs.model.OutputLogEvent;
 
-import de.uniba.dsg.serverless.aws.AWSLogAnalyzer;
+import de.uniba.dsg.serverless.provider.aws.AWSLogAnalyzer;
 
 /**
  * This class is a model for data which are needed for the instrumentation of the template file to generate test

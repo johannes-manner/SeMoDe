@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.cli;
+package de.uniba.dsg.serverless.cli.performance;
 
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -8,16 +8,18 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.uniba.dsg.serverless.azure.AzureLogHandler;
+import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.model.WritableEvent;
+import de.uniba.dsg.serverless.provider.azure.AzureLogHandler;
 import de.uniba.dsg.serverless.util.BenchmarkingRESTAnalyzer;
 
-public final class AzurePerformanceDataUtility extends CustomUtility {
+public final class AzurePerformanceDataUtility extends CustomUtility implements PerformanceData{
 
 	private static final Logger logger = LogManager.getLogger(AzurePerformanceDataUtility.class.getName());
 
@@ -42,28 +44,22 @@ public final class AzurePerformanceDataUtility extends CustomUtility {
 
 		try {
 			this.validateStartEnd(startTimeString, endTimeString);
-
 			LocalDateTime startTime = this.parseTime(startTimeString);
 			LocalDateTime endTime = this.parseTime(endTimeString);
-
-			String fileName = this.generateFileName(functionName);
-
-			List<Map<String, WritableEvent>> elementList = new ArrayList<>();
 
 			AzureLogHandler azureLogHandler = new AzureLogHandler(applicationID, apiKey, functionName, startTime,
 					endTime);
 			
-			elementList.add(azureLogHandler.getPerformanceData());
-
-			// if a benchmarking file is selected
+			Optional<String> restFile;
 			if (args.size() == 6) {
-				BenchmarkingRESTAnalyzer restAnalyzer = new BenchmarkingRESTAnalyzer(Paths.get(args.get(5)));
-				elementList.add(restAnalyzer.extractRESTEvents());
+				restFile = Optional.of(args.get(5));
+			}else {
+				restFile = Optional.empty();
 			}
-
-			azureLogHandler.writePerformanceDataToFile(fileName, elementList);
+			
+			this.writePerformanceDataToFile(azureLogHandler, functionName, restFile);
 		} catch (SeMoDeException e) {
-			logger.fatal(e.getMessage());
+			logger.fatal(e.getMessage() + "Cause: " + e.getCause() == null ? "No further cause!" : e.getCause().getMessage());
 		}
 	}
 }

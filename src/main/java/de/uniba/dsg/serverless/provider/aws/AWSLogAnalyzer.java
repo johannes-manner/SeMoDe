@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.aws;
+package de.uniba.dsg.serverless.provider.aws;
 
 import java.time.Instant;
 import java.time.LocalDateTime;

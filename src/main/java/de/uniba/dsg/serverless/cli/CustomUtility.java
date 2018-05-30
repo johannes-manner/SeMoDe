@@ -45,10 +45,4 @@ public abstract class CustomUtility {
 			throw new SeMoDeException("End time is no valid datetime with the format: " + DATE_TIME_PATTERN);
 		}
 	}
-	
-	protected String generateFileName(String functionName) {
-		String dateText = new SimpleDateFormat("MM-dd-HH-mm-ss").format(new Date());
-		String fileName = functionName + "-" + dateText + ".csv";
-		return fileName;
-	}
 }
