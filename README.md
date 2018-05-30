@@ -93,6 +93,30 @@ Usage:
 6. Optional - File name of the benchmarking log files, which was generated during the execution of the benchmarking utility.
 It contains the start and end timestamps from the local REST calls on the developer's machine. 
 
+#### Get Performance Data from Google Cloud Functions (Stackdriver)
+
+In contrast to the AWS Lambda and Azure Cloud Functions services, there is no possibility (to our knowledge) to get the 
+instance id of the executing host and also reading the platform's execution id is quite challenging. Therefore, a JSON 
+is placed as a log message with the following structure: SEMODE::{"platformId": "execution_id", "instanceId": "host_id", "memorySize": "size in MB"}.
+"execution_id" and "host_id" are generated uuids.
+
+The gcloud credentials are set via the Google Cloud SDK command ```gcloud auth application-default login```.
+
+Usage:
+
+```java -jar SeMoDe.jar "googlePerformanceData" "FUNCTION NAME" "START TIME FILTER" "END TIME FILTER" ["REST CALLS FILE"]```
+
+0. "googlePerformanceData" is a constant, which specifies the used utility mechanism.
+
+1. Function Name of the function the performance data are fetched from. It is specified under the function apps.
+
+2. Desired start time filter. Only logs after specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
+
+3. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
+
+4. Optional - File name of the benchmarking log files, which was generated during the execution of the benchmarking utility.
+It contains the start and end timestamps from the local REST calls on the developer's machine.  
+
 ### Benchmarking Tool for REST Interfaces
 
 This feature triggers API requests in a controlled environment. It also logs the start and end time of the request to get 

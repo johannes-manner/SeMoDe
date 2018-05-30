@@ -43,6 +43,10 @@ public class PerformanceData implements WritableEvent{
 		this.memorySize = memorySize;
 		this.memoryUsed = memoryUsed;
 	}
+	
+	public String getRequestId() {
+		return this.requestId;
+	}
 
 	@Override
 	public String toString() {

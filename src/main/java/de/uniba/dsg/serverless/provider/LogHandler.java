@@ -53,6 +53,5 @@ public interface LogHandler {
 		} catch (IOException e) {
 			throw new SeMoDeException("Writing to file failed");
 		}
-
 	}
 }

@@ -27,6 +27,11 @@ dependencies {
     compile group: 'com.microsoft.azure', name: 'azure-core', version: '0.6.0'
     compile group: 'com.microsoft.azure', name: 'azure-storage', version: '7.0.0'
     
+    // google
+    compile 'com.google.cloud:google-cloud-logging:1.27.0'
+    // see https://www.slf4j.org/codes.html#StaticLoggerBinder get rid of an error during logger initialization
+    compile group: 'org.slf4j', name: 'slf4j-nop', version: '1.7.21'
+    
     // jersey client
     compile group: 'org.glassfish.jersey.core', name: 'jersey-client', version: '2.25'
     compile group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.25'
