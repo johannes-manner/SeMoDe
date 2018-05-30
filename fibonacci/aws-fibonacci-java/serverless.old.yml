@@ -57,19 +57,9 @@ functions:
       - http:
           path: fibonacci-java
           method: get
-          integration: lambda
-          request:
-            template:
-              application/json: '{ "n_query" : "$input.params(''n'')", "n_body" : "$input.json(''$.n'')" }'
-              text/plain: '{ "n_query" : "$input.params(''n'')", "n_body" : "$input.json(''$.n'')" }'
       - http:
           path: fibonacci-java
           method: post
-          integration: lambda
-          request:
-            template:
-              application/json: '{ "n_query" : "$input.params(''n'')", "n_body" : "$input.json(''$.n'')" }'
-              text/plain: '{ "n_query" : "$input.params(''n'')", "n_body" : "$input.json(''$.n'')" }'
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events

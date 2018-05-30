@@ -8,9 +8,9 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class Fibonacci implements RequestHandler<Map<String, Object>, ApiGatewayResponse> {
+public class Fibonacci implements RequestHandler<Map<String, String>, ApiGatewayResponse> {
 	
-	@Override
+	/*@Override
 	public ApiGatewayResponse handleRequest(Map<String, Object> input, Context context) {
 		@SuppressWarnings("unchecked")
 		Map<String, String> queryParameters = (Map<String, String>) input.get("queryStringParameters");
@@ -41,9 +41,9 @@ public class Fibonacci implements RequestHandler<Map<String, Object>, ApiGateway
 	    long result = fibonacci(n);
 	    
 	    return createSuccessResponse(String.valueOf(result));
-	}
+	}*/
 
-	/*@Override
+	@Override
 	public ApiGatewayResponse handleRequest(Map<String, String> parameters, Context context) {
 		String n_query = parameters.get("n_query");
 		String n_body = parameters.get("n_body");
@@ -63,7 +63,7 @@ public class Fibonacci implements RequestHandler<Map<String, Object>, ApiGateway
 	    long result = fibonacci(n);
 	    
 	    return createSuccessResponse(String.valueOf(result));
-	}*/
+	}
 
 	public long fibonacci(long n) {
 		if (n <= 1) {
