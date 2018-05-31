@@ -1,33 +1,17 @@
 'use strict';
 
 module.exports.handler = (event, context, callback) => {
-    var n;
-
-    if (event.queryStringParameters && event.queryStringParameters.n) {
-        n = event.queryStringParameters.n;
-    }
-    else if (event.body) {
-        try {
-            var body = JSON.parse(event.body);
-
-            if (body.n) {
-                n = body.n;
-            }
-        } catch (e) {
-            callback(null, createErrorResponse("Please pass valid JSON as body."));
-            return;
-        }
-    }
+    var n = event.n;
 
     if (!n || !isNumeric(n)) {
-        callback(null, createErrorResponse("Please pass a valid number 'n'."));
+        context.fail(createErrorResponse("Please pass a valid number 'n'.", context.awsRequestId));
         return;
     }
 
     n = parseInt(n);
     var result = fib(n);
 
-    callback(null, createSuccessResponse(result));
+    context.succeed(createSuccessResponse(result, context.awsRequestId));
 };
 
 var fib = function(n) {
@@ -38,17 +22,19 @@ var fib = function(n) {
     }
 };
 
-var createErrorResponse = function (message) {
-    return {
-        statusCode: 400,
-        body: message,
-    }
+var createErrorResponse = function (message, requestId) {
+    var response = {
+        result: "[400] " + message,
+        platformId: requestId
+    };
+
+    return JSON.stringify(response);
 };
 
-var createSuccessResponse = function (message) {
+var createSuccessResponse = function (message, requestId) {
     return {
-        statusCode: 200,
-        body: message,
+        result: message,
+        platformId: requestId
     }
 };
 

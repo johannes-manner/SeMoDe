@@ -66,9 +66,35 @@ functions:
       - http:
           path: fibonacci-js
           method: get
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
       - http:
           path: fibonacci-js
           method: post
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events

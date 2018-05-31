@@ -1,22 +1,20 @@
 package com.serverless;
 
-import java.util.Map;
-
 public class Response {
 
-	private final String message;
-	private final Map<String, Object> input;
+	private final String result;
+	private final String platformId;
 
-	public Response(String message, Map<String, Object> input) {
-		this.message = message;
-		this.input = input;
+	public Response(String result, String platformId) {
+		this.result = result;
+		this.platformId = platformId;
 	}
 
-	public String getMessage() {
-		return this.message;
+	public String getResult() {
+		return this.result;
 	}
 
-	public Map<String, Object> getInput() {
-		return this.input;
+	public String getPlatformId() {
+		return this.platformId;
 	}
 }
