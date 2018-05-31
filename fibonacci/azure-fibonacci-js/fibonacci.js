@@ -13,7 +13,7 @@ module.exports.handler = function (context, req) {
     }
 
     if (!n || !isNumeric(n)) {
-        context.res = createErrorResponse("Please pass a valid number 'n'.");
+        context.res = createErrorResponse("Please pass a valid number 'n'.", context.invocationId);
         context.done();
         return;
     }
@@ -21,7 +21,7 @@ module.exports.handler = function (context, req) {
     n = parseInt(n);
     var result = fib(n);
 
-    context.res = createSuccessResponse(result);
+    context.res = createSuccessResponse(result, context.invocationId);
     context.done();
 };
 
@@ -33,17 +33,23 @@ var fib = function(n) {
     }
 };
 
-var createErrorResponse = function (message) {
-    return {
-        status: 400,
-        body: message,
-    }
+var createErrorResponse = function (message, platformId) {
+    return createResponse(400, message, platformId);
 };
 
-var createSuccessResponse = function (message) {
+var createSuccessResponse = function (message, platformId) {
+    return createResponse(200, message, platformId);
+};
+
+var createResponse = function (status, message, platformId) {
+    var response = {
+        result: message,
+        platformId: platformId
+    };
+
     return {
-        status: 200,
-        body: message,
+        status: status,
+        body: response,
     }
 };
 
