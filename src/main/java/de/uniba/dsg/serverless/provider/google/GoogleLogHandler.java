@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +33,16 @@ import de.uniba.dsg.serverless.provider.LogHandler;
  */
 public class GoogleLogHandler implements LogHandler {
 
+	private static final String GOOGLE_FUNCTION_EXECUTION_SUMMARY_LOG_REGEX = " ";
+
+	private static final String SEMODE_CUSTOM_LOG_REGEX = "::";
+
+	private static final String SEMODE_CUSTOM_LOG_PREFIX = "SEMODE::";
+
+	private static final String GOOGLE_FUNCTION_EXECUTION_START = "Function execution start";
+
+	private static final String GOOGLE_FUNCTION_EXECUTION_SUMMARY = "Function execution took";
+
 	private static final DateTimeFormatter QUERY_DATE_FORMATTER = DateTimeFormatter
 			.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
@@ -53,6 +64,13 @@ public class GoogleLogHandler implements LogHandler {
 		return logEntries;
 	}
 
+	/**
+	 * Executes an API call throw the Google Functions SDK to get the log entries.
+	 * A custom filter is applied with the function name and the start and end time, where
+	 * logs should be fetched.
+	 * 
+	 * Consider the UTC time.
+	 */
 	private List<LogEntry> executeListLogEntries() throws SeMoDeException {
 
 		List<LogEntry> logEntries = new ArrayList<>();
@@ -70,12 +88,6 @@ public class GoogleLogHandler implements LogHandler {
 
 			Page<LogEntry> entries = logging.listLogEntries(entryFilterOption);
 			logEntries.addAll(this.extractLogEntryFromPage(entries));
-
-			// further pages with log entries
-			while (entries.hasNextPage()) {
-				entries = entries.getNextPage();
-				logEntries.addAll(this.extractLogEntryFromPage(entries));
-			}
 
 			return logEntries;
 		} catch (Exception e) {
@@ -99,21 +111,26 @@ public class GoogleLogHandler implements LogHandler {
 		return this.generatePerformanceDataMap(eventMap);
 	}
 
-	private Map<String, WritableEvent> generatePerformanceDataMap(Map<String, List<LogEntry>> eventMap) {
+	private Map<String, WritableEvent> generatePerformanceDataMap(Map<String, List<LogEntry>> eventMap) throws SeMoDeException {
 
 		Map<String, WritableEvent> performanceMap = new HashMap<>();
 		
-		for(String key : eventMap.keySet()) {
-			List<LogEntry> cohesiveEvent = eventMap.get(key);
-			PerformanceData data = this.extractPerformanceData(cohesiveEvent);
-			performanceMap.put(data.getRequestId(), data);
+		for(String executionId : eventMap.keySet()) {
+			List<LogEntry> cohesiveEvent = eventMap.get(executionId);
+			Optional<PerformanceData> data = this.extractPerformanceData(cohesiveEvent);
+			if(data.isPresent()) {
+				performanceMap.put(data.get().getRequestId(), data.get());
+			}
 		}
 		
 		return performanceMap;
 	}
 
-	// TODO: make the whole function more robust -> refactor
-	private PerformanceData extractPerformanceData(List<LogEntry> cohesiveEvent) {
+	/**
+	 * Extracts the relevant information from a list of log entries, which represent a cohesive event. 
+	 * A PerformanceData object is created from the extracted information and returned.
+	 */
+	private Optional<PerformanceData> extractPerformanceData(List<LogEntry> cohesiveEvent) throws SeMoDeException {
 		
 		LocalDateTime startTime = LocalDateTime.MIN;
 		LocalDateTime endTime = LocalDateTime.MIN;
@@ -123,26 +140,27 @@ public class GoogleLogHandler implements LogHandler {
 		
 		for(LogEntry entry : cohesiveEvent) {
 			Payload payload = entry.getPayload();
-			if(payload instanceof StringPayload) {
+			if (payload instanceof StringPayload) {
 				String data = ((StringPayload)payload).getData();
-				System.out.println(data);
-				if(data.startsWith("Function execution took")) {
-					preciseDuration = Double.parseDouble(data.split(" ")[3]);
+				if(data.startsWith(GOOGLE_FUNCTION_EXECUTION_SUMMARY)) {
+					preciseDuration = Double.parseDouble(data.split(GOOGLE_FUNCTION_EXECUTION_SUMMARY_LOG_REGEX)[3]);
 					endTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(entry.getTimestamp()), ZoneId.systemDefault());
-				}else if(data.startsWith("Function execution start")) {
+				}else if(data.startsWith(GOOGLE_FUNCTION_EXECUTION_START)) {
 					startTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(entry.getTimestamp()), ZoneId.systemDefault());
-				}else if(data.startsWith("SEMODE::")) {
+				}else if(data.startsWith(SEMODE_CUSTOM_LOG_PREFIX)) {
 					ObjectMapper om = new ObjectMapper();
 					try {
-						JsonNode node = om.readTree(data.split("::")[1]);
-						// make gets more robuts.
-						platformId = node.get("platformId").asText();
-						instanceId = node.get("instanceId").asText();
+						JsonNode node = om.readTree(data.split(SEMODE_CUSTOM_LOG_REGEX)[1]);
+						platformId = this.extractStringValue(node, "platformId");
+						instanceId = this.extractStringValue(node, "instanceId");
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						throw new SeMoDeException("Exception while reading the custom json message from google API", e);
 					}
 				}
+			} else {
+				// payload can also be something different than string.
+				// these payloads are not relevant for the handling functionality.
+				return Optional.empty();
 			}
 			
 		}
@@ -158,7 +176,7 @@ public class GoogleLogHandler implements LogHandler {
 				-1,
 				-1
 				);
-		return data;
+		return Optional.of(data);
 	}
 
 	/**
@@ -170,15 +188,19 @@ public class GoogleLogHandler implements LogHandler {
 
 		for (LogEntry logEntry : logEntries) {
 			String executionId = logEntry.getLabels().get("execution_id");
-			if (eventMap.containsKey(executionId)) {
-				eventMap.get(executionId).add(logEntry);
-			} else {
-				List<LogEntry> entries = new ArrayList<>();
-				entries.add(logEntry);
-				eventMap.put(executionId, entries);
+			if (!eventMap.containsKey(executionId)) {
+				eventMap.put(executionId, new ArrayList<>());
 			}
+			eventMap.get(executionId).add(logEntry);
 		}
 
 		return eventMap;
+	}
+	
+	private String extractStringValue(JsonNode node, String key) {
+		if(node.has(key)) {
+			return node.get(key).asText();
+		}
+		return "";
 	}
 }
