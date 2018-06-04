@@ -6,8 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -17,7 +15,6 @@ import java.util.Optional;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.model.WritableEvent;
 import de.uniba.dsg.serverless.provider.LogHandler;
-import de.uniba.dsg.serverless.provider.azure.AzureLogHandler;
 import de.uniba.dsg.serverless.util.BenchmarkingRESTAnalyzer;
 
 public interface PerformanceData {

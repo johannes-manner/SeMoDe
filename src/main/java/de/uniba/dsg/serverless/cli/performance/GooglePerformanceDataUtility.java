@@ -1,10 +1,7 @@
 package de.uniba.dsg.serverless.cli.performance;
 
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
@@ -12,10 +9,7 @@ import org.apache.logging.log4j.Logger;
 
 import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.model.WritableEvent;
-import de.uniba.dsg.serverless.provider.aws.AWSLogHandler;
 import de.uniba.dsg.serverless.provider.google.GoogleLogHandler;
-import de.uniba.dsg.serverless.util.BenchmarkingRESTAnalyzer;
 
 public class GooglePerformanceDataUtility extends CustomUtility implements PerformanceData {
 	

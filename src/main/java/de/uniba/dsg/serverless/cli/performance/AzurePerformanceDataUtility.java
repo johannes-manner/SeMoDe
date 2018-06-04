@@ -1,13 +1,7 @@
 package de.uniba.dsg.serverless.cli.performance;
 
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
@@ -15,9 +9,7 @@ import org.apache.logging.log4j.Logger;
 
 import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.model.WritableEvent;
 import de.uniba.dsg.serverless.provider.azure.AzureLogHandler;
-import de.uniba.dsg.serverless.util.BenchmarkingRESTAnalyzer;
 
 public final class AzurePerformanceDataUtility extends CustomUtility implements PerformanceData{
 

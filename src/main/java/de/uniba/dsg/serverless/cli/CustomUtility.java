@@ -1,9 +1,7 @@
 package de.uniba.dsg.serverless.cli;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;

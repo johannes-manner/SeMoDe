@@ -1,7 +1,6 @@
 package de.uniba.dsg.serverless.model;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class PerformanceData implements WritableEvent{
 
