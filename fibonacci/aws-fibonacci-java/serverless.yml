@@ -21,6 +21,7 @@ provider:
   name: aws
   runtime: java8
   region: eu-west-1
+  timeout: 300
 
 # you can overwrite defaults here
 #  stage: dev
