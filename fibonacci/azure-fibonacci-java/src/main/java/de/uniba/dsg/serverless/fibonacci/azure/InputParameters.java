@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.azure;
+package de.uniba.dsg.serverless.fibonacci.azure;
 
 public class InputParameters {
 	

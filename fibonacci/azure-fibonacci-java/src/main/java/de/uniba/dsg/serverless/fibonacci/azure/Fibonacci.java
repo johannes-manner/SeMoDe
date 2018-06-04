@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.azure;
+package de.uniba.dsg.serverless.fibonacci.azure;
 
 import com.microsoft.azure.serverless.functions.ExecutionContext;
 import com.microsoft.azure.serverless.functions.HttpRequestMessage;
@@ -22,7 +22,6 @@ public class Fibonacci {
 			InputParameters input, @BindingName("n") String nQuery, final ExecutionContext context) {
 
 		String nBody = input.getN();
-		String invocationId = context.getInvocationId();
 
 		String nString = "";
 		if (nQuery != null && !nQuery.isEmpty()) {
@@ -32,13 +31,14 @@ public class Fibonacci {
 		}
 
 		if (!isNumeric(nString)) {
-			return request.createResponse(400, createResponseMessage("Please pass a valid number 'n'.", invocationId));
+			return request.createResponse(400,
+					createResponseMessage("Please pass a valid number 'n'.", context.getInvocationId()));
 		}
 
 		long n = Long.parseLong(nString);
 		long result = fibonacci(n);
 
-		return request.createResponse(200, createResponseMessage(String.valueOf(result), invocationId));
+		return request.createResponse(200, createResponseMessage(String.valueOf(result), context.getInvocationId()));
 	}
 
 	public long fibonacci(long n) {

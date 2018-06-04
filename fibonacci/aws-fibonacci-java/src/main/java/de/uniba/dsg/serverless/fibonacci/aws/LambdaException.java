@@ -1,4 +1,4 @@
-package com.serverless;
+package de.uniba.dsg.serverless.fibonacci.aws;
 
 public class LambdaException extends RuntimeException {
 

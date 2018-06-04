@@ -1,4 +1,4 @@
-package com.serverless;
+package de.uniba.dsg.serverless.fibonacci.azure;
 
 public class Response {
 

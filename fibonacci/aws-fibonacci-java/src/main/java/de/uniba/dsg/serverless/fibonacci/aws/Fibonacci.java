@@ -1,4 +1,4 @@
-package com.serverless;
+package de.uniba.dsg.serverless.fibonacci.aws;
 
 import java.util.Map;
 
@@ -11,13 +11,13 @@ public class Fibonacci implements RequestHandler<Map<String, String>, Response> 
 
 	@Override
 	public Response handleRequest(Map<String, String> parameters, Context context) {
-		String n_string = parameters.getOrDefault("n", "");
+		String nString = parameters.getOrDefault("n", "");
 
-		if (!isNumeric(n_string)) {
+		if (!isNumeric(nString)) {
 			return createErrorResponse("Please pass a valid number 'n'.", context.getAwsRequestId());
 		}
 
-		long n = Integer.parseInt(n_string);
+		long n = Long.parseLong(nString);
 		long result = fibonacci(n);
 
 		return createSuccessResponse(String.valueOf(result), context.getAwsRequestId());
@@ -39,7 +39,7 @@ public class Fibonacci implements RequestHandler<Map<String, String>, Response> 
 			String responseJSON = mapper.writeValueAsString(response);
 			throw new LambdaException(responseJSON);
 		} catch (JsonProcessingException e) {
-			throw new LambdaException("[400] Error while creating JSON response.");
+			throw new LambdaException("{ \"result\": \"[400] Error while creating JSON response.\" }");
 		}
 	}
 
