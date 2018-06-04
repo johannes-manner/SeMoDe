@@ -34,6 +34,7 @@ public final class AWSPerformanceDataUtility extends CustomUtility implements Pe
 		String endTimeString = args.get(3);
 
 		try {
+			this.validateStartEnd(startTimeString, endTimeString);
 			LocalDateTime startTime = this.parseTime(startTimeString);
 			LocalDateTime endTime = this.parseTime(endTimeString);
 			AWSLogHandler logHandler = new AWSLogHandler(region, logGroupName, startTime, endTime);
