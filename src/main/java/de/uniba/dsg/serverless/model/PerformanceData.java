@@ -1,7 +1,6 @@
 package de.uniba.dsg.serverless.model;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class PerformanceData implements WritableEvent{
 
@@ -42,6 +41,10 @@ public class PerformanceData implements WritableEvent{
 		this.billedDuration = billedDuration;
 		this.memorySize = memorySize;
 		this.memoryUsed = memoryUsed;
+	}
+	
+	public String getRequestId() {
+		return this.requestId;
 	}
 
 	@Override

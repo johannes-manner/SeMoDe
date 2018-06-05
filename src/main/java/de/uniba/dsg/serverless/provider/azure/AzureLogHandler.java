@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.azure;
+package de.uniba.dsg.serverless.provider.azure;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,7 +23,7 @@ import com.google.common.net.UrlEscapers;
 import de.uniba.dsg.serverless.model.PerformanceData;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.model.WritableEvent;
-import de.uniba.dsg.serverless.service.LogHandler;
+import de.uniba.dsg.serverless.provider.LogHandler;
 
 public class AzureLogHandler implements LogHandler{
 

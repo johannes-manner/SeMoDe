@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.aws;
+package de.uniba.dsg.serverless.provider.aws;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +36,7 @@ import de.uniba.dsg.serverless.model.FunctionExecutionEvent;
 import de.uniba.dsg.serverless.model.FunctionInstrumentation;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.model.WritableEvent;
-import de.uniba.dsg.serverless.service.LogHandler;
+import de.uniba.dsg.serverless.provider.LogHandler;
 
 /**
  * This class starts the analysis of the log streams of the specified log group.

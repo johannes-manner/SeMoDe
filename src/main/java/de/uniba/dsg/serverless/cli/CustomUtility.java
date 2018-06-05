@@ -1,9 +1,7 @@
 package de.uniba.dsg.serverless.cli;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;
@@ -44,11 +42,5 @@ public abstract class CustomUtility {
 		if (!endTime.matches(DATETIME_FORMAT_PATTERN)) {
 			throw new SeMoDeException("End time is no valid datetime with the format: " + DATE_TIME_PATTERN);
 		}
-	}
-	
-	protected String generateFileName(String functionName) {
-		String dateText = new SimpleDateFormat("MM-dd-HH-mm-ss").format(new Date());
-		String fileName = functionName + "-" + dateText + ".csv";
-		return fileName;
 	}
 }

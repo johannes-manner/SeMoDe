@@ -1,20 +1,17 @@
-package de.uniba.dsg.serverless.cli;
+package de.uniba.dsg.serverless.cli.performance;
 
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.uniba.dsg.serverless.aws.AWSLogHandler;
+import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.model.WritableEvent;
-import de.uniba.dsg.serverless.util.BenchmarkingRESTAnalyzer;
+import de.uniba.dsg.serverless.provider.aws.AWSLogHandler;
 
-public final class AWSPerformanceDataUtility extends CustomUtility {
+public final class AWSPerformanceDataUtility extends CustomUtility implements PerformanceData{
 
 	private static final Logger logger = LogManager.getLogger(AWSPerformanceDataUtility.class.getName());
 
@@ -38,26 +35,20 @@ public final class AWSPerformanceDataUtility extends CustomUtility {
 
 		try {
 			this.validateStartEnd(startTimeString, endTimeString);
-			String fileName = this.generateFileName(logGroupName.substring("/aws/lambda/".length()));
-			
 			LocalDateTime startTime = this.parseTime(startTimeString);
 			LocalDateTime endTime = this.parseTime(endTimeString);
-
-			List<Map<String, WritableEvent>> elementList = new ArrayList<>();
 			AWSLogHandler logHandler = new AWSLogHandler(region, logGroupName, startTime, endTime);
-
-			elementList.add(logHandler.getPerformanceData());
-			
-			// if a benchmarking file is selected
+			Optional<String> restFile;
 			if (args.size() == 5) {
-				BenchmarkingRESTAnalyzer restAnalyzer = new BenchmarkingRESTAnalyzer(Paths.get(args.get(4)));
-				elementList.add(restAnalyzer.extractRESTEvents());
+				restFile = Optional.of(args.get(4));
+			}else {
+				restFile = Optional.empty();
 			}
 			
-			logHandler.writePerformanceDataToFile(fileName, elementList);
-
+			this.writePerformanceDataToFile(logHandler, logGroupName.substring("/aws/lambda/".length()), restFile);
+			
 		} catch (SeMoDeException e) {
-			logger.fatal(e.getMessage());
+			logger.fatal(e.getMessage() + "Cause: " + e.getCause() == null ? "No further cause!" : e.getCause().getMessage());
 		}
 	}
 }
