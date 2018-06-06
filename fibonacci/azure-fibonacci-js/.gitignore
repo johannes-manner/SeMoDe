@@ -1,0 +1,9 @@
+# serverless directory
+.serverless
+
+# Node.js
+node_modules
+package-lock.json
+
+# package
+*-function.json

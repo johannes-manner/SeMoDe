@@ -1,0 +1,5 @@
+# serverless directory
+.serverless
+
+# Node.js
+node_modules
