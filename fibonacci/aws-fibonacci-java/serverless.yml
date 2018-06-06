@@ -53,7 +53,7 @@ package:
 
 functions:
   fibonacci-java:
-    handler: com.serverless.Fibonacci
+    handler: de.uniba.dsg.serverless.fibonacci.aws.Fibonacci
     events:
       - http:
           path: fibonacci-java
