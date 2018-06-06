@@ -48,7 +48,8 @@ public final class AWSPerformanceDataUtility extends CustomUtility implements Pe
 			this.writePerformanceDataToFile(logHandler, logGroupName.substring("/aws/lambda/".length()), restFile);
 			
 		} catch (SeMoDeException e) {
-			logger.fatal(e.getMessage() + "Cause: " + e.getCause() == null ? "No further cause!" : e.getCause().getMessage());
+			logger.fatal(e.getMessage() + "Cause: "
+					+ (e.getCause() == null ? "No further cause!" : e.getCause().getMessage()));
 		}
 	}
 }
