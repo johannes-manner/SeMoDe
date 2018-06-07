@@ -68,7 +68,7 @@ execution.
 4. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
 
 5. Optional - File name of the benchmarking log files, which was generated during the execution of the benchmarking utility.
-It contains the start and end timestamps from the local REST calls on the developer's machine. 
+It contains the start and end timestamps from the local REST calls on the developer's machine.
 
 #### Get Performance Data from Microsoft Azure
 
@@ -91,12 +91,12 @@ Usage:
 5. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
 
 6. Optional - File name of the benchmarking log files, which was generated during the execution of the benchmarking utility.
-It contains the start and end timestamps from the local REST calls on the developer's machine. 
+It contains the start and end timestamps from the local REST calls on the developer's machine.
 
 #### Get Performance Data from Google Cloud Functions (Stackdriver)
 
-In contrast to the AWS Lambda and Azure Cloud Functions services, there is no possibility (to our knowledge) to get the 
-instance id of the executing host and also reading the platform's execution id is quite challenging. Therefore, a JSON 
+In contrast to the AWS Lambda and Azure Cloud Functions services, there is no possibility (to our knowledge) to get the
+instance id of the executing host and also reading the platform's execution id is quite challenging. Therefore, a JSON
 is placed as a log message with the following structure: SEMODE::{"platformId": "execution_id", "instanceId": "host_id", "memorySize": "size in MB"}.
 "execution_id" and "host_id" are generated uuids.
 
@@ -119,7 +119,7 @@ It contains the start and end timestamps from the local REST calls on the develo
 
 ### Benchmarking Tool for REST Interfaces
 
-This feature triggers API requests in a controlled environment. It also logs the start and end time of the request to get 
+This feature triggers API requests in a controlled environment. It also logs the start and end time of the request to get
 insights into the performance of the corresponding REST interface. The logged start and end times are consistent, because
 local timestamps via log4j2 are used on the execution machine.
 It provides four modes:
@@ -176,16 +176,16 @@ This category lists utility features for performing benchmarks in a REST environ
 
 #### Deployment Package Size Utility
 
-This feature inflates the size of a file by adding a comment.
+This feature inflates the size of a file or jar/zip by adding random characters. (and a provided escape sequence for files)
 
 Usage:
 
-```java -jar SeMoDe.jar "deploymentSize" "FILE_NAME" "SIZE" "COMMENT_START"```
+```java -jar SeMoDe.jar "deploymentSize" "FILE_NAME" "SIZE" ["COMMENT_START"]```
 
 0. "deploymentSize" is a constant, which specifies the used utility mechanism.
 
-1. Path to the file.
+1. Path to the file / jar / zip.
 
-2. Desired size of the file in bytes.
+2. Desired size of the file / jar / zip in bytes.
 
-3. Single line comment start string (e.g. "//" for Java files).
+3. When a file is enlarged, the single line comment start string must be provided (e.g. "//" for Java files).
