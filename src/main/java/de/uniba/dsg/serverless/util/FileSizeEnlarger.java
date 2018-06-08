@@ -69,8 +69,10 @@ public class FileSizeEnlarger {
 	 * @throws SeMoDeException
 	 */
 	public void fillZip(long length) throws SeMoDeException {
+		long remainingSize = length - fileSize;
+		
 		URI uri = URI.create("jar:" + path.toUri());
-		for (int i = 0; i < length / BLOCK_SIZE; i++) {
+		for (int i = 0; i < remainingSize / BLOCK_SIZE; i++) {
 			try (FileSystem system = FileSystems.newFileSystem(uri, new HashMap<>())) {
 				addRandomContentToFile(system.getPath("/SomeTextFile.txt"), BLOCK_SIZE);
 			} catch (IOException | FileSystemNotFoundException e) {
