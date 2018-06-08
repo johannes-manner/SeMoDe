@@ -52,11 +52,12 @@ package:
   artifact: build/distributions/fibonacci-java.zip
 
 functions:
-  fibonacci-java:
+  fibonacci-java-128:
     handler: de.uniba.dsg.serverless.fibonacci.aws.Fibonacci
+    memorySize: 128
     events:
       - http:
-          path: fibonacci-java
+          path: fibonacci-java-128
           method: get
           integration: lambda
           request:
@@ -72,7 +73,187 @@ functions:
                 pattern: '[\s\S]*\[400\][\s\S]*'
                 template: $input.path('$.errorMessage')
       - http:
-          path: fibonacci-java
+          path: fibonacci-java-128
+          method: post
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+  fibonacci-java-256:
+    handler: de.uniba.dsg.serverless.fibonacci.aws.Fibonacci
+    memorySize: 256
+    events:
+      - http:
+          path: fibonacci-java-256
+          method: get
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+      - http:
+          path: fibonacci-java-256
+          method: post
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+  fibonacci-java-512:
+    handler: de.uniba.dsg.serverless.fibonacci.aws.Fibonacci
+    memorySize: 512
+    events:
+      - http:
+          path: fibonacci-java-512
+          method: get
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+      - http:
+          path: fibonacci-java-512
+          method: post
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+  fibonacci-java-1024:
+    handler: de.uniba.dsg.serverless.fibonacci.aws.Fibonacci
+    memorySize: 1024
+    events:
+      - http:
+          path: fibonacci-java-1024
+          method: get
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+      - http:
+          path: fibonacci-java-1024
+          method: post
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+  fibonacci-java-2048:
+    handler: de.uniba.dsg.serverless.fibonacci.aws.Fibonacci
+    memorySize: 2048
+    events:
+      - http:
+          path: fibonacci-java-2048
+          method: get
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+      - http:
+          path: fibonacci-java-2048
+          method: post
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+  fibonacci-java-3008:
+    handler: de.uniba.dsg.serverless.fibonacci.aws.Fibonacci
+    memorySize: 3008
+    events:
+      - http:
+          path: fibonacci-java-3008
+          method: get
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+      - http:
+          path: fibonacci-java-3008
           method: post
           integration: lambda
           request:

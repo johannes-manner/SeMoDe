@@ -61,11 +61,12 @@ package:
 #    - exclude-me-dir/**
 
 functions:
-  fibonacci-js:
+  fibonacci-js-128:
     handler: fibonacci.handler
+    memorySize: 128
     events:
       - http:
-          path: fibonacci-js
+          path: fibonacci-js-128
           method: get
           integration: lambda
           request:
@@ -81,7 +82,187 @@ functions:
                 pattern: '[\s\S]*\[400\][\s\S]*'
                 template: $input.path('$.errorMessage')
       - http:
-          path: fibonacci-js
+          path: fibonacci-js-128
+          method: post
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+  fibonacci-js-256:
+    handler: fibonacci.handler
+    memorySize: 256
+    events:
+      - http:
+          path: fibonacci-js-256
+          method: get
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+      - http:
+          path: fibonacci-js-256
+          method: post
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+  fibonacci-js-512:
+    handler: fibonacci.handler
+    memorySize: 512
+    events:
+      - http:
+          path: fibonacci-js-512
+          method: get
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+      - http:
+          path: fibonacci-js-512
+          method: post
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+  fibonacci-js-1024:
+    handler: fibonacci.handler
+    memorySize: 1024
+    events:
+      - http:
+          path: fibonacci-js-1024
+          method: get
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+      - http:
+          path: fibonacci-js-1024
+          method: post
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+  fibonacci-js-2048:
+    handler: fibonacci.handler
+    memorySize: 2048
+    events:
+      - http:
+          path: fibonacci-js-2048
+          method: get
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+      - http:
+          path: fibonacci-js-2048
+          method: post
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+  fibonacci-js-3008:
+    handler: fibonacci.handler
+    memorySize: 3008
+    events:
+      - http:
+          path: fibonacci-js-3008
+          method: get
+          integration: lambda
+          request:
+            template:
+              application/json: ${file(serverless-input-template)}
+          response:
+            headers:
+              Content-Type: "'application/json'"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: $input.path('$.errorMessage')
+      - http:
+          path: fibonacci-js-3008
           method: post
           integration: lambda
           request:
