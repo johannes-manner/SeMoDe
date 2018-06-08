@@ -1,0 +1,18 @@
+#!/bin/bash
+sizes=(5000000 10000000 20000000 40000000 80000000 160000000 320000000 640000000)
+
+gradle build
+
+if [ ! -d "target" ]; then
+    mkdir -p "target"
+fi
+
+echo " "
+for size in ${sizes[@]}; do
+    echo "Create deployment package size: ${size}"
+    echo "..."
+    cp "build/distributions/fibonacci-java.zip" "target/fibonacci-java-${size}.zip"
+    java -jar "$1" "deploymentSize" "target/fibonacci-java-${size}.zip" "$size"
+    echo "Done"
+    echo " "
+done
