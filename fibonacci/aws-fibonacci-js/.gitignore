@@ -1,5 +1,9 @@
 # serverless directory
 .serverless
 
+# deployment package sizes
+/deployment/
+
 # Node.js
 node_modules
+package-lock.json
