@@ -7,21 +7,19 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-./gradlew build
-
 if [ ! -d "$DIR" ]; then
     mkdir -p "$DIR"
 fi
 
 # initial size
-cp "build/distributions/fibonacci-java.zip" "$DIR/fibonacci-java-initial.zip"
+cp "fibonacci.js" "$DIR/fibonacci-initial.js"
 
 echo " "
 for size in ${sizes[@]}; do
     echo "Create deployment package size: ${size}"
     echo "..."
-    cp "build/distributions/fibonacci-java.zip" "$DIR/fibonacci-java-${size}.zip"
-    java -jar "$1" "deploymentSize" "$DIR/fibonacci-java-${size}.zip" "$size"
+    cp "fibonacci.js" "$DIR/fibonacci-${size}.js"
+    java -jar "$1" "deploymentSize" "$DIR/fibonacci-${size}.js" "$size" "//"
     echo "Done"
     echo " "
 done
