@@ -117,6 +117,37 @@ Usage:
 4. Optional - File name of the benchmarking log files, which was generated during the execution of the benchmarking utility.
 It contains the start and end timestamps from the local REST calls on the developer's machine.  
 
+#### Get Performance Data from IBM OpenWhisk
+
+In contrast to the AWS Lambda and Azure Cloud Functions services, there is no possibility (to our knowledge) to get the 
+instance id of the executing host and the platform's execution id during the execution of the cloud function. Therefore, a JSON 
+is placed as a log message with the following structure: SEMODE::{"platformId": "execution_id", "instanceId": "host_id"}.
+"execution_id" and "host_id" are generated uuids.
+
+Before starting the functionality, the CLI-plugin must be installed and also configured. Additionally, the cloud-functions plug-in is
+needed to access needed commands. Please see the [docs](https://console.bluemix.net/docs/openwhisk/bluemix_cli.html#cloudfunctions_cli). 
+To get the authorization token, the easiest way is to execute a function via its curl command in the -v verbose mode or follow the following
+[tutorial](https://www.raymondcamden.com/2017/07/24/using-postman-with-openwhisk).
+
+Usage:
+
+```java -jar SeMoDe.jar "openWhiskPerformanceData" "NAMESPACE" "FUNCTION NAME" "AUTHORIZATION TOKEN" "START TIME FILTER" "END TIME FILTER" ["REST CALLS FILE"]```
+
+0. "googlePerformanceData" is a constant, which specifies the used utility mechanism.
+
+1. The OpenWhisk namespace. A concatenation of org underscore space, e.g. defaultOrg_defaultSpace.
+
+2. Function Name of the function the performance data are fetched from. It is specified under the function apps.
+
+3. Authorization token to authorize the request.
+
+4. Desired start time filter. Only logs after specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
+
+5. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
+
+6. Optional - File name of the benchmarking log files, which was generated during the execution of the benchmarking utility.
+It contains the start and end timestamps from the local REST calls on the developer's machine.  
+
 ### Benchmarking Tool for REST Interfaces
 
 This feature triggers API requests in a controlled environment. It also logs the start and end time of the request to get 
