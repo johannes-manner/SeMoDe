@@ -54,8 +54,8 @@ public class IBMOpenWhiskPerformanceDataUtility extends CustomUtility implements
 			
 			this.writePerformanceDataToFile(logHandler, functionName, restFile);
 		} catch (SeMoDeException e) {
-			logger.fatal(e.getMessage() + "Cause: " + e.getCause() == null ? "No further cause!"
-					: e.getCause().getMessage());
+			logger.fatal(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!"
+					: e.getCause().getMessage()));
 		}
 	}
 }
