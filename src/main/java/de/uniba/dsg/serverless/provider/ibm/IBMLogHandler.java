@@ -23,13 +23,15 @@ import de.uniba.dsg.serverless.provider.LogHandler;
 
 /**
  * There is no Java SDK for OpenWhisk and there is also no other support. But
- * there is a REST Api
- * (http://petstore.swagger.io/?url=https://raw.githubusercontent.com/openwhisk/openwhisk/master/core/controller/src/main/resources/apiv1swagger.json#/),
- * which support fundamental management utilities.
+ * there is a REST Api which support fundamental management utilities.
  * <p/>
  * Configuration: install cli, add the plugin cloud-functions, get the
  * authorization value by calling a function's REST interface in the verbose
  * mode.
+ * 
+ * @see <a href=
+ *      "http://petstore.swagger.io/?url=https://raw.githubusercontent.com/openwhisk/openwhisk/master/core/controller/src/main/resources/apiv1swagger.json#/">
+ *      REST Api of OpenWhisk</a>
  */
 public class IBMLogHandler implements LogHandler {
 
@@ -76,14 +78,13 @@ public class IBMLogHandler implements LogHandler {
 					memoryUsed = n.get("value").get("memory").asInt();
 				}
 			}
-			PerformanceData data = new PerformanceData(this.functionName, 
-					result.get("instanceId").asText(),
+			PerformanceData data = new PerformanceData(this.functionName, result.get("instanceId").asText(),
 					result.get("platformId").asText(),
-					LocalDateTime.ofInstant(Instant.ofEpochMilli(activation.get("start").asLong()),	ZoneId.systemDefault()),
-					LocalDateTime.ofInstant(Instant.ofEpochMilli(activation.get("end").asLong()), ZoneId.systemDefault()),
-					startUpDuration, 
-					activation.get("duration").asDouble(), 
-					activation.get("duration").asInt(),
+					LocalDateTime.ofInstant(Instant.ofEpochMilli(activation.get("start").asLong()),
+							ZoneId.systemDefault()),
+					LocalDateTime.ofInstant(Instant.ofEpochMilli(activation.get("end").asLong()),
+							ZoneId.systemDefault()),
+					startUpDuration, activation.get("duration").asDouble(), activation.get("duration").asInt(),
 					memoryUsed, memoryUsed);
 
 			performanceData.add(data);
@@ -92,11 +93,16 @@ public class IBMLogHandler implements LogHandler {
 	}
 
 	/**
-	 * OpenWhisk offers no sdk for java developers and also other sdk implementations are in its infancy.
-	 * The method here returns all activations and uses a default limit of 200 activations. Are there more than
-	 * 200 activations in the specified time span, additional REST calls are made to get all these activations.
+	 * OpenWhisk offers no sdk for java developers and also other sdk
+	 * implementations are in its infancy. The method here returns all activations
+	 * and uses a default limit of 200 activations. Are there more than 200
+	 * activations in the specified time span, additional REST calls are made to get
+	 * all these activations.
 	 * <p/>
-	 * @see http://petstore.swagger.io/?url=https://raw.githubusercontent.com/openwhisk/openwhisk/master/core/controller/src/main/resources/apiv1swagger.json#/Activations
+	 * 
+	 * @see <a href=
+	 *      "http://petstore.swagger.io/?url=https://raw.githubusercontent.com/openwhisk/openwhisk/master/core/controller/src/main/resources/apiv1swagger.json#/Activations">Activations
+	 *      in API</a>
 	 */
 	private List<JsonNode> getActivations() throws SeMoDeException {
 		
@@ -109,12 +115,14 @@ public class IBMLogHandler implements LogHandler {
 		do {
 			Client client = ClientBuilder.newClient();
 			Response response = client.target("https://openwhisk.eu-gb.bluemix.net")
-					.path("/api/v1/namespaces/" + this.namespace + "/activations").queryParam("limit", limit)
+					.path("/api/v1/namespaces/" + this.namespace + "/activations")
+					.queryParam("limit", limit)
 					.queryParam("name", this.functionName)
 					.queryParam("since", this.startTime.toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli())
-					.queryParam("upto", endMillis).queryParam("docs", "true").request(MediaType.APPLICATION_JSON_TYPE)
-					.header("Authorization", this.authorizationToken)
-					.get();
+					.queryParam("upto", endMillis)
+					.queryParam("docs", "true")
+					.request(MediaType.APPLICATION_JSON_TYPE)
+					.header("Authorization", this.authorizationToken).get();
 
 			if (response.getStatus() == 200) {
 				JsonNode arrayNode = response.readEntity(JsonNode.class);
@@ -127,16 +135,16 @@ public class IBMLogHandler implements LogHandler {
 				// openWhisk returns always the most recent events in descending order
 				// therefore the end time must be reassigned to the start time of the last element
 				// in the array node
-				if(arrayNode.size() == limit) {
+				if (arrayNode.size() == limit) {
 					endMillis = activation.get("start").asLong() - 1;
-				}else {
+				} else {
 					furtherElements = false;
 				}
 			} else {
 				throw new SeMoDeException("Error by retrieving the activations from OpenWhisk REST interface.");
 			}
 		} while (furtherElements);
-		
+
 		return activationList;
 	}
 }
