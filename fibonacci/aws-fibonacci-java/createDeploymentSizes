@@ -14,14 +14,16 @@ if [ ! -d "$DIR" ]; then
 fi
 
 # initial size
+before="initial"
 cp "build/distributions/fibonacci-java.zip" "$DIR/fibonacci-java-initial.zip"
 
 echo " "
 for size in ${sizes[@]}; do
     echo "Create deployment package size: ${size}"
     echo "..."
-    cp "build/distributions/fibonacci-java.zip" "$DIR/fibonacci-java-${size}.zip"
+    cp "$DIR/fibonacci-java-${before}.zip" "$DIR/fibonacci-java-${size}.zip"
     java -jar "$1" "deploymentSize" "$DIR/fibonacci-java-${size}.zip" "$size"
     echo "Done"
     echo " "
+    before="$size"
 done
