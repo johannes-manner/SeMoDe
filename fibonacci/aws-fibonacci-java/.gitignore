@@ -1,6 +1,9 @@
 # serverless directory
 .serverless
 
+# deployment package sizes
+/target/
+
 # gradle
 .gradle
 /build/
