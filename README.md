@@ -235,4 +235,4 @@ Usage:
 
 2. Desired size of the file / jar / zip in bytes.
 
-3. When a file is enlarged, the single line comment start string must be provided (e.g. "//" for Java files).
+3. When a file is enlarged (otherwise optional), the single line comment start string must be provided (e.g. "//" for Java files).
