@@ -6,7 +6,9 @@ public enum BenchmarkMode {
 	CONCURRENT("concurrent"),
 	SEQUENTIAL_INTERVAL("sequentialInterval"),
 	SEQUENTIAL_WAIT("sequentialWait"),
-	SEQUENTIAL_CONCURRENT("sequentialConcurrent");
+	SEQUENTIAL_CONCURRENT("sequentialConcurrent"),
+	SEQUENTIAL_CHANGING_INTERVAL("sequentialChangingInterval"),
+	SEQUENTIAL_CHANGING_WAIT("sequentialChangingWait");
 
 	private String text;
 
@@ -26,9 +28,9 @@ public enum BenchmarkMode {
 	 * @return
 	 */
 	public static BenchmarkMode fromString(String tag) throws SeMoDeException {
-		for (BenchmarkMode b : BenchmarkMode.values()) {
-			if (b.text.equalsIgnoreCase(tag)) {
-				return b;
+		for (BenchmarkMode mode : BenchmarkMode.values()) {
+			if (mode.text.equalsIgnoreCase(tag)) {
+				return mode;
 			}
 		}
 		throw new SeMoDeException("Mode is unknown. Entered mode = " + tag);

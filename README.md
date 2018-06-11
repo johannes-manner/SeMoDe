@@ -68,7 +68,7 @@ execution.
 4. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
 
 5. Optional - File name of the benchmarking log files, which was generated during the execution of the benchmarking utility.
-It contains the start and end timestamps from the local REST calls on the developer's machine. 
+It contains the start and end timestamps from the local REST calls on the developer's machine.
 
 #### Get Performance Data from Microsoft Azure
 
@@ -91,12 +91,12 @@ Usage:
 5. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
 
 6. Optional - File name of the benchmarking log files, which was generated during the execution of the benchmarking utility.
-It contains the start and end timestamps from the local REST calls on the developer's machine. 
+It contains the start and end timestamps from the local REST calls on the developer's machine.
 
 #### Get Performance Data from Google Cloud Functions (Stackdriver)
 
-In contrast to the AWS Lambda and Azure Cloud Functions services, there is no possibility (to our knowledge) to get the 
-instance id of the executing host and also reading the platform's execution id is quite challenging. Therefore, a JSON 
+In contrast to the AWS Lambda and Azure Cloud Functions services, there is no possibility (to our knowledge) to get the
+instance id of the executing host and also reading the platform's execution id is quite challenging. Therefore, a JSON
 is placed as a log message with the following structure: SEMODE::{"platformId": "execution_id", "instanceId": "host_id", "memorySize": "size in MB"}.
 "execution_id" and "host_id" are generated uuids.
 
@@ -119,13 +119,13 @@ It contains the start and end timestamps from the local REST calls on the develo
 
 #### Get Performance Data from IBM OpenWhisk
 
-In contrast to the AWS Lambda and Azure Cloud Functions services, there is no possibility (to our knowledge) to get the 
-instance id of the executing host and the platform's execution id during the execution of the cloud function. Therefore, a JSON 
+In contrast to the AWS Lambda and Azure Cloud Functions services, there is no possibility (to our knowledge) to get the
+instance id of the executing host and the platform's execution id during the execution of the cloud function. Therefore, a JSON
 is placed as a log message with the following structure: SEMODE::{"platformId": "execution_id", "instanceId": "host_id"}.
 "execution_id" and "host_id" are generated uuids.
 
 Before starting the functionality, the CLI-plugin must be installed and also configured. Additionally, the cloud-functions plug-in is
-needed to access needed commands. Please see the [docs](https://console.bluemix.net/docs/openwhisk/bluemix_cli.html#cloudfunctions_cli). 
+needed to access needed commands. Please see the [docs](https://console.bluemix.net/docs/openwhisk/bluemix_cli.html#cloudfunctions_cli).
 To get the authorization token, the easiest way is to execute a function via its curl command in the -v verbose mode or follow the following
 [tutorial](https://www.raymondcamden.com/2017/07/24/using-postman-with-openwhisk).
 
@@ -150,7 +150,7 @@ It contains the start and end timestamps from the local REST calls on the develo
 
 ### Benchmarking Tool for REST Interfaces
 
-This feature triggers API requests in a controlled environment. It also logs the start and end time of the request to get 
+This feature triggers API requests in a controlled environment. It also logs the start and end time of the request to get
 insights into the performance of the corresponding REST interface. The logged start and end times are consistent, because
 local timestamps via log4j2 are used on the execution machine.
 It provides four modes:
@@ -163,6 +163,10 @@ It provides four modes:
 
 4. Sequential combined with concurrent triggering of a function. Multiple sequential groups of requests execute functions concurrently. (mode: "sequentialConcurrent")
 
+5. Similar to mode sequentialInterval. This mode triggers functions in an interval with varying delays between execution start times. (mode: "sequentialChangingInterval")
+
+6. Similar to mode sequentialWait. This mode triggers functions with a varying delay between the execution termination and the next triggering/ request. (mode: "sequentialChangingWait")
+
 Usage:
 
 ```java -jar SeMoDe.jar "benchmark" "URL" "FILENAME.json" "MODE" <additional parameters>```
@@ -173,7 +177,7 @@ Usage:
 
 2. Local filename to read json, which is used within the POST request body.
 
-3. Mode can be "concurrent", "sequentialInterval" or "sequentialWait". See above for the description of the modes.
+3. Mode can be "concurrent", "sequentialInterval", "sequentialWait", "sequentialConcurrent", "sequentialChangingInterval" or "sequentialChangingWait". See above for the description of the modes.
 
 Usage for each mode:  
 
@@ -200,6 +204,18 @@ Usage for each mode:
 5. Number of requests in each group.
 
 6. Delay between termination of group g and start of group g + 1 in minutes.
+
+```java -jar SeMoDe.jar "benchmark" "URL" "FILENAME.json" "sequentialChangingInterval" "NUMBER_OF_REQUESTS" ("DELAY")+ ```
+
+4. Total number of executions.
+
+5. List of delays. (at least one)
+
+```java -jar SeMoDe.jar "benchmark" "URL" "FILENAME.json" "sequentialChangingWait" "NUMBER_OF_REQUESTS" ("DELAY")+ ```
+
+4. Total number of executions.
+
+5. List of delays. (at least one)
 
 ### Utility Features
 
