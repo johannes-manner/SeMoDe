@@ -1,23 +1,26 @@
 package de.uniba.dsg.serverless.cli;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
-import java.util.Random;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.util.FileSizeEnlarger;
 
 public class DeploymentSizeUtility extends CustomUtility {
 
-	private final String FILL_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	private final String DOUBLE_LINEBREAK = "\n\n";
-
 	private static final Logger logger = LogManager.getLogger(DeploymentSizeUtility.class.getName());
+
+	private boolean isZipFile;
+	private Path path;
+	private long desiredFileSize;
+	private String commentStart;
 
 	public DeploymentSizeUtility(String name) {
 		super(name);
@@ -25,67 +28,52 @@ public class DeploymentSizeUtility extends CustomUtility {
 
 	@Override
 	public void start(List<String> args) {
-		if (args.size() < 3) {
-			logger.fatal("Wrong parameter size: " + "\n(1) file path " + "\n(2) desired length in bytes "
-					+ "\n(3) Comment Start Tag");
-			return;
-		}
-
-		String fileName = args.get(0);
-		long desiredLength;
 		try {
-			desiredLength = Long.parseLong(args.get(1));
-		} catch (NumberFormatException e) {
-			logger.fatal(e.getMessage());
-			return;
-		}
-		String commentStart = args.get(2);
+			parseArguments(args);
 
-		File file = new File(fileName);
-		if (!file.exists() || !file.isFile()) {
-			logger.fatal("File must be an existing file.");
-			return;
-		}
-
-		if (file.length() > desiredLength) {
-			logger.fatal("Length of the file exceeds the desired length.");
-			return;
-		}
-
-		long remainingLength = desiredLength - file.length();
-		try {
-			fillFile(file, remainingLength, commentStart);
-		} catch (SeMoDeException e) {
-			logger.fatal(e.getMessage());
-			return;
-		}
-		logger.info("Size of file " + fileName + " successfully increased to " + desiredLength + ".");
-	}
-
-	private void fillFile(File file, long remainingLength, String commentStart) throws SeMoDeException {
-		try (FileWriter fw = new FileWriter(file, true); BufferedWriter writer = new BufferedWriter(fw)) {
-			if (remainingLength < (DOUBLE_LINEBREAK.length() + commentStart.length())) {
-				while (remainingLength > 0) {
-					writer.write(' ');
-					remainingLength--;
-				}
+			FileSizeEnlarger enlarger = new FileSizeEnlarger(path);
+			if (isZipFile) {
+				enlarger.fillZip(desiredFileSize);
 			}
 			else {
-				writer.write(DOUBLE_LINEBREAK);
-				remainingLength -= DOUBLE_LINEBREAK.length();
-				writer.write(commentStart);
-				remainingLength -= commentStart.length();
-
-				Random random = new Random();
-				while (remainingLength > 0) {
-					int index = random.nextInt(FILL_CHARACTERS.length());
-					writer.write(FILL_CHARACTERS.charAt(index));
-					remainingLength--;
-				}
+				enlarger.fillRegularFile(desiredFileSize, commentStart);
 			}
-		} catch (IOException e) {
-			throw new SeMoDeException("Writing to file failed.", e);
+		} catch (SeMoDeException e) {
+			logger.fatal("Increasing the Size of the file failed. " + e.getMessage(), e);
 		}
 	}
 
+	private void parseArguments(List<String> arguments) throws SeMoDeException {
+		if (arguments.size() < 2) {
+			throw new SeMoDeException("Wrong parameter size: " + "\n(1) path " + "\n(2) desired length in bytes "
+					+ "\n(3) Comment Start Tag [specified when a file is supplied]");
+		}
+
+		try {
+			desiredFileSize = Long.parseLong(arguments.get(1));
+		} catch (NumberFormatException e) {
+			throw new SeMoDeException(e.getMessage(), e);
+		}
+
+		try {
+			String fileName = arguments.get(0);
+			path = Paths.get(fileName);
+			if (!Files.exists(path) || !Files.isRegularFile(path) || !Files.isReadable(path)) {
+				throw new SeMoDeException("File must be an existing readable file or zipFile.");
+			}
+			isZipFile = fileName.toLowerCase().endsWith(".zip") || fileName.toLowerCase().endsWith(".jar");
+			if (desiredFileSize <= Files.size(path)) {
+				throw new SeMoDeException("Desired File Size must be larger than current file Size.");
+			}
+		} catch (InvalidPathException | IOException e) {
+			throw new SeMoDeException(e.getMessage(), e);
+		}
+
+		if (!isZipFile && arguments.size() < 3) {
+			throw new SeMoDeException("No comment escape sequence provided");
+		}
+		if (!isZipFile) {
+			commentStart = arguments.get(2);
+		}
+	}
 }

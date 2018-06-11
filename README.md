@@ -223,16 +223,16 @@ This category lists utility features for performing benchmarks in a REST environ
 
 #### Deployment Package Size Utility
 
-This feature inflates the size of a file by adding a comment.
+This feature inflates the size of a file or jar/zip by adding random characters. (and a provided escape sequence for files)
 
 Usage:
 
-```java -jar SeMoDe.jar "deploymentSize" "FILE_NAME" "SIZE" "COMMENT_START"```
+```java -jar SeMoDe.jar "deploymentSize" "FILE_NAME" "SIZE" ["COMMENT_START"]```
 
 0. "deploymentSize" is a constant, which specifies the used utility mechanism.
 
-1. Path to the file.
+1. Path to the file / jar / zip.
 
-2. Desired size of the file in bytes.
+2. Desired size of the file / jar / zip in bytes.
 
-3. Single line comment start string (e.g. "//" for Java files).
+3. When a file is enlarged (otherwise optional), the single line comment start string must be provided (e.g. "//" for Java files).
