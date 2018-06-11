@@ -56,7 +56,7 @@ public class BenchmarkUtility extends CustomUtility {
 				+ "(Mode 2) URL JSONINPUT sequentialInterval NUMBER_OF_REQUESTS DELAY\n"
 				+ "(Mode 3) URL JSONINPUT sequentailWait NUMBER_OF_REQUESTS DELAY\n"
 				+ "(Mode 4) URL JSONINPUT sequentialConcurrent NUMBER_OF_GROUPS NUMBER_OF_REQUESTS_GROUP DELAY\n"
-				+ "(Mode 4) URL JSONINPUT sequentialChangingInterval NUMBER_OF_REQUESTS (DELAY)+");
+				+ "(Mode 5) URL JSONINPUT sequentialChangingInterval NUMBER_OF_REQUESTS (DELAY)+");
 	}
 
 	private int executeBenchmark() throws SeMoDeException {
