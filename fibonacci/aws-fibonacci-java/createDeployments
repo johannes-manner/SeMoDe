@@ -1,0 +1,110 @@
+#!/bin/bash
+PACKAGES_DIR=deployment-packages
+DEPLOYMENT_DIR=deployment
+#PACKAGE_SIZES=(5000000 10000000 20000000 40000000 80000000 160000000 320000000 640000000)
+#SERVICE_SIZES=(initial 5000000 10000000 20000000 40000000 80000000 160000000 320000000 640000000)
+PACKAGE_SIZES=(5000000 10000000 20000000)
+SERVICE_SIZES=(initial 5000000 10000000 20000000)
+MEMORY_SETTINGS=(128 256 512 1024 2048 3008)
+
+if [ -z "$1" ]; then
+    echo "Usage: createDeployments <PATH_TO_SEMODE.JAR>"
+    exit 1
+fi
+
+function createDir() {
+    if [ ! -d "$1" ]; then
+        mkdir -p "$1"
+    fi
+}
+
+function createDeploymentSizes() {
+    createDir "${PACKAGES_DIR}"
+
+    # initial size
+    before="initial"
+    cp "build/distributions/fibonacci-java.zip" "${PACKAGES_DIR}/fibonacci-java-initial.zip"
+
+    echo " "
+    for size in ${PACKAGE_SIZES[@]}; do
+        echo "Create deployment package size: ${size}"
+        echo "..."
+        cp "${PACKAGES_DIR}/fibonacci-java-${before}.zip" "${PACKAGES_DIR}/fibonacci-java-${size}.zip"
+        java -jar "$1" "deploymentSize" "${PACKAGES_DIR}/fibonacci-java-${size}.zip" "${size}"
+        echo "Done"
+        echo " "
+        before="${size}"
+    done
+}
+
+function createServices() {
+    for size in ${SERVICE_SIZES[@]}; do
+        for mem in ${MEMORY_SETTINGS[@]}; do
+            echo "Create function: size=${size} memory=${mem}"
+
+            serviceDir="$DEPLOYMENT_DIR/fibonacci-${size}-${mem}"
+
+            createDir "${serviceDir}"
+            cp "${PACKAGES_DIR}/fibonacci-java-${size}.zip" "${serviceDir}/fibonacci.zip"
+            cp "serverless-template.yml" "${serviceDir}/serverless.yml"
+
+            addFunctionToServerlessConfig "${size}" "${mem}" "${serviceDir}"
+        done
+    done
+}
+
+function addFunctionToServerlessConfig() {
+    size="$1"
+    mem="$2"
+    serviceDir="$3"
+
+    memorySize=""
+    if [ "${size}" != "initial" ]; then
+        memorySize="memorySize: ${mem}"
+    fi
+
+    function="  fibonacci-java-${size}-${mem}:
+    handler: de.uniba.dsg.serverless.fibonacci.aws.Fibonacci
+    ${memorySize}
+    events:
+      - http:
+          path: fibonacci-java-${size}-${mem}
+          method: get
+          integration: lambda
+          request:
+            template:
+              application/json: \${file(../../serverless-input-template)}
+          response:
+            headers:
+              Content-Type: \"'application/json'\"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: \$input.path('\$.errorMessage')
+      - http:
+          path: fibonacci-java-${size}-${mem}
+          method: post
+          integration: lambda
+          request:
+            template:
+              application/json: \${file(../../serverless-input-template)}
+          response:
+            headers:
+              Content-Type: \"'application/json'\"
+            statusCodes:
+              200:
+                pattern: ''
+              400:
+                pattern: '[\s\S]*\[400\][\s\S]*'
+                template: \$input.path('\$.errorMessage')"
+
+
+    echo "functions:" >> "${serviceDir}/serverless.yml"
+    echo "${function}" >> "${serviceDir}/serverless.yml"
+}
+
+./gradlew build
+createDeploymentSizes "$1"
+createServices

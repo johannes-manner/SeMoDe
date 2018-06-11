@@ -1,0 +1,13 @@
+#!/bin/bash
+DEPLOYMENT_DIR=deployment
+cd "${DEPLOYMENT_DIR}"
+
+for service in *; do
+    if [ -d "${service}" ]; then
+        echo "Deploy function: ${service}"
+        cd "${service}"
+        serverless deploy
+        cd ..
+        echo " "
+    fi
+done
