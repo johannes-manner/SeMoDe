@@ -17,25 +17,32 @@ public class Fibonacci {
 
 	@FunctionName("fibonacci-java")
 	public HttpResponseMessage<String> handleRequest(
-			@HttpTrigger(name = "req", methods = { "get",
-					"post" }, authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
-			InputParameters input, @BindingName("n") String nQuery, final ExecutionContext context) {
+			@HttpTrigger(name = "req", methods = { "get", "post" }, authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
+			InputParameters input, final ExecutionContext context) {
 
 		String nBody = input.getN();
 
-		String nString = "";
-		if (nQuery != null && !nQuery.isEmpty()) {
-			nString = nQuery;
-		} else if (nBody != null && !nBody.isEmpty()) {
-			nString = nBody;
-		}
-
-		if (!isNumeric(nString)) {
+		if (nBody == null || !isNumeric(nBody)) {
 			return request.createResponse(400,
 					createResponseMessage("Please pass a valid number 'n'.", context.getInvocationId()));
 		}
 
-		long n = Long.parseLong(nString);
+		long n = Long.parseLong(nBody);
+		long result = fibonacci(n);
+
+		return request.createResponse(200, createResponseMessage(String.valueOf(result), context.getInvocationId()));
+	}
+
+	public HttpResponseMessage<String> handleRequest(
+			@HttpTrigger(name = "req", methods = { "get", "post" }, authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
+			@BindingName("n") String nQuery, final ExecutionContext context) {
+
+		if (nQuery == null || !isNumeric(nQuery)) {
+			return request.createResponse(400,
+					createResponseMessage("Please pass a valid number 'n'.", context.getInvocationId()));
+		}
+
+		long n = Long.parseLong(nQuery);
 		long result = fibonacci(n);
 
 		return request.createResponse(200, createResponseMessage(String.valueOf(result), context.getInvocationId()));

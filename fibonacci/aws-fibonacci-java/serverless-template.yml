@@ -48,45 +48,16 @@ provider:
 #    variable1: value1
 
 # you can add packaging information here
-package:
-  artifact: build/distributions/fibonacci-java.zip
+#package:
+#  include:
+#    - include-me.js
+#    - include-me-dir/**
+#  exclude:
+#    - exclude-me.js
+#    - exclude-me-dir/**
 
-functions:
-  fibonacci-java:
-    handler: de.uniba.dsg.serverless.fibonacci.aws.Fibonacci
-    events:
-      - http:
-          path: fibonacci-java
-          method: get
-          integration: lambda
-          request:
-            template:
-              application/json: ${file(serverless-input-template)}
-          response:
-            headers:
-              Content-Type: "'application/json'"
-            statusCodes:
-              200:
-                pattern: ''
-              400:
-                pattern: '[\s\S]*\[400\][\s\S]*'
-                template: $input.path('$.errorMessage')
-      - http:
-          path: fibonacci-java
-          method: post
-          integration: lambda
-          request:
-            template:
-              application/json: ${file(serverless-input-template)}
-          response:
-            headers:
-              Content-Type: "'application/json'"
-            statusCodes:
-              200:
-                pattern: ''
-              400:
-                pattern: '[\s\S]*\[400\][\s\S]*'
-                template: $input.path('$.errorMessage')
+package:
+  artifact: fibonacci.zip
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events

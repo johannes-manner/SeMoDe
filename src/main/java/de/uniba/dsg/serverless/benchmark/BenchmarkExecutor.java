@@ -19,7 +19,6 @@ import com.google.common.util.concurrent.Uninterruptibles;
 public class BenchmarkExecutor {
 
 	private static final int PLATFORM_FUNCTION_TIMEOUT = 300;
-	private static final TimeUnit TIME_UNIT = TimeUnit.SECONDS;
 
 	private static final Logger logger = LogManager.getLogger(BenchmarkExecutor.class);
 
@@ -77,19 +76,19 @@ public class BenchmarkExecutor {
 	 * 
 	 * @param numberOfRequests
 	 * @param delay
-	 *            delays between starts of function executions in minutes
+	 *            delays between starts of function executions in seconds
 	 * @return number of failed requests
 	 */
 	public int executeSequentialIntervalBenchmark(int numberOfRequests, int delay) {
 		ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 		List<Future<String>> responses = new ArrayList<>();
 		for (int i = 0; i < numberOfRequests; i++) {
-			// schedule function execution at (T + i * delay) minutes
-			responses.add(executorService.schedule(new FunctionTrigger(jsonInput, url), i * delay, TIME_UNIT));
+			// schedule function execution at (T + i * delay) seconds
+			responses.add(executorService.schedule(new FunctionTrigger(jsonInput, url), i * delay, TimeUnit.SECONDS));
 		}
-		
+
 		// wait until the last function has the chance to complete sucessfully
-		shutdownExecutorAndAwaitTermination(executorService, PLATFORM_FUNCTION_TIMEOUT + numberOfRequests*delay);
+		shutdownExecutorAndAwaitTermination(executorService, PLATFORM_FUNCTION_TIMEOUT + numberOfRequests * delay);
 
 		int failedRequests = 0;
 		for (Future<String> future : responses) {
@@ -112,7 +111,7 @@ public class BenchmarkExecutor {
 	 * @param numberOfRequests
 	 * @param delay
 	 *            between the end of execution n and the start of execution n+1 in
-	 *            minutes
+	 *            seconds
 	 * @return number of failed requests
 	 */
 	public int executeSequentialWaitBenchmark(int numberOfRequests, int delay) {
@@ -131,11 +130,10 @@ public class BenchmarkExecutor {
 		shutdownExecutorAndAwaitTermination(executorService, 1);
 		return failedRequests;
 	}
-	
 
 	/**
-	 * Executes the Benchmark in mode
-	 * {@link BenchmarkMode#SEQUENTIAL_CONCURRENT}. <br>
+	 * Executes the Benchmark in mode {@link BenchmarkMode#SEQUENTIAL_CONCURRENT}.
+	 * <br>
 	 * The mode executes functions in groups of concurrent requests. The group
 	 * executions are delayed, group g + 1 will start after group g terminated +
 	 * delay.
@@ -144,7 +142,7 @@ public class BenchmarkExecutor {
 	 * @param numberOfRequestsEachGroup
 	 * @param delay
 	 *            between the end of group execution g and the start of group
-	 *            execution g+1 in minutes
+	 *            execution g+1 in seconds
 	 * @return number of failed requests
 	 */
 	public int executeSequentialConcurrentBenchmark(int numberOfGroups, int numberOfRequestsEachGroup, int delay) {
@@ -157,23 +155,93 @@ public class BenchmarkExecutor {
 	}
 
 	/**
+	 * Executes the Benchmark in mode
+	 * {@link BenchmarkMode#SEQUENTIAL_CHANGING_INTERVAL}. <br>
+	 * Similar to mode {@link BenchmarkMode#SEQUENTIAL_INTERVAL}, functions get
+	 * executed with a varying delay between the execution starts. The first execution
+	 * will commence immediately, subsequent ones will be delayed at the specified
+	 * delays in <code>delays</code>.
+	 * 
+	 * @param numberOfRequests
+	 *            the number of total requests
+	 * @param delays
+	 *            delays of requests
+	 * @return number of failed requests
+	 */
+	public int executeSequentialChangingIntervalBenchmark(int numberOfRequests, int[] delays) {
+		ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+
+		List<Future<String>> responses = new ArrayList<>();
+		int time = 0;
+		for (int i = 0; i < numberOfRequests; i++) {
+			responses.add(executorService.schedule(new FunctionTrigger(jsonInput, url), time, TimeUnit.SECONDS));
+			time += delays[i % delays.length];
+		}
+
+		// wait until the last function has the chance to complete sucessfully
+		shutdownExecutorAndAwaitTermination(executorService, PLATFORM_FUNCTION_TIMEOUT + time);
+
+		int failedRequests = 0;
+		for (Future<String> future : responses) {
+			try {
+				future.get();
+			} catch (CancellationException | ExecutionException | InterruptedException e) {
+				failedRequests++;
+			}
+		}
+		return failedRequests;
+	}
+
+	/**
+	 * Executes the Benchmark in mode
+	 * {@link BenchmarkMode#SEQUENTIAL_CHANGING_WAIT}. <br>
+	 * Similar to mode {@link BenchmarkMode#SEQUENTIAL_WAIT}, functions get executed
+	 * with a varying delay between the termination of execution n and the start of
+	 * execution n+1. The first execution will commence immediately, subsequent ones
+	 * will be delayed after predecessors termination by varying delays specified in
+	 * <code>delays</code>.
+	 * 
+	 * @param numberOfRequests
+	 * @param delays
+	 * @return
+	 */
+	public int executeSequentialChangingWaitBenchmark(int numberOfRequests, int[] delays) {
+
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		int failedRequests = 0;
+
+		for (int i = 0; i < numberOfRequests; i++) {
+			Future<String> future = executorService.submit(new FunctionTrigger(jsonInput, url));
+			try {
+				future.get();
+			} catch (CancellationException | ExecutionException | InterruptedException e) {
+				failedRequests++;
+			}
+
+			int delay = delays[i % delays.length];
+			Uninterruptibles.sleepUninterruptibly(delay, TimeUnit.SECONDS);
+		}
+		return failedRequests;
+
+	}
+
+	/**
 	 * waits for the Executor to shutdown; After a timeout, the Executor is forced
 	 * to shutdown immediately.
 	 * 
 	 * @param executor
 	 * @param maxWaitTime
-	 *            the maximum time to wait in minutes
+	 *            the maximum time to wait in seconds
 	 */
 	private void shutdownExecutorAndAwaitTermination(ExecutorService executorService, int maxWaitTime) {
 		executorService.shutdown();
 		try {
-			if (!executorService.awaitTermination(PLATFORM_FUNCTION_TIMEOUT, TimeUnit.SECONDS)) {
+			if (!executorService.awaitTermination(maxWaitTime, TimeUnit.SECONDS)) {
 				executorService.shutdownNow();
 			}
 		} catch (InterruptedException e) {
 			executorService.shutdownNow();
 		}
 	}
-
 
 }

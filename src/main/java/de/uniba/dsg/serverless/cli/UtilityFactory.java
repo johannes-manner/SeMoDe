@@ -7,6 +7,7 @@ import java.util.Optional;
 import de.uniba.dsg.serverless.cli.performance.AWSPerformanceDataUtility;
 import de.uniba.dsg.serverless.cli.performance.AzurePerformanceDataUtility;
 import de.uniba.dsg.serverless.cli.performance.GooglePerformanceDataUtility;
+import de.uniba.dsg.serverless.cli.performance.IBMOpenWhiskPerformanceDataUtility;
 
 public class UtilityFactory {
 
@@ -14,6 +15,7 @@ public class UtilityFactory {
 			new AWSPerformanceDataUtility("awsPerformanceData"),
 			new AzurePerformanceDataUtility("azurePerformanceData"),
 			new GooglePerformanceDataUtility("googlePerformanceData"),
+			new IBMOpenWhiskPerformanceDataUtility("openWhiskPerformanceData"),
 			new SeMoDeUtility("awsSeMoDe"),
 			new BenchmarkUtility("benchmark"),
 			new DeploymentSizeUtility("deploymentSize")

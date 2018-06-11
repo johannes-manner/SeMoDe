@@ -47,7 +47,7 @@ dependencies {
 jar {
   manifest {
     attributes(
-      'Main-Class': 'de.uniba.dsg.serverless.main.ArgumentProcessor'
+      'Main-Class': 'de.uniba.dsg.serverless.ArgumentProcessor'
     )
   }
   from {

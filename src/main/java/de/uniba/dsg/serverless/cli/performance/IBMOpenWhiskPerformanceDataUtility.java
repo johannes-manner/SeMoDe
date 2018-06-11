@@ -9,49 +9,53 @@ import org.apache.logging.log4j.Logger;
 
 import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.provider.azure.AzureLogHandler;
+import de.uniba.dsg.serverless.provider.ibm.IBMLogHandler;
 
-public final class AzurePerformanceDataUtility extends CustomUtility implements PerformanceData{
+public class IBMOpenWhiskPerformanceDataUtility extends CustomUtility implements PerformanceData {
 
-	private static final Logger logger = LogManager.getLogger(AzurePerformanceDataUtility.class.getName());
+	public static final Logger logger = LogManager.getLogger(IBMOpenWhiskPerformanceDataUtility.class.getName());
 
-	public AzurePerformanceDataUtility(String name) {
+	public IBMOpenWhiskPerformanceDataUtility(String name) {
 		super(name);
 	}
 
+	@Override
 	public void start(List<String> args) {
 
 		if (args.size() < 5) {
-			logger.fatal("Wrong parameter size: " + "\n(1) Application ID " + "\n(2) API Key " + "\n(3) Function Name"
+			logger.fatal("Wrong parameter size: \n(1) OpenWhisk namespace \n(2) Function name \n(3) Authorization token"
 					+ "\n(4) Start time filter of performance data" + "\n(5) End time filter of performance data"
 					+ "\n(6) Optional - REST calls file");
 			return;
 		}
 
-		String applicationID = args.get(0);
-		String apiKey = args.get(1);
-		String functionName = args.get(2);
+		String namespace = args.get(0);
+		String functionName = args.get(1);
+		String authorizationToken = args.get(2);
 		String startTimeString = args.get(3);
 		String endTimeString = args.get(4);
 
 		try {
+
 			this.validateStartEnd(startTimeString, endTimeString);
+
 			LocalDateTime startTime = this.parseTime(startTimeString);
 			LocalDateTime endTime = this.parseTime(endTimeString);
 
-			AzureLogHandler azureLogHandler = new AzureLogHandler(applicationID, apiKey, functionName, startTime,
-					endTime);
+			IBMLogHandler logHandler = new IBMLogHandler(namespace, functionName, authorizationToken, startTime, endTime);
 			
+			// if a benchmarking file is selected
 			Optional<String> restFile;
 			if (args.size() == 6) {
 				restFile = Optional.of(args.get(5));
-			}else {
+			} else {
 				restFile = Optional.empty();
 			}
 			
-			this.writePerformanceDataToFile(azureLogHandler, functionName, restFile);
+			this.writePerformanceDataToFile(logHandler, functionName, restFile);
 		} catch (SeMoDeException e) {
-			logger.fatal(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!" : e.getCause().getMessage()));
+			logger.fatal(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!"
+					: e.getCause().getMessage()));
 		}
 	}
 }
