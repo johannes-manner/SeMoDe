@@ -11,13 +11,15 @@
 #
 # Happy Coding!
 
+service: fibonacci-js
+
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
 # frameworkVersion: "=X.X.X"
 
 provider:
   name: aws
-  runtime: java8
+  runtime: nodejs6.10
   region: eu-west-1
   timeout: 300
 
@@ -53,9 +55,6 @@ provider:
 #  exclude:
 #    - exclude-me.js
 #    - exclude-me-dir/**
-
-package:
-  artifact: fibonacci.zip
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
@@ -101,3 +100,14 @@ package:
 #     NewOutput:
 #       Description: "Description for the output"
 #       Value: "Some output value"
+
+functions:
+  fibonacci-js:
+    handler: fibonacci.handler
+    events:
+      - http:
+          path: fibonacci-js
+          method: get
+      - http:
+          path: fibonacci-js
+          method: post

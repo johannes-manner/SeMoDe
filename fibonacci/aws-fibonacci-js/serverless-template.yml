@@ -11,8 +11,6 @@
 #
 # Happy Coding!
 
-service: fibonacci-benchmark-js
-
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
 # frameworkVersion: "=X.X.X"
@@ -46,6 +44,9 @@ provider:
 # you can define service wide environment variables here
 #  environment:
 #    variable1: value1
+
+package:
+  artifact: fibonacci.zip
 
 # you can add packaging information here
 #package:

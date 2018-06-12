@@ -1,10 +1,8 @@
 #!/bin/bash
 PACKAGES_DIR=deployment-packages
 DEPLOYMENT_DIR=deployment
-#PACKAGE_SIZES=(5000000 10000000 20000000 40000000 80000000 160000000 320000000 640000000)
-#SERVICE_SIZES=(initial 5000000 10000000 20000000 40000000 80000000 160000000 320000000 640000000)
-PACKAGE_SIZES=(5000000 10000000 20000000)
-SERVICE_SIZES=(initial 5000000 10000000 20000000)
+PACKAGE_SIZES=(5000000 10000000 20000000 30000000 40000000 50000000)
+SERVICE_SIZES=(initial 5000000 10000000 20000000 30000000 40000000 50000000)
 MEMORY_SETTINGS=(128 256 512 1024 2048 3008)
 
 if [ -z "$1" ]; then
@@ -21,16 +19,29 @@ function createDir() {
 function createDeploymentSizes() {
     createDir "${PACKAGES_DIR}"
 
-    # initial size
-    before="initial"
-    cp "fibonacci.js" "${PACKAGES_DIR}/fibonacci-initial.js"
+    echo "Create deployment package with serverless"
 
+    # create serverless service for packaging
+    packageDir="${PACKAGES_DIR}/fibonacci-package"
+    createDir "${packageDir}"
+    cp "fibonacci.js" "${packageDir}/fibonacci.js"
+    cp "serverless-package.yml" "${packageDir}/serverless.yml"
+
+    # inital size with serverless
+    cd "${packageDir}"
+    serverless package --package out
+    cp out/fibonacci-js.zip ../fibonacci-js-initial.zip
+    cd "../.."
+    rm -rf "${packageDir}"
+
+    # other sizes
     echo " "
+    before="initial"
     for size in ${PACKAGE_SIZES[@]}; do
         echo "Create deployment package size: ${size}"
         echo "..."
-        cp "${PACKAGES_DIR}/fibonacci-${before}.js" "${PACKAGES_DIR}/fibonacci-${size}.js"
-        java -jar "$1" "deploymentSize" "${PACKAGES_DIR}/fibonacci-${size}.js" "${size}" "//"
+        cp "${PACKAGES_DIR}/fibonacci-js-${before}.zip" "${PACKAGES_DIR}/fibonacci-js-${size}.zip"
+        java -jar "$1" "deploymentSize" "${PACKAGES_DIR}/fibonacci-js-${size}.zip" "${size}"
         echo "Done"
         echo " "
         before="${size}"
@@ -42,10 +53,10 @@ function createServices() {
         for mem in ${MEMORY_SETTINGS[@]}; do
             echo "Create function: size=${size} memory=${mem}"
 
-            serviceDir="$DEPLOYMENT_DIR/fibonacci-${size}-${mem}"
+            serviceDir="$DEPLOYMENT_DIR/fibonacci-js-${size}-${mem}"
 
             createDir "${serviceDir}"
-            cp "${PACKAGES_DIR}/fibonacci-${size}.js" "${serviceDir}/fibonacci.js"
+            cp "${PACKAGES_DIR}/fibonacci-js-${size}.zip" "${serviceDir}/fibonacci.zip"
             cp "serverless-template.yml" "${serviceDir}/serverless.yml"
 
             addFunctionToServerlessConfig "${size}" "${mem}" "${serviceDir}"
@@ -100,7 +111,7 @@ function addFunctionToServerlessConfig() {
                 pattern: '[\s\S]*\[400\][\s\S]*'
                 template: \$input.path('\$.errorMessage')"
 
-
+    echo "service: fibonacci-js-${size}-${mem}" >> "${serviceDir}/serverless.yml" 
     echo "functions:" >> "${serviceDir}/serverless.yml"
     echo "${function}" >> "${serviceDir}/serverless.yml"
 }
