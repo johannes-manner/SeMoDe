@@ -189,13 +189,13 @@ Usage for each mode:
 
 4. Number of function executions.
 
-5. Time between request execution start times in minutes.
+5. Time between request execution start times in seconds.
 
 ```java -jar SeMoDe.jar "benchmark" "URL" "FILENAME.json" "sequentailWait" "NUMBER_OF_REQUESTS" "DELAY"```  
 
 4. Number of requests.
 
-5. Delay between termination of function execution n and start of execution n + 1 in minutes.
+5. Delay between termination of function execution n and start of execution n + 1 in seconds.
 
 ```java -jar SeMoDe.jar "benchmark" "URL" "FILENAME.json" "sequentialConcurrent" "NUMBER_OF_GROUPS" "NUMBER_OF_REQUESTS_GROUP" "DELAY"```
 
@@ -203,7 +203,7 @@ Usage for each mode:
 
 5. Number of requests in each group.
 
-6. Delay between termination of group g and start of group g + 1 in minutes.
+6. Delay between termination of group g and start of group g + 1 in seconds.
 
 ```java -jar SeMoDe.jar "benchmark" "URL" "FILENAME.json" "sequentialChangingInterval" "NUMBER_OF_REQUESTS" ("DELAY")+ ```
 
