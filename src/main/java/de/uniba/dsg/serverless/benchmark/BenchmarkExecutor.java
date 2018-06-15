@@ -221,6 +221,9 @@ public class BenchmarkExecutor {
 			int delay = delays[i % delays.length];
 			Uninterruptibles.sleepUninterruptibly(delay, TimeUnit.SECONDS);
 		}
+		
+		this.shutdownExecutorAndAwaitTermination(executorService, PLATFORM_FUNCTION_TIMEOUT);
+		
 		return failedRequests;
 
 	}
