@@ -16,6 +16,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 
+import de.uniba.dsg.serverless.model.SeMoDeException;
+
 public class BenchmarkExecutor {
 
 	private static final int PLATFORM_FUNCTION_TIMEOUT = 300;
@@ -44,8 +46,9 @@ public class BenchmarkExecutor {
 	 * 
 	 * @param numberOfRequests
 	 * @return number of failed requests
+	 * @throws SeMoDeException 
 	 */
-	public int executeConcurrentBenchmark(int numberOfRequests) {
+	public int executeConcurrentBenchmark(int numberOfRequests) throws SeMoDeException {
 		ExecutorService executorService = Executors.newCachedThreadPool();
 
 		List<Future<String>> responses = new ArrayList<>();
@@ -59,11 +62,7 @@ public class BenchmarkExecutor {
 
 		int failedRequests = 0;
 		for (Future<String> future : responses) {
-			try {
-				future.get();
-			} catch (CancellationException | ExecutionException | InterruptedException e) {
-				failedRequests++;
-			}
+			failedRequests = exceptionHandlingFuture(executorService, failedRequests, future);
 		}
 		return failedRequests;
 	}
@@ -78,8 +77,9 @@ public class BenchmarkExecutor {
 	 * @param delay
 	 *            delays between starts of function executions in seconds
 	 * @return number of failed requests
+	 * @throws SeMoDeException 
 	 */
-	public int executeSequentialIntervalBenchmark(int numberOfRequests, int delay) {
+	public int executeSequentialIntervalBenchmark(int numberOfRequests, int delay) throws SeMoDeException {
 		ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 		List<Future<String>> responses = new ArrayList<>();
 		for (int i = 0; i < numberOfRequests; i++) {
@@ -87,17 +87,13 @@ public class BenchmarkExecutor {
 			responses.add(executorService.schedule(new FunctionTrigger(jsonInput, url), i * delay, TimeUnit.SECONDS));
 		}
 
-		// wait until the last function has the chance to complete sucessfully
-		shutdownExecutorAndAwaitTermination(executorService, PLATFORM_FUNCTION_TIMEOUT + numberOfRequests * delay);
-
 		int failedRequests = 0;
 		for (Future<String> future : responses) {
-			try {
-				future.get();
-			} catch (CancellationException | ExecutionException | InterruptedException e) {
-				failedRequests++;
-			}
+			failedRequests = exceptionHandlingFuture(executorService, failedRequests, future);
 		}
+
+		shutdownExecutorAndAwaitTermination(executorService, 0);
+		
 		return failedRequests;
 	}
 
@@ -113,21 +109,18 @@ public class BenchmarkExecutor {
 	 *            between the end of execution n and the start of execution n+1 in
 	 *            seconds
 	 * @return number of failed requests
+	 * @throws SeMoDeException 
 	 */
-	public int executeSequentialWaitBenchmark(int numberOfRequests, int delay) {
+	public int executeSequentialWaitBenchmark(int numberOfRequests, int delay) throws SeMoDeException {
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
 
 		int failedRequests = 0;
 		for (int i = 0; i < numberOfRequests; i++) {
 			Future<String> future = executorService.submit(new FunctionTrigger(jsonInput, url));
-			try {
-				future.get();
-			} catch (CancellationException | ExecutionException | InterruptedException e) {
-				failedRequests++;
-			}
+			failedRequests = exceptionHandlingFuture(executorService, failedRequests, future);
 			Uninterruptibles.sleepUninterruptibly(delay, TimeUnit.SECONDS);
 		}
-		shutdownExecutorAndAwaitTermination(executorService, 1);
+		shutdownExecutorAndAwaitTermination(executorService, 0);
 		return failedRequests;
 	}
 
@@ -144,8 +137,9 @@ public class BenchmarkExecutor {
 	 *            between the end of group execution g and the start of group
 	 *            execution g+1 in seconds
 	 * @return number of failed requests
+	 * @throws SeMoDeException 
 	 */
-	public int executeSequentialConcurrentBenchmark(int numberOfGroups, int numberOfRequestsEachGroup, int delay) {
+	public int executeSequentialConcurrentBenchmark(int numberOfGroups, int numberOfRequestsEachGroup, int delay) throws SeMoDeException {
 		int failedRequests = 0;
 		for (int burst = 0; burst < numberOfGroups; burst++) {
 			failedRequests += executeConcurrentBenchmark(numberOfRequestsEachGroup);
@@ -158,9 +152,9 @@ public class BenchmarkExecutor {
 	 * Executes the Benchmark in mode
 	 * {@link BenchmarkMode#SEQUENTIAL_CHANGING_INTERVAL}. <br>
 	 * Similar to mode {@link BenchmarkMode#SEQUENTIAL_INTERVAL}, functions get
-	 * executed with a varying delay between the execution starts. The first execution
-	 * will commence immediately, subsequent ones will be delayed at the specified
-	 * delays in <code>delays</code>.
+	 * executed with a varying delay between the execution starts. The first
+	 * execution will commence immediately, subsequent ones will be delayed at the
+	 * specified delays in <code>delays</code>.
 	 * 
 	 * @param numberOfRequests
 	 *            the number of total requests
@@ -168,7 +162,7 @@ public class BenchmarkExecutor {
 	 *            delays of requests
 	 * @return number of failed requests
 	 */
-	public int executeSequentialChangingIntervalBenchmark(int numberOfRequests, int[] delays) {
+	public int executeSequentialChangingIntervalBenchmark(int numberOfRequests, int[] delays) throws SeMoDeException {
 		ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
 		List<Future<String>> responses = new ArrayList<>();
@@ -177,18 +171,14 @@ public class BenchmarkExecutor {
 			responses.add(executorService.schedule(new FunctionTrigger(jsonInput, url), time, TimeUnit.SECONDS));
 			time += delays[i % delays.length];
 		}
-
-		// wait until the last function has the chance to complete sucessfully
-		shutdownExecutorAndAwaitTermination(executorService, PLATFORM_FUNCTION_TIMEOUT + time);
-
+		
 		int failedRequests = 0;
 		for (Future<String> future : responses) {
-			try {
-				future.get();
-			} catch (CancellationException | ExecutionException | InterruptedException e) {
-				failedRequests++;
-			}
+			failedRequests = exceptionHandlingFuture(executorService, failedRequests, future);
 		}
+		
+		shutdownExecutorAndAwaitTermination(executorService, 0);
+		
 		return failedRequests;
 	}
 
@@ -204,28 +194,43 @@ public class BenchmarkExecutor {
 	 * @param numberOfRequests
 	 * @param delays
 	 * @return
+	 * @throws SeMoDeException If execution fails
 	 */
-	public int executeSequentialChangingWaitBenchmark(int numberOfRequests, int[] delays) {
+	public int executeSequentialChangingWaitBenchmark(int numberOfRequests, int[] delays) throws SeMoDeException {
 
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
 		int failedRequests = 0;
 
 		for (int i = 0; i < numberOfRequests; i++) {
 			Future<String> future = executorService.submit(new FunctionTrigger(jsonInput, url));
-			try {
-				future.get();
-			} catch (CancellationException | ExecutionException | InterruptedException e) {
-				failedRequests++;
-			}
+			failedRequests = exceptionHandlingFuture(executorService, failedRequests, future);
 
 			int delay = delays[i % delays.length];
 			Uninterruptibles.sleepUninterruptibly(delay, TimeUnit.SECONDS);
 		}
-		
-		this.shutdownExecutorAndAwaitTermination(executorService, PLATFORM_FUNCTION_TIMEOUT);
-		
+
+		this.shutdownExecutorAndAwaitTermination(executorService, 0);
+
 		return failedRequests;
 
+	}
+
+	private int exceptionHandlingFuture(ExecutorService executorService, int failedRequests, Future<String> future)
+			throws SeMoDeException {
+		try {
+			future.get();
+		} catch (CancellationException | InterruptedException e) {
+			failedRequests++;
+		} catch (ExecutionException e) {
+			if (e.getCause() instanceof SeMoDeException) {
+				this.shutdownExecutorAndAwaitTermination(executorService, 0);
+				throw new SeMoDeException("Bad request - Execution error", e.getCause());
+			} else {
+				logger.warn("ExecutionException", e.getCause());
+				failedRequests++;
+			}
+		}
+		return failedRequests;
 	}
 
 	/**
