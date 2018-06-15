@@ -8,7 +8,7 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </Console>
-        <File name="BenchmarkingFile" fileName="${filePath}/${sys:logFilename}.log" immediateFlush="false" append="false">
+        <File name="BenchmarkingFile" fileName="${filePath}/${sys:logFilename}_${sys:functionName}.log" immediateFlush="false" append="false">
             <PatternLayout pattern="%d{${sys:DATE_TIME_FORMAT}}${CSV_SEPA}[%t]${CSV_SEPA}%-5level${CSV_SEPA}%logger{36}${CSV_SEPA}%msg%n" />
         </File>
     </Appenders>

@@ -13,18 +13,19 @@ import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.cli.UtilityFactory;
 
 public class ArgumentProcessor {
-	
-	// defining dynamic properties for log4j2
-	static {
+
+	public static void main(String[] args) {
+		// defining dynamic properties for log4j2
 		System.setProperty("logFilename", "benchmarking_" + new SimpleDateFormat("MM-dd-HH-mm-ss").format(new Date()));
 		System.setProperty("CSV_SEPARATOR", ";");
 		System.setProperty("DATE_TIME_FORMAT", "yyyy-MM-dd HH:mm:ss.SSS");
-	}
 
-	public static void main(String[] args) {
-		
+		if (args != null && args.length > 2 && args[0].equals("benchmark")) {
+			System.setProperty("functionName", args[1]);
+		}
+
 		Logger logger = LogManager.getLogger(ArgumentProcessor.class.getName());
-		 
+
 		if (args == null || args.length < 2) {
 			logger.warn("Please specify cli arguments. Program exited.");
 			return;
