@@ -1,13 +1,11 @@
 #!/bin/bash
 DIR=deployment
-sizes=(5000000 10000000 20000000 40000000 80000000 160000000 320000000 640000000)
+sizes=(10000000 20000000 30000000 40000000 50000000)
 
 if [ -z "$1" ]; then
     echo "Usage: createDeploymentSizes <PATH_TO_SEMODE.JAR>"
     exit 1
 fi
-
-./gradlew build
 
 if [ ! -d "$DIR" ]; then
     mkdir -p "$DIR"
@@ -15,14 +13,14 @@ fi
 
 # initial size
 before="initial"
-cp "target/fibonacci-java.zip" "$DIR/fibonacci-java-initial.zip"
+cp "target/azure-fibonacci-java-1.0.0.jar" "$DIR/fibonacci-java-initial.jar"
 
 echo " "
 for size in ${sizes[@]}; do
     echo "Create deployment package size: ${size}"
     echo "..."
-    cp "$DIR/fibonacci-java-${before}.zip" "$DIR/fibonacci-java-${size}.zip"
-    java -jar "$1" "deploymentSize" "$DIR/fibonacci-java-${size}.zip" "$size"
+    cp "$DIR/fibonacci-java-${before}.jar" "$DIR/fibonacci-java-${size}.jar"
+    java -jar "$1" "deploymentSize" "$DIR/fibonacci-java-${size}.jar" "$size"
     echo "Done"
     echo " "
     before="$size"
