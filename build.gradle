@@ -45,6 +45,7 @@ dependencies {
 }
 
 jar {
+  duplicatesStrategy = 'exclude'
   manifest {
     attributes(
       'Main-Class': 'de.uniba.dsg.serverless.ArgumentProcessor'
@@ -57,14 +58,4 @@ jar {
   // azure lib causes a java.lang.SecurityException: Invalid signature file digest for Manifest main attributes
   // see discussion: https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
   exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
-}
-
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-artifacts {
-    archives sourcesJar
 }
