@@ -1,0 +1,85 @@
+#!/bin/bash
+PACKAGES_DIR=deployment-packages
+DEPLOYMENT_DIR=deployment
+PACKAGE_SIZES=(5000000 10000000 20000000 30000000 40000000 50000000)
+SERVICE_SIZES=(initial 5000000 10000000 20000000 30000000 40000000 50000000)
+
+if [ -z "$1" ]; then
+    echo "Usage: createDeployments <PATH_TO_SEMODE.JAR>"
+    exit 1
+fi
+
+function createDir() {
+    if [ ! -d "$1" ]; then
+        mkdir -p "$1"
+    fi
+}
+
+function createDeploymentSizes() {
+    createDir "${PACKAGES_DIR}"
+
+    echo "Create deployment package with serverless"
+
+    # create serverless service for packaging
+    packageDir="${PACKAGES_DIR}/fibonacci-package"
+    createDir "${packageDir}"
+    cp "fibonacci.js" "${packageDir}/fibonacci.js"
+    cp "serverless-package.yml" "${packageDir}/serverless.yml"
+
+    # inital size with serverless
+    cd "${packageDir}"
+    serverless package
+    cp .serverless/fibonacci-js.zip ../fibonacci-js-initial.zip
+    cd "../.."
+    rm -rf "${packageDir}"
+
+    # other sizes
+    echo " "
+    before="initial"
+    for size in ${PACKAGE_SIZES[@]}; do
+        echo "Create deployment package size: ${size}"
+        echo "..."
+        cp "${PACKAGES_DIR}/fibonacci-js-${before}.zip" "${PACKAGES_DIR}/fibonacci-js-${size}.zip"
+        java -jar "$1" "deploymentSize" "${PACKAGES_DIR}/fibonacci-js-${size}.zip" "${size}"
+        echo "Done"
+        echo " "
+        before="${size}"
+    done
+}
+
+function createServices() {
+    for size in ${SERVICE_SIZES[@]}; do
+        echo "Create function: size=${size}"
+
+        serviceDir="$DEPLOYMENT_DIR/fibonacci-js-${size}"
+
+        createDir "${serviceDir}"
+        cp "${PACKAGES_DIR}/fibonacci-js-${size}.zip" "${serviceDir}/fibonacci.zip"
+        cp "serverless-template.yml" "${serviceDir}/serverless.yml"
+
+        addFunctionToServerlessConfig "${size}" "${serviceDir}"
+    done
+}
+
+function addFunctionToServerlessConfig() {
+    size="$1"
+    serviceDir="$2"
+
+    function="  fibonacci-js-${size}:
+    handler: fibonacci.handler
+    events:
+      - http: true
+        x-azure-settings:
+          authLevel : anonymous
+      - http: true
+        x-azure-settings:
+          direction: out
+          name: res"
+
+    echo "service: fibonacci-js-${size}" >> "${serviceDir}/serverless.yml" 
+    echo "functions:" >> "${serviceDir}/serverless.yml"
+    echo "${function}" >> "${serviceDir}/serverless.yml"
+}
+
+createDeploymentSizes "$1"
+createServices

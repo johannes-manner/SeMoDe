@@ -11,8 +11,6 @@
 #
 # Happy Coding!
 
-service: fibonacci-benchmark-js
-
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
 # frameworkVersion: "=X.X.X"
@@ -25,11 +23,7 @@ plugins:
   - serverless-azure-functions
 
 package:
-  exclude:
-    - node_modules/**
-    - package.json
-    - package-lock.json
-    - README.md
+  artifact: fibonacci.zip
 
 # you can add packaging information here
 #package:
@@ -39,18 +33,6 @@ package:
 #  exclude:
 #    - exclude-me.js
 #    - exclude-me-dir/**
-
-functions:
-  fibonacci-js:
-    handler: fibonacci.handler
-    events:
-      - http: true
-        x-azure-settings:
-          authLevel : anonymous
-      - http: true
-        x-azure-settings:
-          direction: out
-          name: res
 
 # The following are a few examples of other events you can configure:
 #
