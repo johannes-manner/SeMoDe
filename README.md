@@ -173,49 +173,51 @@ Usage:
 
 0. "benchmark" is a constant, which specifies the used utility mechanism.
 
-1. URL is the HTTP endpoint of the function to trigger it.
+1. Function name is contained in the log file name.
 
-2. Local filename to read json, which is used within the POST request body.
+2. URL is the HTTP endpoint of the function to trigger it.
 
-3. Mode can be "concurrent", "sequentialInterval", "sequentialWait", "sequentialConcurrent", "sequentialChangingInterval" or "sequentialChangingWait". See above for the description of the modes.
+3. Local filename to read json, which is used within the POST request body.
+
+4. Mode can be "concurrent", "sequentialInterval", "sequentialWait", "sequentialConcurrent", "sequentialChangingInterval" or "sequentialChangingWait". See above for the description of the modes.
 
 Usage for each mode:  
 
-```java -jar SeMoDe.jar "benchmark" "URL" "FILENAME.json" "concurrent" "NUMBER_OF_REQUESTS"```  
+```java -jar SeMoDe.jar "benchmark" "FUNCTION_NAME" "URL" "FILENAME.json" "concurrent" "NUMBER_OF_REQUESTS"```  
 
-4. Number of function executions.
+5. Number of function executions.
 
-```java -jar SeMoDe.jar "benchmark" "URL" "FILENAME.json" "sequentialInterval" "NUMBER_OF_REQUESTS" "DELAY"```  
+```java -jar SeMoDe.jar "benchmark" "FUNCTION_NAME" "URL" "FILENAME.json" "sequentialInterval" "NUMBER_OF_REQUESTS" "DELAY"```  
 
-4. Number of function executions.
+5. Number of function executions.
 
-5. Time between request execution start times in seconds.
+6. Time between request execution start times in seconds.
 
-```java -jar SeMoDe.jar "benchmark" "URL" "FILENAME.json" "sequentailWait" "NUMBER_OF_REQUESTS" "DELAY"```  
+```java -jar SeMoDe.jar "benchmark" "FUNCTION_NAME" "URL" "FILENAME.json" "sequentailWait" "NUMBER_OF_REQUESTS" "DELAY"```  
 
-4. Number of requests.
+5. Number of requests.
 
-5. Delay between termination of function execution n and start of execution n + 1 in seconds.
+6. Delay between termination of function execution n and start of execution n + 1 in seconds.
 
-```java -jar SeMoDe.jar "benchmark" "URL" "FILENAME.json" "sequentialConcurrent" "NUMBER_OF_GROUPS" "NUMBER_OF_REQUESTS_GROUP" "DELAY"```
+```java -jar SeMoDe.jar "benchmark" "FUNCTION_NAME" "URL" "FILENAME.json" "sequentialConcurrent" "NUMBER_OF_GROUPS" "NUMBER_OF_REQUESTS_GROUP" "DELAY"```
 
-4. Number of execution groups.
+5. Number of execution groups.
 
-5. Number of requests in each group.
+6. Number of requests in each group.
 
-6. Delay between termination of group g and start of group g + 1 in seconds.
+7. Delay between termination of group g and start of group g + 1 in seconds.
 
-```java -jar SeMoDe.jar "benchmark" "URL" "FILENAME.json" "sequentialChangingInterval" "NUMBER_OF_REQUESTS" ("DELAY")+ ```
+```java -jar SeMoDe.jar "benchmark" "FUNCTION_NAME" "URL" "FILENAME.json" "sequentialChangingInterval" "NUMBER_OF_REQUESTS" ("DELAY")+ ```
 
-4. Total number of executions.
+5. Total number of executions.
 
-5. List of delays. (at least one)
+6. List of delays. (at least one)
 
-```java -jar SeMoDe.jar "benchmark" "URL" "FILENAME.json" "sequentialChangingWait" "NUMBER_OF_REQUESTS" ("DELAY")+ ```
+```java -jar SeMoDe.jar "benchmark" "FUNCTION_NAME" "URL" "FILENAME.json" "sequentialChangingWait" "NUMBER_OF_REQUESTS" ("DELAY")+ ```
 
-4. Total number of executions.
+5. Total number of executions.
 
-5. List of delays. (at least one)
+6. List of delays. (at least one)
 
 ### Utility Features
 
