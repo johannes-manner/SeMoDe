@@ -23,7 +23,8 @@ plugins:
   - serverless-azure-functions
 
 package:
-  artifact: fibonacci.zip
+  exclude:
+    - serverless.yml
 
 # you can add packaging information here
 #package:

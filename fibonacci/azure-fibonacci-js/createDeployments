@@ -18,20 +18,8 @@ function createDir() {
 function createDeploymentSizes() {
     createDir "${PACKAGES_DIR}"
 
-    echo "Create deployment package with serverless"
-
-    # create serverless service for packaging
-    packageDir="${PACKAGES_DIR}/fibonacci-package"
-    createDir "${packageDir}"
-    cp "fibonacci.js" "${packageDir}/fibonacci.js"
-    cp "serverless-package.yml" "${packageDir}/serverless.yml"
-
-    # inital size with serverless
-    cd "${packageDir}"
-    serverless package
-    cp .serverless/fibonacci-js.zip ../fibonacci-js-initial.zip
-    cd "../.."
-    rm -rf "${packageDir}"
+    # copy initial
+    cp "fibonacci.js" "${PACKAGES_DIR}/fibonacci-js-initial.js"
 
     # other sizes
     echo " "
@@ -39,8 +27,8 @@ function createDeploymentSizes() {
     for size in ${PACKAGE_SIZES[@]}; do
         echo "Create deployment package size: ${size}"
         echo "..."
-        cp "${PACKAGES_DIR}/fibonacci-js-${before}.zip" "${PACKAGES_DIR}/fibonacci-js-${size}.zip"
-        java -jar "$1" "deploymentSize" "${PACKAGES_DIR}/fibonacci-js-${size}.zip" "${size}"
+        cp "${PACKAGES_DIR}/fibonacci-js-${before}.js" "${PACKAGES_DIR}/fibonacci-js-${size}.js"
+        java -jar "$1" "deploymentSize" "${PACKAGES_DIR}/fibonacci-js-${size}.js" "${size}" "//"
         echo "Done"
         echo " "
         before="${size}"
@@ -51,10 +39,10 @@ function createServices() {
     for size in ${SERVICE_SIZES[@]}; do
         echo "Create function: size=${size}"
 
-        serviceDir="$DEPLOYMENT_DIR/fibonacci-js-${size}"
+        serviceDir="${DEPLOYMENT_DIR}/fibonacci-js-${size}"
 
         createDir "${serviceDir}"
-        cp "${PACKAGES_DIR}/fibonacci-js-${size}.zip" "${serviceDir}/fibonacci.zip"
+        cp "${PACKAGES_DIR}/fibonacci-js-${size}.js" "${serviceDir}/fibonacci.js"
         cp "serverless-template.yml" "${serviceDir}/serverless.yml"
 
         addFunctionToServerlessConfig "${size}" "${serviceDir}"
