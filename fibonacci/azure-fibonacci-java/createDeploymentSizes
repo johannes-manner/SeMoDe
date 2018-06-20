@@ -1,7 +1,8 @@
 #!/bin/bash
 
 DIR=deployment
-sizes=(1000000 2000000)
+sizes=(1000000 2000000 3000000 4000000 5000000)
+name=1
 
 if [ -z "$1" ]; then
 	echo "Usage: createDeploymentSizes <PATH_TO_SEMODE.JAR>"
@@ -17,20 +18,20 @@ function createDir() {
 # Create Template
 echo "Creating Template ..."
 createDir "$DIR/fibonacci-java-initial/src/"
-cp -rf "src/main/" "$DIR/fibonacci-java-initial/src/main/"
-cp "pom.xml" "$DIR/fibonacci-java-initial/pom.xml"
+cp -rf "src/main/" "$DIR/fibonacci-java-${name}-initial/src/main/"
+cp "pom.xml" "$DIR/fibonacci-java-${name}-initial/pom.xml"
 echo "done"
 
 # Copy Template to different sizes
 echo "Building deployment packages using initial ..."
 for size in ${sizes[@]}; do
-	echo "Building deployment package fibonacci-java-${size}:"
-	cp -rf "$DIR/fibonacci-java-initial/" "$DIR/fibonacci-java-${size}/"
+	echo "Building deployment package fibonacci-java-${name}-${size}:"
+	cp -rf "$DIR/fibonacci-java-${name}-initial/" "$DIR/fibonacci-java-${name}-${size}/"
 	
 	# 19 specifies the line that will be changed in the pom.xml
 	# syntax:	sed -i "LINE_NUMBERs/.*/NEW_TEXT/
-	sed -i '' "19s/.*/        <functionAppName>fibonacci-java-${size}<\/functionAppName>/" "$DIR/fibonacci-java-${size}/pom.xml"	
-	mvn -f "$DIR/fibonacci-java-${size}/pom.xml" clean package
+	sed -i "19s/.*/        <functionAppName>fibonacci-java-${name}-${size}<\/functionAppName>/" "$DIR/fibonacci-java-${name}-${size}/pom.xml"
+	mvn -f "$DIR/fibonacci-java-${name}-${size}/pom.xml" clean package
 done
 echo "Built all deployment packages"
 
@@ -38,6 +39,10 @@ echo "Built all deployment packages"
 echo "Inflating the size of each deployment package"
 for size in ${sizes[@]}; do
 	echo "Create deployment package size: ${size}"
-	java -jar "$1" "deploymentSize" "$DIR/fibonacci-java-${size}/target/azure-functions/fibonacci-java-${size}/azure-fibonacci-java-1.0.0.jar" "${size}"
+	java -jar "$1" "deploymentSize" "$DIR/fibonacci-java-${name}-${size}/target/azure-functions/fibonacci-java-${name}-${size}/azure-fibonacci-java-1.0.0.jar" "${size}"
 done
 echo "Extended the size of deployments"
+
+# Build initial
+sed -i "19s/.*/        <functionAppName>fibonacci-java-${name}-initial<\/functionAppName>/" "$DIR/fibonacci-java-${name}-initial/pom.xml"
+mvn -f "$DIR/fibonacci-java-${name}-initial/pom.xml" clean package
