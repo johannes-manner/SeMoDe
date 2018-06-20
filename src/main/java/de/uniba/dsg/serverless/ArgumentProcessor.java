@@ -22,6 +22,9 @@ public class ArgumentProcessor {
 
 		if (args != null && args.length > 2 && args[0].equals("benchmark")) {
 			System.setProperty("functionName", args[1]);
+		}else {
+			// When no function name is needed, it is set explicitly
+			System.setProperty("functionName", "");
 		}
 
 		Logger logger = LogManager.getLogger(ArgumentProcessor.class.getName());
