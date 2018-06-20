@@ -8,26 +8,28 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
-if [ ! -d "$DIR" ]; then
-	mkdir -p "$DIR"
-fi
+function createDir() {
+    if [ ! -d "$1" ]; then
+        mkdir -p "$1"
+    fi
+}
 
 # Create Template
 echo "Creating Template ..."
-mkdir -p "$DIR/fibonacci-java-template/src/"
-cp -rf "src/main/" "$DIR/fibonacci-java-template/src/main/"
-cp "pom.xml" "$DIR/fibonacci-java-template/pom.xml"
+createDir "$DIR/fibonacci-java-initial/src/"
+cp -rf "src/main/" "$DIR/fibonacci-java-initial/src/main/"
+cp "pom.xml" "$DIR/fibonacci-java-initial/pom.xml"
 echo "done"
 
 # Copy Template to different sizes
-echo "Building deployment packages using template ..."
+echo "Building deployment packages using initial ..."
 for size in ${sizes[@]}; do
 	echo "Building deployment package fibonacci-java-${size}:"
-	cp -rf "$DIR/fibonacci-java-template/" "$DIR/fibonacci-java-${size}/"
+	cp -rf "$DIR/fibonacci-java-initial/" "$DIR/fibonacci-java-${size}/"
 	
 	# 19 specifies the line that will be changed in the pom.xml
 	# syntax:	sed -i "LINE_NUMBERs/.*/NEW_TEXT/
-	sed -i "19s/.*/        <functionAppName>fibonacci-java-${size}<\/functionAppName>/" "$DIR/fibonacci-java-${size}/pom.xml"	
+	sed -i '' "19s/.*/        <functionAppName>fibonacci-java-${size}<\/functionAppName>/" "$DIR/fibonacci-java-${size}/pom.xml"	
 	mvn -f "$DIR/fibonacci-java-${size}/pom.xml" clean package
 done
 echo "Built all deployment packages"
