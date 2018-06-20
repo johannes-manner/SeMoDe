@@ -2,6 +2,7 @@
 # build output
 target/
 *.class
+deployment/
 
 # log file
 *.log

@@ -1,27 +1,41 @@
 #!/bin/bash
+
 DIR=deployment
-sizes=(10000000 20000000 30000000 40000000 50000000)
+sizes=(1000000 2000000)
 
 if [ -z "$1" ]; then
-    echo "Usage: createDeploymentSizes <PATH_TO_SEMODE.JAR>"
-    exit 1
+	echo "Usage: createDeploymentSizes <PATH_TO_SEMODE.JAR>"
+	exit 1
 fi
 
 if [ ! -d "$DIR" ]; then
-    mkdir -p "$DIR"
+	mkdir -p "$DIR"
 fi
 
-# initial size
-before="initial"
-cp "target/azure-fibonacci-java-1.0.0.jar" "$DIR/fibonacci-java-initial.jar"
+# Create Template
+echo "Creating Template ..."
+mkdir -p "$DIR/fibonacci-java-template/src/"
+cp -rf "src/main/" "$DIR/fibonacci-java-template/src/main/"
+cp "pom.xml" "$DIR/fibonacci-java-template/pom.xml"
+echo "done"
 
-echo " "
+# Copy Template to different sizes
+echo "Building deployment packages using template ..."
 for size in ${sizes[@]}; do
-    echo "Create deployment package size: ${size}"
-    echo "..."
-    cp "$DIR/fibonacci-java-${before}.jar" "$DIR/fibonacci-java-${size}.jar"
-    java -jar "$1" "deploymentSize" "$DIR/fibonacci-java-${size}.jar" "$size"
-    echo "Done"
-    echo " "
-    before="$size"
+	echo "Building deployment package fibonacci-java-${size}:"
+	cp -rf "$DIR/fibonacci-java-template/" "$DIR/fibonacci-java-${size}/"
+	
+	# 19 specifies the line that will be changed in the pom.xml
+	# syntax:	sed -i "LINE_NUMBERs/.*/NEW_TEXT/
+	sed -i "19s/.*/        <functionAppName>fibonacci-java-${size}<\/functionAppName>/" "$DIR/fibonacci-java-${size}/pom.xml"	
+	mvn -f "$DIR/fibonacci-java-${size}/pom.xml" clean package
 done
+echo "Built all deployment packages"
+
+# May be optimized, but it is not certain whether or not the integrity is compromised when jars are copied from other sizes
+echo "Inflating the size of each deployment package"
+for size in ${sizes[@]}; do
+	echo "Create deployment package size: ${size}"
+	java -jar "$1" "deploymentSize" "$DIR/fibonacci-java-${size}/target/azure-functions/fibonacci-java-${size}/azure-fibonacci-java-1.0.0.jar" "${size}"
+done
+echo "Extended the size of deployments"

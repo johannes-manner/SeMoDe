@@ -16,7 +16,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <azure.functions.maven.plugin.version>1.0.0-beta-2</azure.functions.maven.plugin.version>
         <azure.functions.java.library.version>1.0.0-beta-4</azure.functions.java.library.version>
-        <functionAppName>azureJavaOurProblemChild</functionAppName>
+        <functionAppName>FUNCTION_APP_NAME</functionAppName>
         <functionAppRegion>northeurope</functionAppRegion>
         <stagingDirectory>${project.build.directory}/azure-functions/${functionAppName}</stagingDirectory>
         <functionResourceGroup>${functionAppName}-rg</functionResourceGroup>
