@@ -28,7 +28,7 @@ function createDeploymentSizes() {
         echo "Create deployment package size: ${size}"
         echo "..."
         cp "${PACKAGES_DIR}/fibonacci-js-${before}.js" "${PACKAGES_DIR}/fibonacci-js-${size}.js"
-        java -jar "$1" "deploymentSize" "${PACKAGES_DIR}/fibonacci-js-${size}.js" "${size}" "//"
+        java -jar "$1" "deploymentSize" "${PACKAGES_DIR}/fibonacci-js-${size}.js" "${size}" "///"
         echo "Done"
         echo " "
         before="${size}"
