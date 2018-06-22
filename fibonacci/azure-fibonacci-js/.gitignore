@@ -1,8 +1,9 @@
 # serverless directory
 .serverless
 
-# deployment package sizes
+# deployment packages and services
 /deployment/
+/deployment-packages/
 
 # Node.js
 node_modules
