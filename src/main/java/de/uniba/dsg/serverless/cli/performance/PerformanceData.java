@@ -29,13 +29,13 @@ public interface PerformanceData {
 		
 		List<Map<String, WritableEvent>> elementList = new ArrayList<>();
 		
-		elementList.add(logHandler.getPerformanceData());
-
 		// if a benchmarking file is selected
 		if (restFile.isPresent()) {
 			BenchmarkingRESTAnalyzer restAnalyzer = new BenchmarkingRESTAnalyzer(Paths.get(restFile.get()));
 			elementList.add(restAnalyzer.extractRESTEvents());
 		}
+		
+		elementList.add(logHandler.getPerformanceData());		
 
 		this.writePerformanceDataToFile(this.generateFileName(functionName), elementList);
 	}

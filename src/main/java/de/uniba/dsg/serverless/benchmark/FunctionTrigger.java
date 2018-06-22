@@ -79,7 +79,9 @@ public class FunctionTrigger implements Callable<String> {
 		
 		logger.info("END" + CSV_SEPARATOR + uuid);
 		
-		if(response.getStatus() != REQUEST_PASSED_STATUS) {
+		if (response.getStatus() != REQUEST_PASSED_STATUS) {
+			logger.warn("ERROR" + CSV_SEPARATOR + uuid + CSV_SEPARATOR + response.getStatus() + " - "
+					+ response.getStatusInfo());
 			throw new SeMoDeException("Request exited with an error: " + response.getStatus() + " - " + response.getStatusInfo());
 		}
 		
