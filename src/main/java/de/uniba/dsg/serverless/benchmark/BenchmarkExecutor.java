@@ -20,7 +20,7 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public class BenchmarkExecutor {
 
-	private static final int PLATFORM_FUNCTION_TIMEOUT = 300;
+	protected static final int PLATFORM_FUNCTION_TIMEOUT = 300;
 
 	private static final Logger logger = LogManager.getLogger(BenchmarkExecutor.class);
 
@@ -228,13 +228,8 @@ public class BenchmarkExecutor {
 				}
 			}
 		} catch (CancellationException | ExecutionException e) {
-			if (e.getCause() != null && e.getCause() instanceof SeMoDeException) {
-				this.shutdownExecutorAndAwaitTermination(executorService, 0);
-				throw new SeMoDeException("Bad request - Execution error", e.getCause());
-			} else {
-				logger.warn("ExecutionException", e);
-				failedRequests++;
-			}
+			logger.warn("ExecutionException", e);
+			failedRequests++;
 		}
 		return failedRequests;
 	}

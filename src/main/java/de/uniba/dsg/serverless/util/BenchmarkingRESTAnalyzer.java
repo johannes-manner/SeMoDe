@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -82,7 +83,9 @@ public class BenchmarkingRESTAnalyzer {
 						start = temp.get(key);
 					} else if ("END".equals(key)) {
 						end = temp.get(key);
-					} else {
+					} else if ("ERROR".equals(key)) {
+						platformId = "ERROR-" + UUID.randomUUID().toString();
+					}else {
 						// platformId is the key of this entry
 						platformId = key;
 					}

@@ -1,9 +1,9 @@
 package de.uniba.dsg.serverless.fibonacci.azure;
 
-import com.microsoft.azure.serverless.functions.ExecutionContext;
-import com.microsoft.azure.serverless.functions.HttpRequestMessage;
-import com.microsoft.azure.serverless.functions.HttpResponseMessage;
-import com.microsoft.azure.serverless.functions.annotation.*;
+import com.microsoft.azure.functions.ExecutionContext;
+import com.microsoft.azure.functions.HttpRequestMessage;
+import com.microsoft.azure.functions.HttpResponseMessage;
+import com.microsoft.azure.functions.annotation.*;
 
 import java.util.Optional;
 
