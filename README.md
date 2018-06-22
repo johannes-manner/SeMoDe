@@ -193,7 +193,7 @@ Usage for each mode:
 
 6. Time between request execution start times in seconds.
 
-```java -jar SeMoDe.jar "benchmark" "FUNCTION_NAME" "URL" "FILENAME.json" "sequentailWait" "NUMBER_OF_REQUESTS" "DELAY"```  
+```java -jar SeMoDe.jar "benchmark" "FUNCTION_NAME" "URL" "FILENAME.json" "sequentialWait" "NUMBER_OF_REQUESTS" "DELAY"```  
 
 5. Number of requests.
 
