@@ -20,7 +20,7 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public class BenchmarkExecutor {
 
-	private static final int PLATFORM_FUNCTION_TIMEOUT = 300;
+	protected static final int PLATFORM_FUNCTION_TIMEOUT = 300;
 
 	private static final Logger logger = LogManager.getLogger(BenchmarkExecutor.class);
 
