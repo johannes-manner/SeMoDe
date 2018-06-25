@@ -11,7 +11,7 @@ import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.provider.azure.AzureLogHandler;
 
-public final class AzurePerformanceDataUtility extends CustomUtility implements PerformanceData{
+public final class AzurePerformanceDataUtility extends CustomUtility implements PerformanceData {
 
 	private static final Logger logger = LogManager.getLogger(AzurePerformanceDataUtility.class.getName());
 
@@ -21,18 +21,19 @@ public final class AzurePerformanceDataUtility extends CustomUtility implements 
 
 	public void start(List<String> args) {
 
-		if (args.size() < 5) {
-			logger.fatal("Wrong parameter size: " + "\n(1) Application ID " + "\n(2) API Key " + "\n(3) Function Name"
-					+ "\n(4) Start time filter of performance data" + "\n(5) End time filter of performance data"
-					+ "\n(6) Optional - REST calls file");
+		if (args.size() < 6) {
+			logger.fatal("Wrong parameter size: " + "\n(1) Application ID " + "\n(2) API Key " + "\n(3) Service Name"
+					+ "\n(4) Function Name" + "\n(5) Start time filter of performance data"
+					+ "\n(6) End time filter of performance data" + "\n(7) Optional - REST calls file");
 			return;
 		}
 
 		String applicationID = args.get(0);
 		String apiKey = args.get(1);
-		String functionName = args.get(2);
-		String startTimeString = args.get(3);
-		String endTimeString = args.get(4);
+		String serviceName = args.get(2);
+		String functionName = args.get(3);
+		String startTimeString = args.get(4);
+		String endTimeString = args.get(5);
 
 		try {
 			this.validateStartEnd(startTimeString, endTimeString);
@@ -41,15 +42,15 @@ public final class AzurePerformanceDataUtility extends CustomUtility implements 
 
 			AzureLogHandler azureLogHandler = new AzureLogHandler(applicationID, apiKey, functionName, startTime,
 					endTime);
-			
+
 			Optional<String> restFile;
-			if (args.size() == 6) {
-				restFile = Optional.of(args.get(5));
-			}else {
+			if (args.size() == 7) {
+				restFile = Optional.of(args.get(6));
+			} else {
 				restFile = Optional.empty();
 			}
-			
-			this.writePerformanceDataToFile(azureLogHandler, functionName, restFile);
+
+			this.writePerformanceDataToFile(azureLogHandler, serviceName, restFile);
 		} catch (SeMoDeException e) {
 			logger.fatal(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!" : e.getCause().getMessage()));
 		}

@@ -76,7 +76,7 @@ This feature generates .csv files from logs of functions maintained by Microsoft
 
 Usage:
 
-```java -jar SeMoDe.jar "azurePerformanceData" "APPLICATION ID" "API KEY" "FUNCTION NAME" "START TIME FILTER" "END TIME FILTER" ["REST CALLS FILE"]```
+```java -jar SeMoDe.jar "azurePerformanceData" "APPLICATION ID" "API KEY" "SERVICE NAME" "FUNCTION NAME" "START TIME FILTER" "END TIME FILTER" ["REST CALLS FILE"]```
 
 0. "azurePerformanceData" is a constant, which specifies the used utility mechanism.
 
@@ -84,13 +84,15 @@ Usage:
 
 2. API Key of the Application Insights account. A key can be created under "API Access" in Application Insights.
 
-3. Function Name of the function the performance data are fetched from. It is specified under the function apps.
+3. Service Name of the function app.
 
-4. Desired start time filter. Only logs after specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
+4. Function Name of the function the performance data are fetched from. It is specified under the function apps.
 
-5. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
+5. Desired start time filter. Only logs after specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
 
-6. Optional - File name of the benchmarking log files, which was generated during the execution of the benchmarking utility.
+6. Desired end time filter. Only logs before specified time are taken into account. It has the format yyyy-MM-dd_HH:mm .
+
+7. Optional - File name of the benchmarking log files, which was generated during the execution of the benchmarking utility.
 It contains the start and end timestamps from the local REST calls on the developer's machine.
 
 #### Get Performance Data from Google Cloud Functions (Stackdriver)
