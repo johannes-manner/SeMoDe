@@ -6,9 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -24,23 +24,23 @@ public interface PerformanceData {
 		String fileName = functionName + "-" + dateText + ".csv";
 		return fileName;
 	}
-	
-	default void writePerformanceDataToFile(LogHandler logHandler, String functionName, Optional<String> restFile) throws SeMoDeException {
-		
-		List<Map<String, WritableEvent>> elementList = new ArrayList<>();
-		
+
+	default void writePerformanceDataToFile(LogHandler logHandler, String functionName, Optional<String> restFile)
+			throws SeMoDeException {
+
+		Map<String, WritableEvent> restMap = new HashMap<>();
+
 		// if a benchmarking file is selected
 		if (restFile.isPresent()) {
 			BenchmarkingRESTAnalyzer restAnalyzer = new BenchmarkingRESTAnalyzer(Paths.get(restFile.get()));
-			elementList.add(restAnalyzer.extractRESTEvents());
+			restMap = restAnalyzer.extractRESTEvents();
 		}
-		
-		elementList.add(logHandler.getPerformanceData());		
 
-		this.writePerformanceDataToFile(this.generateFileName(functionName), elementList);
+		this.writePerformanceDataToFile(this.generateFileName(functionName), restMap, logHandler.getPerformanceData());
 	}
-	
-	default void writePerformanceDataToFile(String fileName, List<Map<String, WritableEvent>> maps) throws SeMoDeException {
+
+	default void writePerformanceDataToFile(String fileName, Map<String, WritableEvent> restMap,
+			Map<String, WritableEvent> performanceProviderMap) throws SeMoDeException {
 		try {
 			String OUTPUT_DIRECTORY = "performanceData";
 
@@ -49,28 +49,36 @@ public interface PerformanceData {
 			}
 			Path file = Files.createFile(Paths.get(OUTPUT_DIRECTORY + "/" + fileName));
 			try (BufferedWriter writer = Files.newBufferedWriter(file)) {
-				
+
 				// Writing header line
-				for(Map<String, WritableEvent> map : maps) {
-					if(map.isEmpty()) {
-						throw new SeMoDeException("The platform map is empty. The most likely reason is the wrong start and end time.");
+				for (Map<String, WritableEvent> map : Arrays.asList(restMap, performanceProviderMap)) {
+					if (map.isEmpty()) {
+						throw new SeMoDeException(
+								"The platform map is empty. The most likely reason is the wrong start and end time.");
 					} else {
 						String key = map.keySet().iterator().next();
 						writer.write(map.get(key).getCSVMetadata());
 					}
 				}
 				writer.write(System.lineSeparator());
-				
+
 				// Writing rows
-				Map<String, WritableEvent> keyMap = maps.get(0);
-				for(String key : keyMap.keySet()) {
-					for(Map<String, WritableEvent> map : maps) {
-						// if the first map contains more elements, than the others
-						// a "left outer join" is made here
-						WritableEvent event = map.get(key);
-						if(event != null) {
-							writer.write(event.toCSVString());
-						}
+				for (String key : restMap.keySet()) {
+					WritableEvent restEvent = restMap.get(key);
+					writer.write(restEvent.toCSVString());
+
+					WritableEvent providerEvent = performanceProviderMap.get(key);
+
+					if (providerEvent != null) {
+						writer.write(providerEvent.toCSVString());
+					} else {
+						// there was probably an error, maybe the timeout of AWS API Gateway or another
+						// error, where the
+						// platform does not return a valid element.
+						// the idea is here to get a probably realted execution from the platfrom by a
+						// timely match
+						// local rest start time is round about a second earlier than the start of the
+						// function execution
 					}
 					writer.write(System.lineSeparator());
 				}
