@@ -11,7 +11,7 @@ import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.provider.google.GoogleLogHandler;
 
-public class GooglePerformanceDataUtility extends CustomUtility implements PerformanceData {
+public class GooglePerformanceDataUtility extends CustomUtility implements GenericPerformanceDataFetcher {
 	
 	private static final Logger logger = LogManager.getLogger(GooglePerformanceDataUtility.class.getName());
 

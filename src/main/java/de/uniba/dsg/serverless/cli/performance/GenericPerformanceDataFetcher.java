@@ -6,18 +6,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.threeten.bp.ZoneId;
+
+import de.uniba.dsg.serverless.model.PerformanceData;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.model.WritableEvent;
 import de.uniba.dsg.serverless.provider.LogHandler;
 import de.uniba.dsg.serverless.util.BenchmarkingRESTAnalyzer;
 
-public interface PerformanceData {
+public interface GenericPerformanceDataFetcher {
+
+	public static final double NETWORK_AND_PLATFORM_DELAY = 5000.0;
 
 	default String generateFileName(String functionName) {
 		String dateText = new SimpleDateFormat("MM-dd-HH-mm-ss").format(new Date());
@@ -72,13 +79,13 @@ public interface PerformanceData {
 					if (providerEvent != null) {
 						writer.write(providerEvent.toCSVString());
 					} else {
-						// there was probably an error, maybe the timeout of AWS API Gateway or another
-						// error, where the
-						// platform does not return a valid element.
-						// the idea is here to get a probably realted execution from the platfrom by a
-						// timely match
-						// local rest start time is round about a second earlier than the start of the
-						// function execution
+						// there was an error due to api limitations or other problems
+						// where the platform does not return a valid response with
+						// the platform id included. The idea is to get these matching due
+						// to the local start time and the relation to the start time of the
+						// cloud function.
+						providerEvent = this.findMatchingEvent(restEvent, performanceProviderMap);
+						writer.write(providerEvent.toCSVString());
 					}
 					writer.write(System.lineSeparator());
 				}
@@ -86,5 +93,19 @@ public interface PerformanceData {
 		} catch (IOException e) {
 			throw new SeMoDeException("Writing to file failed");
 		}
+	}
+
+	default WritableEvent findMatchingEvent(WritableEvent localRestEvent, Map<String, WritableEvent> performanceProviderMap) {
+		PerformanceData data = new PerformanceData();
+		
+		long localRestTime = localRestEvent.getStartTime().toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli();
+		for(String key : performanceProviderMap.keySet() ) {
+			// one second is big enough to get the right matching and small enough to avoid false matchings.
+			if ( Math.abs( localRestTime - performanceProviderMap.get(key).getStartTime().toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli() ) < NETWORK_AND_PLATFORM_DELAY){
+				return performanceProviderMap.get(key);
+			}
+		}
+		
+		return data;
 	}
 }

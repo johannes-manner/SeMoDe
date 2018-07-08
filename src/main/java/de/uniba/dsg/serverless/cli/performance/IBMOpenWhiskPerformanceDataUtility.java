@@ -11,7 +11,7 @@ import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.provider.ibm.IBMLogHandler;
 
-public class IBMOpenWhiskPerformanceDataUtility extends CustomUtility implements PerformanceData {
+public class IBMOpenWhiskPerformanceDataUtility extends CustomUtility implements GenericPerformanceDataFetcher {
 
 	public static final Logger logger = LogManager.getLogger(IBMOpenWhiskPerformanceDataUtility.class.getName());
 

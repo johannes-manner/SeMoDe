@@ -70,4 +70,9 @@ public class PerformanceData implements WritableEvent{
 				+ this.billedDuration + CSV_SEPARATOR + this.memorySize + CSV_SEPARATOR + this.memoryUsed + CSV_SEPARATOR;
 	}
 
+	@Override
+	public LocalDateTime getStartTime() {
+		return this.startTime;
+	}
+
 }
