@@ -22,6 +22,8 @@ provider:
   runtime: nodejs6.10
   region: eu-west-1
   timeout: 300
+  deploymentBucket:
+    name: fibonacci-benchmark-js-setup4-ireland
 
 # you can overwrite defaults here
 #  stage: dev
