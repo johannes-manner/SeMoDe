@@ -1,8 +1,7 @@
 #!/bin/bash
 PACKAGES_DIR=deployment-packages
 DEPLOYMENT_DIR=deployment
-PACKAGE_SIZES=(390625 781250 1562500)
-SERVICE_SIZES=(390625 781250 1562500)
+SERVICE_SIZES=(initial 3125000 6250000 12500000 25000000 50000000)
 MEMORY_SETTINGS=(128 256 512 1024 2048 3008)
 
 if [ -z "$1" ]; then
@@ -18,34 +17,28 @@ function createDir() {
 
 function createDeploymentSizes() {
     createDir "${PACKAGES_DIR}"
-
-    echo "Create deployment package with serverless"
-
-    # create serverless service for packaging
-    packageDir="${PACKAGES_DIR}/fibonacci-package"
-    createDir "${packageDir}"
-    cp "fibonacci.js" "${packageDir}/fibonacci.js"
-    cp "serverless-package.yml" "${packageDir}/serverless.yml"
-
-    # inital size with serverless
-    cd "${packageDir}"
-    serverless package --package out
-    cp out/fibonacci-js.zip ../fibonacci-js-initial.zip
-    cd "../.."
-    rm -rf "${packageDir}"
-
-    # other sizes
-    echo " "
-    before="initial"
-    for size in ${PACKAGE_SIZES[@]}; do
-        echo "Create deployment package size: ${size}"
-        echo "..."
-        cp "${PACKAGES_DIR}/fibonacci-js-${before}.zip" "${PACKAGES_DIR}/fibonacci-js-${size}.zip"
-        java -jar "$1" "deploymentSize" "${PACKAGES_DIR}/fibonacci-js-${size}.zip" "${size}"
-        echo "Done"
-        echo " "
-        before="${size}"
+	
+	for size in ${SERVICE_SIZES[@]}; do
+		echo "Creating size ${size}"
+		if [ "${size}" = "initial" ]; then
+			cp "fibonacci.js" "${PACKAGES_DIR}/fibonacci.js"
+			cp "serverless-package.yml" "${PACKAGES_DIR}/serverless.yml"
+			cd "${PACKAGES_DIR}/"
+		else
+			java -jar "../$1" "deploymentSize" "fibonacci.js" "${size}" "///"
+		fi
+		createDir "${size}"
+		cp "fibonacci.js" "${size}/fibonacci-js-${size}.js"
+		cp "serverless.yml" "${size}/serverless.yml"
+		cd "${size}"
+		serverless package --package out
+		cd ".."
+		cp "${size}/out/fibonacci-js.zip" "fibonacci-js-${size}.zip"
+		rm -rf "${size}"
     done
+	cd ".."
+	rm "serverless.yml"
+	rm -rf "logs"
 }
 
 function createServices() {
@@ -58,7 +51,7 @@ function createServices() {
             createDir "${serviceDir}"
             cp "${PACKAGES_DIR}/fibonacci-js-${size}.zip" "${serviceDir}/fibonacci.zip"
             cp "serverless-template.yml" "${serviceDir}/serverless.yml"
-
+			
             addFunctionToServerlessConfig "${size}" "${mem}" "${serviceDir}"
         done
     done
