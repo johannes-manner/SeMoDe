@@ -57,14 +57,9 @@ function addFunctionToServerlessConfig() {
     mem="$2"
     serviceDir="$3"
 
-    memorySize=""
-    if [ "${size}" != "initial" ]; then
-        memorySize="memorySize: ${mem}"
-    fi
-
     function="  fibonacci-java-${size}-${mem}:
     handler: de.uniba.dsg.serverless.fibonacci.aws.Fibonacci
-    ${memorySize}
+    memorySize: ${mem}
     events:
       - http:
           path: fibonacci-java-${size}-${mem}

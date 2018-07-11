@@ -69,14 +69,9 @@ function addFunctionToServerlessConfig() {
     mem="$2"
     serviceDir="$3"
 
-    memorySize=""
-    if [ "${size}" != "initial" ]; then
-        memorySize="memorySize: ${mem}"
-    fi
-
     function="  fibonacci-js-${size}-${mem}:
     handler: fibonacci.handler
-    ${memorySize}
+    memorySize: ${mem}
     events:
       - http:
           path: fibonacci-js-${size}-${mem}
