@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Date;
@@ -14,9 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.threeten.bp.ZoneId;
-
-import de.uniba.dsg.serverless.model.PerformanceData;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.model.WritableEvent;
 import de.uniba.dsg.serverless.provider.LogHandler;
@@ -84,8 +80,10 @@ public interface GenericPerformanceDataFetcher {
 						// the platform id included. The idea is to get these matching due
 						// to the local start time and the relation to the start time of the
 						// cloud function.
-						providerEvent = this.findMatchingEvent(restEvent, performanceProviderMap);
-						writer.write(providerEvent.toCSVString());
+						Optional<WritableEvent> matchingEvent = this.findMatchingEvent(restEvent, performanceProviderMap);
+						if (matchingEvent.isPresent()) {
+							writer.write(matchingEvent.get().toCSVString());
+						}
 					}
 					writer.write(System.lineSeparator());
 				}
@@ -95,17 +93,15 @@ public interface GenericPerformanceDataFetcher {
 		}
 	}
 
-	default WritableEvent findMatchingEvent(WritableEvent localRestEvent, Map<String, WritableEvent> performanceProviderMap) {
-		PerformanceData data = new PerformanceData();
-		
+	default Optional<WritableEvent> findMatchingEvent(WritableEvent localRestEvent, Map<String, WritableEvent> performanceProviderMap) {
 		long localRestTime = localRestEvent.getStartTime().toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli();
 		for(String key : performanceProviderMap.keySet() ) {
 			// one second is big enough to get the right matching and small enough to avoid false matchings.
 			if ( Math.abs( localRestTime - performanceProviderMap.get(key).getStartTime().toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli() ) < NETWORK_AND_PLATFORM_DELAY){
-				return performanceProviderMap.get(key);
+				return Optional.of(performanceProviderMap.get(key));
 			}
 		}
 		
-		return data;
+		return Optional.empty();
 	}
 }
