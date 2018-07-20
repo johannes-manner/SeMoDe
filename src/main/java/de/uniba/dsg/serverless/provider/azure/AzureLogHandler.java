@@ -81,6 +81,9 @@ public class AzureLogHandler implements LogHandler{
 
 				LocalDateTime startTime = AzureLogAnalyzer.parseTime(start);
 				LocalDateTime endTime = AzureLogAnalyzer.parseTime(end);
+
+				startTime = startTime.plusHours(2);
+				endTime = endTime.plusHours(2);
 				
 				// Host startup data
 				String message = rowNode.get(columnsIndex.get("t_message")).asText();
