@@ -11,7 +11,7 @@ import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.provider.aws.AWSLogHandler;
 
-public final class AWSPerformanceDataUtility extends CustomUtility implements PerformanceData{
+public final class AWSPerformanceDataUtility extends CustomUtility implements GenericPerformanceDataFetcher{
 
 	private static final Logger logger = LogManager.getLogger(AWSPerformanceDataUtility.class.getName());
 

@@ -4,7 +4,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -81,6 +84,15 @@ public class AzureLogHandler implements LogHandler{
 
 				LocalDateTime startTime = AzureLogAnalyzer.parseTime(start);
 				LocalDateTime endTime = AzureLogAnalyzer.parseTime(end);
+				
+				// Azure SDK calls do not use the local time offset
+				// Therefore an adaption is necessary here, because the standard used by azure is UTC 0
+				Instant instant = Instant.now(); //can be LocalDateTime
+				ZoneId systemZone = ZoneId.systemDefault(); // my timezone
+				ZoneOffset currentOffsetForMyZone = systemZone.getRules().getOffset(instant);
+				int hours = currentOffsetForMyZone.getTotalSeconds() / 3600;
+				startTime = startTime.plusHours(hours);
+				endTime = endTime.plusHours(hours);
 				
 				// Host startup data
 				String message = rowNode.get(columnsIndex.get("t_message")).asText();
@@ -184,5 +196,4 @@ public class AzureLogHandler implements LogHandler{
 
 		return map;
 	}
-
 }

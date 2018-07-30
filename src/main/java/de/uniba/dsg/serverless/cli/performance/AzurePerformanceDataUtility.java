@@ -11,7 +11,7 @@ import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.provider.azure.AzureLogHandler;
 
-public final class AzurePerformanceDataUtility extends CustomUtility implements PerformanceData {
+public final class AzurePerformanceDataUtility extends CustomUtility implements GenericPerformanceDataFetcher {
 
 	private static final Logger logger = LogManager.getLogger(AzurePerformanceDataUtility.class.getName());
 

@@ -322,6 +322,9 @@ public final class AWSLogHandler implements LogHandler{
 		long endMillis = endTime.toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli();
 		
 		Predicate<LogStream> startEndFilter = (LogStream stream) -> {
+			if (stream.getLastIngestionTime() == null || stream.getFirstEventTimestamp() == null) {
+                return false;
+            }
 			return stream.getLastIngestionTime() - startMillis >= 0 && endMillis - stream.getFirstEventTimestamp() >= 0;
 		};
 		
