@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.pipeline.setup;
+package de.uniba.dsg.serverless.pipeline.model;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.pipeline.Provider;
 
 public class BenchmarkSetup {
 
@@ -42,7 +41,7 @@ public class BenchmarkSetup {
 
 	public static BenchmarkSetup load(String name) throws SeMoDeException {
 		Path path = Paths.get(SETUP_LOCATION, name);
-		if (Files.isDirectory(path)) {
+		if (!Files.isDirectory(path)) {
 			throw new SeMoDeException("Test setup does not exist.");
 		}
 		return new BenchmarkSetup();
