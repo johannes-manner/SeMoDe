@@ -14,11 +14,12 @@ public class UtilityFactory {
 	private static List<CustomUtility> utilityList = Arrays.asList(
 			new AWSPerformanceDataUtility("awsPerformanceData"),
 			new AzurePerformanceDataUtility("azurePerformanceData"),
-			new GooglePerformanceDataUtility("googlePerformanceData"),
-			new IBMOpenWhiskPerformanceDataUtility("openWhiskPerformanceData"),
-			new SeMoDeUtility("awsSeMoDe"),
 			new BenchmarkUtility("benchmark"),
-			new DeploymentSizeUtility("deploymentSize")
+			new DeploymentSizeUtility("deploymentSize"),
+			new IBMOpenWhiskPerformanceDataUtility("openWhiskPerformanceData"),
+			new GooglePerformanceDataUtility("googlePerformanceData"),
+			new SeMoDeUtility("awsSeMoDe"),
+			new PipelineSetupUtility("pipelineSetup")
 	);
 
 	public static Optional<CustomUtility> getUtilityClass(String name) {
