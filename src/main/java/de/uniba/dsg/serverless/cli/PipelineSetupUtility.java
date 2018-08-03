@@ -6,7 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.pipeline.Pipeline;
+import de.uniba.dsg.serverless.pipeline.setup.BenchmarkSetup;
 
 public class PipelineSetupUtility extends CustomUtility {
 
@@ -28,7 +28,13 @@ public class PipelineSetupUtility extends CustomUtility {
 					logger.fatal("Wrong parameter size: " + "\nUSAGE: init SETUP_NAME");
 					return;
 				}
-				new Pipeline(args.get(1));
+				BenchmarkSetup.initialize(args.get(1));
+				break;
+			case "load":
+				if (args.size() < 2) {
+					logger.fatal("Wrong parameter size: " + "\nUSAGE: init SETUP_NAME");
+				}
+				BenchmarkSetup.load(args.get(1));
 				break;
 			default:
 				throw new IllegalArgumentException("The command " + command
