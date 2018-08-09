@@ -13,6 +13,8 @@ public class PipelineSetupUtility extends CustomUtility {
 
 	private static final Logger logger = LogManager.getLogger(PipelineSetupUtility.class.getName());
 
+	private BenchmarkSetupController controller;
+
 	public PipelineSetupUtility(String name) {
 		super(name);
 	}
@@ -23,26 +25,26 @@ public class PipelineSetupUtility extends CustomUtility {
 			logger.fatal("Wrong parameter size: " + "\nUSAGE: COMMAND SETUP_NAME");
 			return;
 		}
-		BenchmarkSetup setup;
 		try {
-			setup = getBenchMarkSetup(args.get(0));
+			executeSetupCommand(args.get(0), args.get(1));
 		} catch (SeMoDeException e) {
 			logger.fatal(e);
 			return;
 		}
-		BenchmarkSetupController controller = new BenchmarkSetupController(setup);
-		controller.loadConfig();
-		// ask for changes / actions
 	}
 
-	private BenchmarkSetup getBenchMarkSetup(String command) throws SeMoDeException {
+	private void executeSetupCommand(String command, String name) throws SeMoDeException {
 		// TODO is there a nicer way of switching between commands? maybe similar to
 		// UtilityFactory
+		BenchmarkSetup setup = new BenchmarkSetup(name);
+		controller = new BenchmarkSetupController(setup);
 		switch (command) {
 		case "init":
-			return BenchmarkSetup.initialize(command);
+			controller.initBenchmark();
+			break;
 		case "load":
-			return BenchmarkSetup.load(command);
+			controller.loadBenchmark();
+			break;
 		default:
 			throw new SeMoDeException(
 					"The command " + command + " is not available. Check your spelling or open an Issue on github.");
