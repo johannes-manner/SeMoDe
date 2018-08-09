@@ -1,9 +1,14 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Properties;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.BenchmarkSetup;
@@ -11,6 +16,8 @@ import de.uniba.dsg.serverless.pipeline.model.BenchmarkSetup;
 public class BenchmarkSetupController {
 
 	private final BenchmarkSetup setup;
+	private final String CONFIG_COMMENT = "Configuration file of the benchmarking setups.\n"
+			+ "The Format defined in de.uniba.dsg.serverless.pipeline.controller.BenchmarkSetup";
 
 	public BenchmarkSetupController(BenchmarkSetup setup) {
 		this.setup = setup;
@@ -18,6 +25,12 @@ public class BenchmarkSetupController {
 	}
 
 	public void initBenchmark() throws SeMoDeException {
+		createBenchmarkFolder();
+		gitIgnoreAll();
+		initConfiguration();
+	}
+
+	private void createBenchmarkFolder() throws SeMoDeException {
 		if (Files.exists(setup.pathToSetup)) {
 			throw new SeMoDeException("Test setup already exists. Choose a different name.");
 		}
@@ -26,23 +39,6 @@ public class BenchmarkSetupController {
 		} catch (IOException e) {
 			throw new SeMoDeException(e);
 		}
-		gitIgnoreAll();
-		initConfiguration();
-	}
-
-	private void initConfiguration() {
-
-	}
-
-	public void loadBenchmark() throws SeMoDeException {
-		if (!Files.isDirectory(setup.pathToSetup)) {
-			throw new SeMoDeException("Test setup does not exist.");
-		}
-		loadConfiguration();
-	}
-
-	private void loadConfiguration() {
-		
 	}
 
 	private void gitIgnoreAll() throws SeMoDeException {
@@ -56,4 +52,36 @@ public class BenchmarkSetupController {
 		}
 	}
 
+	private void initConfiguration() throws SeMoDeException {
+		setup.properties = new Properties();
+		setup.properties.put("name", setup.name);
+		try (FileWriter writer = new FileWriter(setup.pathToConfig.toString())) {
+			setup.properties.store(writer, CONFIG_COMMENT);
+		} catch (IOException e) {
+			throw new SeMoDeException("Configuration could not be initialized.", e);
+		}
+	}
+
+	// --------
+
+	public void loadBenchmark() throws SeMoDeException {
+		if (!Files.isDirectory(setup.pathToSetup)) {
+			throw new SeMoDeException("Test setup does not exist.");
+		}
+		loadProperties();
+		updateFields();
+	}
+
+	private void loadProperties() throws SeMoDeException {
+		try (Reader reader = new FileReader(new File(""))) {
+			setup.properties = new Properties();
+			setup.properties.load(reader);
+		} catch (IOException e) {
+			throw new SeMoDeException("Configuration could not be loaded.", e);
+		}
+	}
+
+	private void updateFields() {
+		// TODO fill the fields in BenchmarkSetup
+	}
 }
