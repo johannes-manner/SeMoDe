@@ -13,11 +13,16 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.BenchmarkSetup;
 import de.uniba.dsg.serverless.pipeline.model.DeploymentProperty;
 
 public class BenchmarkSetupController {
+
+	private static final Logger logger = LogManager.getLogger(BenchmarkSetupController.class.getName());
 
 	private final BenchmarkSetup setup;
 	private final String CONFIG_COMMENT = "Configuration file of the benchmarking setups.\n"
@@ -91,14 +96,30 @@ public class BenchmarkSetupController {
 		// specifies the type of the information stored
 
 		for (DeploymentProperty property : setup.properties) {
-			String rawProperties = setup.rawProperties.getProperty(property.key);
-			List<String> propertiesString = Arrays.asList(rawProperties.split(BenchmarkSetup.SEPERATOR));
-			if (!propertiesString.isEmpty() && propertiesString.get(0).matches("[0-9]+")) {
-				List<Integer> listInt = propertiesString.stream().map(Integer::parseInt).collect(Collectors.toList());
-				property.setValues(listInt);
-			} else {
-				property.setValues(propertiesString);
+			String rawProperty = setup.rawProperties.getProperty(property.key);
+			if (rawProperty == null) {
+				continue;
 			}
+			List<String> propertyString = Arrays.asList(rawProperty.split(BenchmarkSetup.SEPERATOR));
+			if (!propertyString.isEmpty() && propertyString.get(0).matches("[0-9]+")) {
+				List<Integer> propertyInteger = propertyString.stream().map(Integer::parseInt)
+						.collect(Collectors.toList());
+				property.setValues(propertyInteger);
+			} else {
+				property.setValues(propertyString);
+			}
+		}
+	}
+
+	public void configureBenchmarkSetup() {
+		for (DeploymentProperty property : setup.properties) {
+			// TODO decide whether or not to use logger here
+			System.out.println("Configuring the property " + property.key);
+			String current = setup.rawProperties.getProperty(property.key);
+			current = (current != null) ? current : "<not assigned yet>";
+			System.out.println("Current assignment: " + current);
+			System.out.println("Please specify the property. (empty to skip)");
+			
 		}
 	}
 
