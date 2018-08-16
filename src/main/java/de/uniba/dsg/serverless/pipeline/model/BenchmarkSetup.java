@@ -3,6 +3,7 @@ package de.uniba.dsg.serverless.pipeline.model;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -21,30 +22,35 @@ import java.util.Properties;
 public class BenchmarkSetup {
 
 	public static final String SETUP_LOCATION = "setups";
+	public static final String SEPERATOR = ";";
 
-	// TODO implement this in a non redundnat way (maybe map)?
-	public static final String PROVIDER_KEY = "provider";
-	private List<Provider> providers = new ArrayList<>();
-
-	public static final String MEMORY_SETTING_KEY = "awsMemorySetting";
-	private List<Integer> awsMemorySettings = new ArrayList<>();
-
-	public static final String DEPLOYMENT_SIZE_KEY = "deploymentSize";
-	private List<Integer> deploymentSizes = new ArrayList<>();
-
-	public static final String LANGUAGE_KEY = "language";
-	private List<String> languages = new ArrayList<>();
+	public final List<DeploymentProperty<?>> properties;
+	public Properties rawProperties;
 
 	public final String name;
 	public final Path pathToSetup;
 	public final Path pathToConfig;
 
-	public Properties properties;
-
 	public BenchmarkSetup(String name) {
 		this.name = name;
 		this.pathToSetup = Paths.get(BenchmarkSetup.SETUP_LOCATION, this.name);
 		this.pathToConfig = pathToSetup.resolve("settings.config");
+		properties = new ArrayList<>();
+		initializeProperties();
+	}
+
+	/**
+	 * Note that these properties might change and must be extended in the future.
+	 */
+	private void initializeProperties() {
+		properties.add(new DeploymentProperty<String>("language", Arrays.asList("java", "js")));
+		properties.add(new DeploymentProperty<Integer>("deploymentSize"));
+		// Limits: https://docs.aws.amazon.com/de_de/lambda/latest/dg/limits.html
+		List<Integer> memorySettings = new ArrayList<>();
+		for (int setting = 128; setting <= 3008; setting += 64) {
+			memorySettings.add(setting);
+		}
+		properties.add(new DeploymentProperty<Integer>("memorySetting", memorySettings));
 	}
 
 }

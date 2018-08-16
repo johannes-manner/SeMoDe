@@ -8,10 +8,14 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.BenchmarkSetup;
+import de.uniba.dsg.serverless.pipeline.model.DeploymentProperty;
 
 public class BenchmarkSetupController {
 
@@ -53,10 +57,10 @@ public class BenchmarkSetupController {
 	}
 
 	private void initConfiguration() throws SeMoDeException {
-		setup.properties = new Properties();
-		setup.properties.put("name", setup.name);
+		setup.rawProperties = new Properties();
+		setup.rawProperties.put("name", setup.name);
 		try (FileWriter writer = new FileWriter(setup.pathToConfig.toString())) {
-			setup.properties.store(writer, CONFIG_COMMENT);
+			setup.rawProperties.store(writer, CONFIG_COMMENT);
 		} catch (IOException e) {
 			throw new SeMoDeException("Configuration could not be initialized.", e);
 		}
@@ -74,14 +78,28 @@ public class BenchmarkSetupController {
 
 	private void loadProperties() throws SeMoDeException {
 		try (Reader reader = new FileReader(new File(""))) {
-			setup.properties = new Properties();
-			setup.properties.load(reader);
+			setup.rawProperties = new Properties();
+			setup.rawProperties.load(reader);
 		} catch (IOException e) {
 			throw new SeMoDeException("Configuration could not be loaded.", e);
 		}
 	}
 
-	private void updateFields() {
-		// TODO fill the fields in BenchmarkSetup
+	private void updateFields() throws SeMoDeException {
+		// TODO improve this solution to work more generically
+		// possible solution: add additional parameter to deployment Property which
+		// specifies the type of the information stored
+
+		for (DeploymentProperty property : setup.properties) {
+			String rawProperties = setup.rawProperties.getProperty(property.key);
+			List<String> propertiesString = Arrays.asList(rawProperties.split(BenchmarkSetup.SEPERATOR));
+			if (!propertiesString.isEmpty() && propertiesString.get(0).matches("[0-9]+")) {
+				List<Integer> listInt = propertiesString.stream().map(Integer::parseInt).collect(Collectors.toList());
+				property.setValues(listInt);
+			} else {
+				property.setValues(propertiesString);
+			}
+		}
 	}
+
 }
