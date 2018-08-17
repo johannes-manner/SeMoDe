@@ -90,7 +90,7 @@ public class BenchmarkSetupController {
 		for (DeploymentProperty property : setup.properties) {
 			String rawProperty = setup.rawProperties.getProperty(property.key);
 			if (rawProperty == null) {
-				logger.warn("property not set");
+				logger.warn("Property " + property.key + " is not yet assigned.");
 				continue;
 			}
 			property.setRawValues(rawProperty);
@@ -98,18 +98,18 @@ public class BenchmarkSetupController {
 	}
 
 	public void configureBenchmarkSetup() {
-		String line;
 		for (DeploymentProperty property : setup.properties) {
 			printPropertyPrompt(property);
-			line = PipelineSetupUtility.scanner.nextLine();
+			String line = PipelineSetupUtility.scanner.nextLine();
 			while (!"".equals(line)) {
 				try {
 					property.setRawValues(line);
 					setup.rawProperties.put(property.key, line);
+					logger.info("Successfully stored property " + property.key);
 					break;
 				} catch (SeMoDeException e) {
-					logger.warn("Format was not correct. (empty to skip property)");
-					logger.warn(e.getMessage());
+					System.out.println("Format was not correct. (empty to skip property)");
+					System.out.println("\t" + e.getMessage());
 				}
 				line = PipelineSetupUtility.scanner.nextLine();
 			}
@@ -117,10 +117,19 @@ public class BenchmarkSetupController {
 	}
 
 	private void printPropertyPrompt(DeploymentProperty property) {
-		logger.info("Configuring property: \"" + property.key + "\"");
+		System.out.println("Configure property \"" + property.key + "\"");
 		String current = setup.rawProperties.getProperty(property.key);
-		logger.info("Current assignment: " + ((current != null) ? current : "<not assigned yet>"));
-		logger.info("Please specify the property. (empty to skip property)");
+		System.out.println("Current assignment: " + ((current != null) ? current : "<not assigned yet>"));
+		System.out.println("Please specify the property. (empty to skip property)");
+	}
+
+	public void saveBenchmarkSetup() throws SeMoDeException {
+		try (FileWriter writer = new FileWriter(setup.pathToConfig.toString())) {
+			setup.rawProperties.store(writer, CONFIG_COMMENT);
+			logger.info("Successfully saved configuration to file " + setup.pathToConfig.toString());
+		} catch (IOException e) {
+			throw new SeMoDeException("Configuration could not be saved.", e);
+		}
 	}
 
 }

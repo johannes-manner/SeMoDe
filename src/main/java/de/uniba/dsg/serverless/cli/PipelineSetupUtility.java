@@ -41,8 +41,8 @@ public class PipelineSetupUtility extends CustomUtility {
 				executeRunCommand(command);
 			} catch (SeMoDeException e) {
 				logger.fatal(e);
-				printRunCommandUsage();
 			}
+			printRunCommandUsage();
 			command = scanner.nextLine();
 		}
 	}
@@ -52,8 +52,7 @@ public class PipelineSetupUtility extends CustomUtility {
 	}
 
 	private void executeSetupCommand(String command, String name) throws SeMoDeException {
-		// TODO is there a nicer way of switching between commands? maybe similar to
-		// UtilityFactory
+		// TODO restructure to the factory pattern
 		BenchmarkSetup setup = new BenchmarkSetup(name);
 		controller = new BenchmarkSetupController(setup);
 		switch (command) {
@@ -74,6 +73,9 @@ public class PipelineSetupUtility extends CustomUtility {
 		switch (command) {
 		case "config":
 			controller.configureBenchmarkSetup();
+			break;
+		case "save":
+			controller.saveBenchmarkSetup();
 			break;
 		default:
 			throw new SeMoDeException(
