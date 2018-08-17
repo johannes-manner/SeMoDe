@@ -13,6 +13,7 @@ import de.uniba.dsg.serverless.pipeline.model.BenchmarkSetup;
 
 public class PipelineSetupUtility extends CustomUtility {
 
+	public static final Scanner scanner = new Scanner(System.in);
 	private static final Logger logger = LogManager.getLogger(PipelineSetupUtility.class.getName());
 
 	private BenchmarkSetupController controller;
@@ -33,23 +34,21 @@ public class PipelineSetupUtility extends CustomUtility {
 			logger.fatal(e);
 			return;
 		}
-		try (Scanner sc = new Scanner(System.in)) {
-			printRunCommandUsage();
-			String command = sc.nextLine();
-			while (!command.equals("exit")) {
-				try {
-					executeRunCommand(command);
-				} catch (SeMoDeException e) {
-					logger.fatal(e);
-					printRunCommandUsage();
-				}
-				command = sc.nextLine();
+		printRunCommandUsage();
+		String command = scanner.nextLine();
+		while (!"exit".equals(command)) {
+			try {
+				executeRunCommand(command);
+			} catch (SeMoDeException e) {
+				logger.fatal(e);
+				printRunCommandUsage();
 			}
+			command = scanner.nextLine();
 		}
 	}
 
 	private void printRunCommandUsage() {
-		// TODO Auto-generated method stub
+		System.out.println("Please type in a command or \"exit\".");
 	}
 
 	private void executeSetupCommand(String command, String name) throws SeMoDeException {

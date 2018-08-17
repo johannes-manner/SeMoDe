@@ -1,18 +1,20 @@
 package de.uniba.dsg.serverless.pipeline.model;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;
 
-public class DeploymentProperty<T> {
+public class DeploymentProperty {
 
 	public final String key;
-	public final List<T> possibleValues;
+	public List<?> possibleValues;
 
-	private List<T> values;
+	private List<?> values;
 
-	public final boolean valuesRestricted;
+	public final Class<?> propertyClass;
 
 	/**
 	 * Creates a new Deployment Property which specifies one dimension of the
@@ -25,12 +27,12 @@ public class DeploymentProperty<T> {
 	 *            assignments.<br>
 	 *            Use the constructor DeploymentProperty(key) if this is not needed.
 	 */
-	public DeploymentProperty(String key, List<T> possibleValues) {
-		Objects.requireNonNull(key);
-		Objects.requireNonNull(possibleValues);
-		this.key = key;
+	public DeploymentProperty(String key, Class<?> propertyClass, List<?> possibleValues) throws SeMoDeException {
+		this(key, propertyClass);
+		if (possibleValues == null) {
+			throw new SeMoDeException("Possible values must not be null.");
+		}
 		this.possibleValues = possibleValues;
-		valuesRestricted = true;
 	}
 
 	/**
@@ -40,26 +42,49 @@ public class DeploymentProperty<T> {
 	 * @param key
 	 *            name in the properties file
 	 */
-	public DeploymentProperty(String key) {
-		Objects.requireNonNull(key);
+	public DeploymentProperty(String key, Class<?> propertyClass) throws SeMoDeException {
+		if (key == null) {
+			throw new SeMoDeException("Key must not be null.");
+		}
 		this.key = key;
-		this.possibleValues = null;
-		valuesRestricted = false;
+		if (!propertyClass.equals(Integer.class) && !propertyClass.equals(String.class)) {
+			throw new SeMoDeException("propertyClass does not match one of the defined Classes.");
+		}
+		this.propertyClass = propertyClass;
+		possibleValues = new ArrayList<>();
 	}
 
-	public List<T> getValues() {
+	public List<?> getValues() {
 		return values;
 	}
 
-	public void setValues(List<T> values) throws SeMoDeException {
-		if (valuesRestricted) {
-			for (T v : values) {
-				if (!possibleValues.contains(v)) {
-					throw new SeMoDeException("Value " + v + "is not permitted / implemented.");
-				}
+	public void setValues(List<?> values) throws SeMoDeException {
+		for (Object v : values) {
+			if (!v.getClass().equals(propertyClass)) {
+				throw new SeMoDeException("Value " + v + " is not of defined type " + propertyClass.getName());
+			}
+			if (valuesRestricted() && !possibleValues.contains(v)) {
+				throw new SeMoDeException("Value " + v + " is not permitted / implemented.");
 			}
 		}
 		this.values = values;
+	}
+
+	public void setRawValues(String rawProperty) throws SeMoDeException {
+		List<String> propertyString = Arrays.asList(rawProperty.split(BenchmarkSetup.SEPERATOR));
+		if (propertyClass.equals(String.class)) {
+			setValues(propertyString);
+		} else if (propertyClass.equals(Integer.class)) {
+			try {
+				setValues(propertyString.stream().map(Integer::parseInt).collect(Collectors.toList()));
+			} catch (NumberFormatException e) {
+				throw new SeMoDeException(e);
+			}
+		}
+	}
+
+	private boolean valuesRestricted() {
+		return !possibleValues.isEmpty();
 	}
 
 }

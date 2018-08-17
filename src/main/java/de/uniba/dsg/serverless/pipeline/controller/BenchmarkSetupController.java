@@ -8,14 +8,12 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import de.uniba.dsg.serverless.cli.PipelineSetupUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.BenchmarkSetup;
 import de.uniba.dsg.serverless.pipeline.model.DeploymentProperty;
@@ -71,8 +69,6 @@ public class BenchmarkSetupController {
 		}
 	}
 
-	// --------
-
 	public void loadBenchmark() throws SeMoDeException {
 		if (!Files.isDirectory(setup.pathToSetup)) {
 			throw new SeMoDeException("Test setup does not exist.");
@@ -82,7 +78,7 @@ public class BenchmarkSetupController {
 	}
 
 	private void loadProperties() throws SeMoDeException {
-		try (Reader reader = new FileReader(new File(""))) {
+		try (Reader reader = new FileReader(new File(setup.pathToConfig.toString()))) {
 			setup.rawProperties = new Properties();
 			setup.rawProperties.load(reader);
 		} catch (IOException e) {
@@ -91,36 +87,40 @@ public class BenchmarkSetupController {
 	}
 
 	private void updateFields() throws SeMoDeException {
-		// TODO improve this solution to work more generically
-		// possible solution: add additional parameter to deployment Property which
-		// specifies the type of the information stored
-
 		for (DeploymentProperty property : setup.properties) {
 			String rawProperty = setup.rawProperties.getProperty(property.key);
 			if (rawProperty == null) {
+				logger.warn("property not set");
 				continue;
 			}
-			List<String> propertyString = Arrays.asList(rawProperty.split(BenchmarkSetup.SEPERATOR));
-			if (!propertyString.isEmpty() && propertyString.get(0).matches("[0-9]+")) {
-				List<Integer> propertyInteger = propertyString.stream().map(Integer::parseInt)
-						.collect(Collectors.toList());
-				property.setValues(propertyInteger);
-			} else {
-				property.setValues(propertyString);
-			}
+			property.setRawValues(rawProperty);
 		}
 	}
 
 	public void configureBenchmarkSetup() {
+		String line;
 		for (DeploymentProperty property : setup.properties) {
-			// TODO decide whether or not to use logger here
-			System.out.println("Configuring the property " + property.key);
-			String current = setup.rawProperties.getProperty(property.key);
-			current = (current != null) ? current : "<not assigned yet>";
-			System.out.println("Current assignment: " + current);
-			System.out.println("Please specify the property. (empty to skip)");
-			
+			printPropertyPrompt(property);
+			line = PipelineSetupUtility.scanner.nextLine();
+			while (!"".equals(line)) {
+				try {
+					property.setRawValues(line);
+					setup.rawProperties.put(property.key, line);
+					break;
+				} catch (SeMoDeException e) {
+					logger.warn("Format was not correct. (empty to skip property)");
+					logger.warn(e.getMessage());
+				}
+				line = PipelineSetupUtility.scanner.nextLine();
+			}
 		}
+	}
+
+	private void printPropertyPrompt(DeploymentProperty property) {
+		logger.info("Configuring property: \"" + property.key + "\"");
+		String current = setup.rawProperties.getProperty(property.key);
+		logger.info("Current assignment: " + ((current != null) ? current : "<not assigned yet>"));
+		logger.info("Please specify the property. (empty to skip property)");
 	}
 
 }
