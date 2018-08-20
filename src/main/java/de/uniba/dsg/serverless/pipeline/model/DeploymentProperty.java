@@ -10,9 +10,9 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
 public class DeploymentProperty {
 
 	public final String key;
-	public List<?> possibleValues;
+	public List<String> possibleValues;
 
-	private List<?> values;
+	private List<String> values;
 
 	public final Class<?> propertyClass;
 
@@ -27,7 +27,7 @@ public class DeploymentProperty {
 	 *            assignments.<br>
 	 *            Use the constructor DeploymentProperty(key) if this is not needed.
 	 */
-	public DeploymentProperty(String key, Class<?> propertyClass, List<?> possibleValues) throws SeMoDeException {
+	public DeploymentProperty(String key, Class<?> propertyClass, List<String> possibleValues) throws SeMoDeException {
 		this(key, propertyClass);
 		if (possibleValues == null) {
 			throw new SeMoDeException("Possible values must not be null.");
@@ -54,14 +54,14 @@ public class DeploymentProperty {
 		possibleValues = new ArrayList<>();
 	}
 
-	public List<?> getValues() {
+	public List<String> getValues() {
 		return values;
 	}
 
-	public void setValues(List<?> values) throws SeMoDeException {
-		for (Object v : values) {
-			if (!v.getClass().equals(propertyClass)) {
-				throw new SeMoDeException("Value " + v + " is not of defined type " + propertyClass.getName());
+	public void setValues(List<String> values) throws SeMoDeException {
+		for (String v : values) {
+			if (propertyClass.equals(Integer.class) && !v.matches("\\d+")) {
+				throw new SeMoDeException("Value must be a number.");
 			}
 			if (valuesRestricted() && !possibleValues.contains(v)) {
 				throw new SeMoDeException("Value " + v + " is not permitted / implemented.");
@@ -72,33 +72,18 @@ public class DeploymentProperty {
 
 	public void setRawValues(String rawProperty) throws SeMoDeException {
 		List<String> propertyString = Arrays.asList(rawProperty.split(BenchmarkSetup.SEPERATOR));
-		if (propertyClass.equals(String.class)) {
-			setValues(propertyString);
-		} else if (propertyClass.equals(Integer.class)) {
-			try {
-				setValues(propertyString.stream().map(Integer::parseInt).collect(Collectors.toList()));
-			} catch (NumberFormatException e) {
-				throw new SeMoDeException(e);
-			}
-		}
+		setValues(propertyString);
 	}
 
 	private boolean valuesRestricted() {
 		return !possibleValues.isEmpty();
 	}
 
-	public List<String> getStringValues() throws SeMoDeException {
-		if (!propertyClass.equals(String.class)) {
-			throw new SeMoDeException("not available");
-		}
-		return values.stream().map(e -> (String) e).collect(Collectors.toList());
-	}
-	
 	public List<Integer> getIntValues() throws SeMoDeException {
 		if (!propertyClass.equals(Integer.class)) {
 			throw new SeMoDeException("not available");
 		}
-		return values.stream().map(e -> (Integer) e).collect(Collectors.toList());
+		return values.stream().map(Integer::parseInt).collect(Collectors.toList());
 	}
 
 }

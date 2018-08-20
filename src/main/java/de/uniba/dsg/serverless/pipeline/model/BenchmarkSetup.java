@@ -53,11 +53,11 @@ public class BenchmarkSetup {
 		properties.add(new DeploymentProperty("provider", String.class, Arrays.asList("aws", "azure")));
 		properties.add(new DeploymentProperty("deploymentSize", Integer.class));
 		// Limits: https://docs.aws.amazon.com/de_de/lambda/latest/dg/limits.html
-		List<Integer> memorySettings = new ArrayList<>();
+		List<String> possibleMemorySettings = new ArrayList<>();
 		for (int setting = 128; setting <= 3008; setting += 64) {
-			memorySettings.add(setting);
+			possibleMemorySettings.add(String.valueOf(setting));
 		}
-		properties.add(new DeploymentProperty("memorySetting", Integer.class, memorySettings));
+		properties.add(new DeploymentProperty("memorySetting", Integer.class, possibleMemorySettings));
 	}
 
 	public DeploymentProperty getProperty(String key) throws SeMoDeException {

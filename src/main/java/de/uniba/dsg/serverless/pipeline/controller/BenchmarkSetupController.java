@@ -111,7 +111,9 @@ public class BenchmarkSetupController {
 				} catch (SeMoDeException e) {
 					System.out.println("Format was not correct. (empty to skip property)");
 					System.out.println("\t" + e.getMessage());
+					System.out.println("\t" + "Please try again.");
 				}
+				printPropertyPrompt(property);
 				line = PipelineSetupUtility.scanner.nextLine();
 			}
 		}
@@ -139,8 +141,7 @@ public class BenchmarkSetupController {
 		for (DeploymentProperty property : setup.properties) {
 			String propertyInfo = "<not yet assigned>";
 			if (property.getValues() != null) {
-				propertyInfo = property.getValues().stream().map(a -> a.toString()).reduce((a, b) -> a + ", " + b)
-						.get();
+				propertyInfo = property.getValues().stream().reduce((a, b) -> a + ", " + b).get();
 			}
 			System.out.println("Property " + property.key + ": " + propertyInfo);
 		}
@@ -152,8 +153,8 @@ public class BenchmarkSetupController {
 		if (providerProperty.getValues() == null || languageProperty.getValues() == null) {
 			throw new SeMoDeException("Values for language and provider must be assigned first. Type \"status\".");
 		}
-		for (String provider : providerProperty.getStringValues()) {
-			for (String language : languageProperty.getStringValues()) {
+		for (String provider : providerProperty.getValues()) {
+			for (String language : languageProperty.getValues()) {
 				System.out.println("Copying sources for " + provider + "-" + language);
 				copySource(provider, language);
 			}
