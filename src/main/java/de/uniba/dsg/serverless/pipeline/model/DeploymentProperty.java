@@ -87,4 +87,18 @@ public class DeploymentProperty {
 		return !possibleValues.isEmpty();
 	}
 
+	public List<String> getStringValues() throws SeMoDeException {
+		if (!propertyClass.equals(String.class)) {
+			throw new SeMoDeException("not available");
+		}
+		return values.stream().map(e -> (String) e).collect(Collectors.toList());
+	}
+	
+	public List<Integer> getIntValues() throws SeMoDeException {
+		if (!propertyClass.equals(Integer.class)) {
+			throw new SeMoDeException("not available");
+		}
+		return values.stream().map(e -> (Integer) e).collect(Collectors.toList());
+	}
+
 }

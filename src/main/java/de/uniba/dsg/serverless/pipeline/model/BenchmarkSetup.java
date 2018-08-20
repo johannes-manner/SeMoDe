@@ -32,11 +32,13 @@ public class BenchmarkSetup {
 	public final String name;
 	public final Path pathToSetup;
 	public final Path pathToConfig;
+	public final Path pathToFibonacciSources;
 
 	public BenchmarkSetup(String name) throws SeMoDeException {
 		this.name = name;
-		this.pathToSetup = Paths.get(BenchmarkSetup.SETUP_LOCATION, this.name);
+		this.pathToSetup = Paths.get(BenchmarkSetup.SETUP_LOCATION, name);
 		this.pathToConfig = pathToSetup.resolve("settings.config");
+		this.pathToFibonacciSources = pathToSetup.resolve("sources");
 		properties = new ArrayList<>();
 		initializeProperties();
 	}
@@ -48,6 +50,7 @@ public class BenchmarkSetup {
 	 */
 	private void initializeProperties() throws SeMoDeException {
 		properties.add(new DeploymentProperty("language", String.class, Arrays.asList("java", "js")));
+		properties.add(new DeploymentProperty("provider", String.class, Arrays.asList("aws", "azure")));
 		properties.add(new DeploymentProperty("deploymentSize", Integer.class));
 		// Limits: https://docs.aws.amazon.com/de_de/lambda/latest/dg/limits.html
 		List<Integer> memorySettings = new ArrayList<>();
@@ -55,6 +58,16 @@ public class BenchmarkSetup {
 			memorySettings.add(setting);
 		}
 		properties.add(new DeploymentProperty("memorySetting", Integer.class, memorySettings));
+	}
+
+	public DeploymentProperty getProperty(String key) throws SeMoDeException {
+		// TODO remove this and make it a real map
+		for (DeploymentProperty property : properties) {
+			if (property.key.equals(key)) {
+				return property;
+			}
+		}
+		throw new SeMoDeException("not found / not null");
 	}
 
 }

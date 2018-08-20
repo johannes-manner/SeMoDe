@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -129,6 +130,44 @@ public class BenchmarkSetupController {
 			logger.info("Successfully saved configuration to file " + setup.pathToConfig.toString());
 		} catch (IOException e) {
 			throw new SeMoDeException("Configuration could not be saved.", e);
+		}
+	}
+
+	public void printBenchmarkSetupStatus() {
+		System.out.println("Printing status of benchmark setup \"" + setup.name + "\"");
+		System.out.println("Printing Properties:");
+		for (DeploymentProperty property : setup.properties) {
+			String propertyInfo = "<not yet assigned>";
+			if (property.getValues() != null) {
+				propertyInfo = property.getValues().stream().map(a -> a.toString()).reduce((a, b) -> a + ", " + b)
+						.get();
+			}
+			System.out.println("Property " + property.key + ": " + propertyInfo);
+		}
+	}
+
+	public void copySourceFiles() throws SeMoDeException {
+		DeploymentProperty providerProperty = setup.getProperty("provider");
+		DeploymentProperty languageProperty = setup.getProperty("language");
+		if (providerProperty.getValues() == null || languageProperty.getValues() == null) {
+			throw new SeMoDeException("Values for language and provider must be assigned first. Type \"status\".");
+		}
+		for (String provider : providerProperty.getStringValues()) {
+			for (String language : languageProperty.getStringValues()) {
+				System.out.println("Copying sources for " + provider + "-" + language);
+				copySource(provider, language);
+			}
+		}
+	}
+
+	private void copySource(String provider, String language) throws SeMoDeException {
+		String sourceFolderName = provider + "-" + language;
+		File source = new File(Paths.get("fibonacci", sourceFolderName).toString());
+		File target = new File(setup.pathToFibonacciSources.resolve(sourceFolderName).toString());
+		try {
+			FileUtils.copyDirectory(source, target);
+		} catch (IOException e) {
+			throw new SeMoDeException("Copying the source of " + sourceFolderName + "failed.", e);
 		}
 	}
 

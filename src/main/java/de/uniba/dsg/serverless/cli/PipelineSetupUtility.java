@@ -48,6 +48,7 @@ public class PipelineSetupUtility extends CustomUtility {
 	}
 
 	private void printRunCommandUsage() {
+		System.out.println();
 		System.out.println("Please type in a command or \"exit\".");
 	}
 
@@ -71,11 +72,17 @@ public class PipelineSetupUtility extends CustomUtility {
 
 	private void executeRunCommand(String command) throws SeMoDeException {
 		switch (command) {
+		case "status":
+			controller.printBenchmarkSetupStatus();
+			break;
 		case "config":
 			controller.configureBenchmarkSetup();
 			break;
 		case "save":
 			controller.saveBenchmarkSetup();
+			break;
+		case "copySources":
+			controller.copySourceFiles();
 			break;
 		default:
 			throw new SeMoDeException(
