@@ -88,40 +88,40 @@ public class BenchmarkSetupController {
 	}
 
 	private void updateFields() throws SeMoDeException {
-		for (DeploymentProperty property : setup.properties) {
-			String rawProperty = setup.rawProperties.getProperty(property.key);
+		for (String key : setup.properties.keySet()) {
+			String rawProperty = setup.rawProperties.getProperty(key);
 			if (rawProperty == null) {
-				logger.warn("Property " + property.key + " is not yet assigned.");
+				logger.warn("Property " + key + " is not yet assigned.");
 				continue;
 			}
-			property.setRawValues(rawProperty);
+			setup.getProperty(key).setRawValues(rawProperty);
 		}
 	}
 
 	public void configureBenchmarkSetup() {
-		for (DeploymentProperty property : setup.properties) {
-			printPropertyPrompt(property);
+		for (String key : setup.properties.keySet()) {
+			printPropertyPrompt(key);
 			String line = PipelineSetupUtility.scanner.nextLine();
 			while (!"".equals(line)) {
 				try {
-					property.setRawValues(line);
-					setup.rawProperties.put(property.key, line);
-					logger.info("Successfully stored property " + property.key);
+					setup.getProperty(key).setRawValues(line);
+					setup.rawProperties.put(key, line);
+					logger.info("Successfully stored property " + key);
 					break;
 				} catch (SeMoDeException e) {
 					System.out.println("Format was not correct. (empty to skip property)");
 					System.out.println("\t" + e.getMessage());
 					System.out.println("\t" + "Please try again.");
 				}
-				printPropertyPrompt(property);
+				printPropertyPrompt(key);
 				line = PipelineSetupUtility.scanner.nextLine();
 			}
 		}
 	}
 
-	private void printPropertyPrompt(DeploymentProperty property) {
-		System.out.println("Configure property \"" + property.key + "\"");
-		String current = setup.rawProperties.getProperty(property.key);
+	private void printPropertyPrompt(String key) {
+		System.out.println("Configure property \"" + key + "\"");
+		String current = setup.rawProperties.getProperty(key);
 		System.out.println("Current assignment: " + ((current != null) ? current : "<not assigned yet>"));
 		System.out.println("Please specify the property. (empty to skip property)");
 	}
@@ -135,15 +135,16 @@ public class BenchmarkSetupController {
 		}
 	}
 
-	public void printBenchmarkSetupStatus() {
+	public void printBenchmarkSetupStatus() throws SeMoDeException {
 		System.out.println("Printing status of benchmark setup \"" + setup.name + "\"");
 		System.out.println("Printing Properties:");
-		for (DeploymentProperty property : setup.properties) {
+		for (String key : setup.properties.keySet()) {
+			DeploymentProperty property = setup.getProperty(key);
 			String propertyInfo = "<not yet assigned>";
 			if (property.getValues() != null) {
 				propertyInfo = property.getValues().stream().reduce((a, b) -> a + ", " + b).get();
 			}
-			System.out.println("Property " + property.key + ": " + propertyInfo);
+			System.out.println("Property " + key + ": " + propertyInfo);
 		}
 	}
 
