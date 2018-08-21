@@ -27,15 +27,26 @@ public class BenchmarkSetupController {
 	private final String CONFIG_COMMENT = "Configuration file of the benchmarking setups.\n"
 			+ "The Format defined in de.uniba.dsg.serverless.pipeline.controller.BenchmarkSetup";
 
-	public BenchmarkSetupController(BenchmarkSetup setup) {
+	private BenchmarkSetupController(BenchmarkSetup setup) {
 		this.setup = setup;
-
 	}
 
-	public void initBenchmark() throws SeMoDeException {
-		createBenchmarkFolder();
-		gitIgnoreAll();
-		initConfiguration();
+	public static BenchmarkSetupController init(BenchmarkSetup setup) throws SeMoDeException {
+		BenchmarkSetupController controller = new BenchmarkSetupController(setup);
+		controller.createBenchmarkFolder();
+		controller.gitIgnoreAll();
+		controller.initConfiguration();
+		return controller;
+	}
+
+	public static BenchmarkSetupController load(BenchmarkSetup setup) throws SeMoDeException {
+		BenchmarkSetupController controller = new BenchmarkSetupController(setup);
+		if (!Files.isDirectory(setup.pathToSetup)) {
+			throw new SeMoDeException("Test setup does not exist.");
+		}
+		controller.loadProperties();
+		controller.updateFields();
+		return controller;
 	}
 
 	private void createBenchmarkFolder() throws SeMoDeException {
@@ -68,14 +79,6 @@ public class BenchmarkSetupController {
 		} catch (IOException e) {
 			throw new SeMoDeException("Configuration could not be initialized.", e);
 		}
-	}
-
-	public void loadBenchmark() throws SeMoDeException {
-		if (!Files.isDirectory(setup.pathToSetup)) {
-			throw new SeMoDeException("Test setup does not exist.");
-		}
-		loadProperties();
-		updateFields();
 	}
 
 	private void loadProperties() throws SeMoDeException {

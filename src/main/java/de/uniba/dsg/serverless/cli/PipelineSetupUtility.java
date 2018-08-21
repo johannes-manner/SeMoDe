@@ -53,19 +53,17 @@ public class PipelineSetupUtility extends CustomUtility {
 	}
 
 	private void executeSetupCommand(String command, String name) throws SeMoDeException {
-		// TODO restructure to the factory pattern
 		BenchmarkSetup setup = new BenchmarkSetup(name);
-		controller = new BenchmarkSetupController(setup);
 		switch (command) {
 		case "init":
-			controller.initBenchmark();
+			controller = BenchmarkSetupController.init(setup);
 			break;
 		case "load":
-			controller.loadBenchmark();
+			controller = BenchmarkSetupController.load(setup);
 			break;
 		default:
-			throw new SeMoDeException(
-					"The command " + command + " is not available. Check your spelling or open an Issue on github.");
+			throw new SeMoDeException("The command " + command + " is not available. "
+					+ "Check your spelling or open an Issue on github.");
 		}
 		logger.info("Successfully loaded benchmark setup \"" + setup.name + "\"");
 	}
