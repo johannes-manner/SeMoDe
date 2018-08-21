@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import de.uniba.dsg.serverless.benchmark.pipeline.BenchmarkingPipelineHandler;
 import de.uniba.dsg.serverless.cli.performance.AWSPerformanceDataUtility;
 import de.uniba.dsg.serverless.cli.performance.AzurePerformanceDataUtility;
 import de.uniba.dsg.serverless.cli.performance.GooglePerformanceDataUtility;
@@ -18,7 +19,8 @@ public class UtilityFactory {
 			new IBMOpenWhiskPerformanceDataUtility("openWhiskPerformanceData"),
 			new SeMoDeUtility("awsSeMoDe"),
 			new BenchmarkUtility("benchmark"),
-			new DeploymentSizeUtility("deploymentSize")
+			new DeploymentSizeUtility("deploymentSize"),
+			new BenchmarkingPipelineHandler("benchmarkingPipeline")
 	);
 
 	public static Optional<CustomUtility> getUtilityClass(String name) {
