@@ -77,4 +77,10 @@ public class DeploymentProperty {
 		return values.stream().map(Integer::parseInt).collect(Collectors.toList());
 	}
 
+	public void requireValuesNonNull() throws SeMoDeException {
+		if (values == null) {
+			throw new SeMoDeException("Values are not present. Type \"status\"");
+		}
+	}
+
 }

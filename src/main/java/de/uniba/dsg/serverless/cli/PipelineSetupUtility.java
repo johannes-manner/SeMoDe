@@ -79,8 +79,8 @@ public class PipelineSetupUtility extends CustomUtility {
 		case "save":
 			controller.saveBenchmarkSetup();
 			break;
-		case "copySources":
-			controller.copySourceFiles();
+		case "1":
+			controller.prepareDeployment();
 			break;
 		default:
 			throw new SeMoDeException(

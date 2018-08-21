@@ -1,9 +1,12 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -151,18 +154,42 @@ public class BenchmarkSetupController {
 		}
 	}
 
-	public void copySourceFiles() throws SeMoDeException {
+	public void prepareDeployment() throws SeMoDeException {
 		DeploymentProperty providerProperty = setup.getProperty("provider");
 		DeploymentProperty languageProperty = setup.getProperty("language");
-		if (providerProperty.getValues() == null || languageProperty.getValues() == null) {
-			throw new SeMoDeException("Values for language and provider must be assigned first. Type \"status\".");
-		}
+		providerProperty.requireValuesNonNull();
+		languageProperty.requireValuesNonNull();
+		System.out.println("copying sources...");
 		for (String provider : providerProperty.getValues()) {
 			for (String language : languageProperty.getValues()) {
-				System.out.println("Copying sources for " + provider + "-" + language);
-				copySource(provider, language);
+				// copySource(provider, language);
 			}
 		}
+		logger.info("Successfully copied sources of selected languages / providers.");
+		System.out.println("creating deployment sizes");
+		// TODO run bash scripts
+		ProcessBuilder processBuilder = new ProcessBuilder("CMD", "/C", "echo", "RUN BASH SCRIPTS HERE");
+		processBuilder.directory(new File(setup.pathToSetup.toString())); // select correct path here
+		try {
+			Process process = processBuilder.start();
+			int errCode = process.waitFor();
+			System.out.println("Executed without errors? " + (errCode == 0 ? "Yes" : "No (code=" + errCode + ")"));
+			System.out.println("Output:\n" + output(process.getInputStream()));
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private String output(InputStream inputStream) throws IOException {
+		StringBuilder sb = new StringBuilder();
+		try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));) {
+			String line = bufferedReader.readLine();
+			while (line != null) {
+				sb.append(line + System.getProperty("line.separator"));
+				line = bufferedReader.readLine();
+			}
+		}
+		return sb.toString();
 	}
 
 	private void copySource(String provider, String language) throws SeMoDeException {
