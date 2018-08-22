@@ -109,5 +109,6 @@ template/
 performanceData/
 logs/
 setups/
+benchmarkSetting/
 
 # End of https://www.gitignore.io/api/git,java,gradle,eclipse

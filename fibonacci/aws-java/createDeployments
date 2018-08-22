@@ -1,10 +1,12 @@
 #!/bin/bash
 PACKAGES_DIR=deployment-packages
 DEPLOYMENT_DIR=deployment
-PACKAGE_SIZES=(390625 781250 1562500)
-SERVICE_SIZES=(390625 781250 1562500)
-MEMORY_SETTINGS=(128 256 512 1024 2048 3008)
+#JM Vorbedingung: service size = package size + optional initial (service size werden deployed) sizes müssen größer sein als das Packet (in Java ~> 1.5MB)
+PACKAGE_SIZES=(4562500)
+SERVICE_SIZES=(initial 4562500)
+MEMORY_SETTINGS=(128 256)
 
+# path to semode wegen dem deployment package enlarger
 if [ -z "$1" ]; then
     echo "Usage: createDeployments <PATH_TO_SEMODE.JAR>"
     exit 1
