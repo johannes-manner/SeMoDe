@@ -108,5 +108,6 @@ generatedTests/
 template/
 performanceData/
 logs/
+setups/
 
 # End of https://www.gitignore.io/api/git,java,gradle,eclipse

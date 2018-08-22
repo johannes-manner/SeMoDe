@@ -1,5 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.model;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -8,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;
 
@@ -27,9 +30,11 @@ public class BenchmarkSetup {
 
 	public static final String SETUP_LOCATION = "setups";
 	public static final String SEPERATOR = ";";
+	private static final String PIPELINE_JSON = "pipeline.json";
 
-	public final Map<String, DeploymentProperty> properties;
-	public Properties rawProperties;
+	public final Map<String, ProviderConfig> possibleProviders;
+
+	public final Map<String, ProviderConfig> properties;
 
 	public final String name;
 	public final Path pathToSetup;
@@ -39,35 +44,24 @@ public class BenchmarkSetup {
 	public BenchmarkSetup(String name) throws SeMoDeException {
 		this.name = name;
 		this.pathToSetup = Paths.get(BenchmarkSetup.SETUP_LOCATION, name);
-		this.pathToConfig = pathToSetup.resolve("settings.config");
+		this.pathToConfig = pathToSetup.resolve("settings.json");
 		this.pathToFibonacciSources = pathToSetup.resolve("sources");
 		properties = new HashMap<>();
-		initializeProperties();
+		this.possibleProviders = loadProviders(PIPELINE_JSON);
+		
 	}
 
-	/**
-	 * Note that these properties might change and must be extended in the future.
-	 * 
-	 * @throws SeMoDeException
-	 */
-	private void initializeProperties() throws SeMoDeException {
-		properties.put("language", new DeploymentProperty(String.class, Arrays.asList("java", "js")));
-		properties.put("provider", new DeploymentProperty(String.class, Arrays.asList("aws", "azure")));
-		properties.put("deploymentSize", new DeploymentProperty(Integer.class));
-		// Limits: https://docs.aws.amazon.com/de_de/lambda/latest/dg/limits.html
-		List<String> possibleMemorySettings = new ArrayList<>();
-		for (int setting = 128; setting <= 3008; setting += 64) {
-			possibleMemorySettings.add(String.valueOf(setting));
+	public Map<String, ProviderConfig> loadProviders(String path) throws SeMoDeException {
+		Map<String, ProviderConfig> pMap = new HashMap<>();
+		ObjectMapper om = new ObjectMapper();
+		try {
+			ProviderConfig[] providers = om.readValue(Paths.get(path).toFile(), ProviderConfig[].class);
+			for (ProviderConfig provider : providers) {
+				pMap.put(provider.getName(), provider);
+			}
+		} catch (IOException e) {
+			throw new SeMoDeException("Error while parsing the " + PIPELINE_JSON + " file. Check the config.");
 		}
-		properties.put("memorySetting", new DeploymentProperty(Integer.class, possibleMemorySettings));
+		return pMap;
 	}
-
-	public DeploymentProperty getProperty(String key) throws SeMoDeException {
-		if (properties.containsKey(key)) {
-			return properties.get(key);
-		} else {
-			throw new SeMoDeException("Property \"" + key + "\" not found.");
-		}
-	}
-
 }
