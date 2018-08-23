@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.benchmark.pipeline;
+package de.uniba.dsg.serverless.pipeline.utils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -7,8 +7,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Map;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.model.LanguageConfig;
 
 public class EndpointExtractor {
 
@@ -20,39 +22,33 @@ public class EndpointExtractor {
 	private static final String SERVICE_ESCAPE_MAVEN = "[INFO] Successfully created Azure Functions ";
 	private static final String ENDPOINT_URL_MAVEN = "[INFO] Successfully deployed Azure Functions at ";
 
-	// Edit this based on the required log type!
-	private final LogType logType;
-	private final Path inputFilePath;
-	private final Path benchmarkingRootPath;
-	private final String language;
-	private final String provider;
-	// Change this to the function suffix (endpoint = url + suffix)
-	private final String apiSuffix;
+	private final Map<String, LanguageConfig> languageConfigs;
+	private final Path deploymentFolderPath;
+	private final Path outputDir;
 
-	public EndpointExtractor(String inputFilePath, Path benchmarkingRootPath, String language, String logType, String provider) {
-		this.inputFilePath = Paths.get(inputFilePath);
-		this.benchmarkingRootPath = benchmarkingRootPath;
-		this.language = language;
-		this.provider = provider;
-		this.apiSuffix = "/api/fibonacci-" + language;
-		this.logType = LogType.valueOf(logType);
-		
+	public EndpointExtractor(Map<String, LanguageConfig> languageConfigs, Path deploymentFolderPath, Path outputDir) {
+		this.languageConfigs = languageConfigs;
+		this.deploymentFolderPath = deploymentFolderPath;
+		this.outputDir = outputDir;
 	}
 
-	public void extractEndpoints() throws SeMoDeException {
+	public void extractEndpoints(String language, String provider) throws SeMoDeException {
 		
-		Path outputFilePath = Paths.get(benchmarkingRootPath + "/" + BenchmarkingPipelineHandler.ENDPOINTS_FOLDER);
-		BenchmarkingPipelineHandler.createFolderIfNotExists(outputFilePath);
-		Path endpointFile = Paths.get(outputFilePath.toString() + "/" + this.provider + "-" + this.language);
+		String providerLanguage = provider + "-" + language;
+		String apiSuffix = "/api/fibonacci-" + language;
+		
+		Path endpointFile = Paths.get(outputDir.toString(), providerLanguage);
+		Path inputFilePath = Paths.get(this.deploymentFolderPath.toString(), providerLanguage + "-deploy");
 
 		try (BufferedWriter writer = Files.newBufferedWriter(endpointFile, StandardOpenOption.CREATE,
 				StandardOpenOption.TRUNCATE_EXISTING)) {
 			try (BufferedReader reader = Files.newBufferedReader(inputFilePath)) {
 				String line = reader.readLine();
 				String url;
+				String logType = languageConfigs.get(providerLanguage).getLogType();
 				while (line != null) {
 					switch (logType) {
-					case MAVEN:
+					case "maven":
 						if (line.startsWith(SERVICE_ESCAPE_MAVEN)) {
 							writer.write(line.substring(SERVICE_ESCAPE_MAVEN.length()));
 							writer.write(" ");
@@ -62,7 +58,7 @@ public class EndpointExtractor {
 							writer.newLine();
 						}
 						break;
-					case SERVERLESS:
+					case "serverless":
 						if (line.contains(SERVICE_ESCAPE_SERVERLESS)) {
 							writer.write(line.substring(SERVICE_ESCAPE_SERVERLESS.length()));
 							writer.write(" ");

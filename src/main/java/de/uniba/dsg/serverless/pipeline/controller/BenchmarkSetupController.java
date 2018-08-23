@@ -5,7 +5,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,6 +22,7 @@ import de.uniba.dsg.serverless.cli.PipelineSetupUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.BenchmarkSetup;
 import de.uniba.dsg.serverless.pipeline.model.ProviderConfig;
+import de.uniba.dsg.serverless.pipeline.utils.EndpointExtractor;
 
 public class BenchmarkSetupController {
 
@@ -58,6 +58,7 @@ public class BenchmarkSetupController {
 		try {
 			Files.createDirectories(setup.pathToSetup);
 			Files.createDirectories(setup.pathToDeployment);
+			Files.createDirectories(setup.pathToEndpoints);
 		} catch (IOException e) {
 			throw new SeMoDeException(e);
 		}
@@ -189,6 +190,15 @@ public class BenchmarkSetupController {
 			FileUtils.copyDirectory(source, target);
 		} catch (IOException e) {
 			throw new SeMoDeException("Copying the source of " + sourceFolderName + "failed.", e);
+		}
+	}
+
+	public void generateEndpoints() throws SeMoDeException {
+		EndpointExtractor endpointExtractor = new EndpointExtractor(setup.config.getLanguageConfigMap(), setup.pathToDeployment, setup.pathToEndpoints);
+		for(String provider : setup.properties.keySet()) {
+			for(String language : setup.properties.get(provider).getLanguage()) {
+				endpointExtractor.extractEndpoints(language, provider);
+			}
 		}
 	}
 

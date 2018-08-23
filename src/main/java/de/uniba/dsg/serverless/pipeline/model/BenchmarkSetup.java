@@ -28,8 +28,8 @@ public class BenchmarkSetup {
 	public static final String SEPERATOR = ";";
 	private static final String PIPELINE_JSON = "pipeline.json";
 
+	public final Config config;
 	public final Map<String, ProviderConfig> possibleProviders;
-
 	public final Map<String, ProviderConfig> properties;
 
 	public final String name;
@@ -37,6 +37,7 @@ public class BenchmarkSetup {
 	public final Path pathToConfig;
 	public final Path pathToSources;
 	public final Path pathToDeployment;
+	public final Path pathToEndpoints;
 
 	public BenchmarkSetup(String name) throws SeMoDeException {
 		this.name = name;
@@ -44,11 +45,28 @@ public class BenchmarkSetup {
 		this.pathToConfig = pathToSetup.resolve("settings.json");
 		this.pathToSources = pathToSetup.resolve("sources");
 		this.pathToDeployment = pathToSetup.resolve("deployments");
-		properties = new HashMap<>();
-		this.possibleProviders = loadProviders(PIPELINE_JSON);
-		
+		this.pathToEndpoints = pathToSetup.resolve("endpoints");
+		this.properties = new HashMap<>();
+		this.config = loadConfig(PIPELINE_JSON);
+		this.possibleProviders = config.getProviderConfigMap();
 	}
 
+	private Config loadConfig(String path) throws SeMoDeException {
+		ObjectMapper om = new ObjectMapper();
+		try {
+			return om.readValue(Paths.get(path).toFile(), Config.class);
+		} catch (IOException e) {
+			throw new SeMoDeException("Error while parsing the " + path + " file. Check the config.");
+		}
+	}
+
+	/**
+	 * Load the user config files.
+	 * The user only specifies provider configs.
+	 * 
+	 * @return
+	 * @throws SeMoDeException
+	 */
 	public Map<String, ProviderConfig> loadProviders(String path) throws SeMoDeException {
 		Map<String, ProviderConfig> pMap = new HashMap<>();
 		ObjectMapper om = new ObjectMapper();
@@ -58,7 +76,7 @@ public class BenchmarkSetup {
 				pMap.put(provider.getName(), provider);
 			}
 		} catch (IOException e) {
-			throw new SeMoDeException("Error while parsing the " + PIPELINE_JSON + " file. Check the config.");
+			throw new SeMoDeException("Error while parsing the " + path + " file. Check the config.");
 		}
 		return pMap;
 	}

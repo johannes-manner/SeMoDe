@@ -1,4 +1,5 @@
-[
+{
+"providerConfigs": [
 	{
 	"name": "aws",
 	"memorySize": [
@@ -80,4 +81,27 @@
 				"js"
 			]
 		}
+	],
+	"languageConfigs" : [
+		{
+		"identifier": "aws-java",
+		"logType": "serverless",
+		"fetcherType": "aws"
+		},
+		{
+		"identifier": "aws-js",
+		"logType": "serverless",
+		"fetcherType": "aws"
+		},
+		{
+		"identifier": "azure-java",
+		"logType": "maven",
+		"fetcherType": "azure_maven"
+		},
+		{
+		"identifier": "azure-js",
+		"logType": "serverless",
+		"fetcherType": "azure_serverless"
+		}
 	]
+}

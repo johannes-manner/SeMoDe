@@ -20,10 +20,7 @@ public class UtilityFactory {
 			new IBMOpenWhiskPerformanceDataUtility("openWhiskPerformanceData"),
 			new GooglePerformanceDataUtility("googlePerformanceData"),
 			new SeMoDeUtility("awsSeMoDe"),
-			new PipelineSetupUtility("pipelineSetup"),
-			new BenchmarkUtility("benchmark"),
-			new DeploymentSizeUtility("deploymentSize"),
-			new BenchmarkingPipelineHandler("benchmarkingPipeline")
+			new PipelineSetupUtility("pipelineSetup")
 	);
 
 	public static Optional<CustomUtility> getUtilityClass(String name) {
