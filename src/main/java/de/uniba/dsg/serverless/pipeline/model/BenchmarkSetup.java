@@ -35,13 +35,15 @@ public class BenchmarkSetup {
 	public final String name;
 	public final Path pathToSetup;
 	public final Path pathToConfig;
-	public final Path pathToFibonacciSources;
+	public final Path pathToSources;
+	public final Path pathToDeployment;
 
 	public BenchmarkSetup(String name) throws SeMoDeException {
 		this.name = name;
 		this.pathToSetup = Paths.get(BenchmarkSetup.SETUP_LOCATION, name);
 		this.pathToConfig = pathToSetup.resolve("settings.json");
-		this.pathToFibonacciSources = pathToSetup.resolve("sources");
+		this.pathToSources = pathToSetup.resolve("sources");
+		this.pathToDeployment = pathToSetup.resolve("deployments");
 		properties = new HashMap<>();
 		this.possibleProviders = loadProviders(PIPELINE_JSON);
 		
