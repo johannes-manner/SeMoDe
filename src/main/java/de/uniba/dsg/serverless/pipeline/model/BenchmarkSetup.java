@@ -30,7 +30,8 @@ public class BenchmarkSetup {
 
 	public final Config config;
 	public final Map<String, ProviderConfig> possibleProviders;
-	public final Map<String, ProviderConfig> properties;
+	public final BenchmarkConfig benchmarkConfig;
+	public final Map<String, ProviderConfig> userProviders;
 
 	public final String name;
 	public final Path pathToSetup;
@@ -46,7 +47,8 @@ public class BenchmarkSetup {
 		this.pathToSources = pathToSetup.resolve("sources");
 		this.pathToDeployment = pathToSetup.resolve("deployments");
 		this.pathToEndpoints = pathToSetup.resolve("endpoints");
-		this.properties = new HashMap<>();
+		this.benchmarkConfig = new BenchmarkConfig();
+		this.userProviders = new HashMap<>();
 		this.config = loadConfig(PIPELINE_JSON);
 		this.possibleProviders = config.getProviderConfigMap();
 	}
@@ -67,17 +69,12 @@ public class BenchmarkSetup {
 	 * @return
 	 * @throws SeMoDeException
 	 */
-	public Map<String, ProviderConfig> loadProviders(String path) throws SeMoDeException {
-		Map<String, ProviderConfig> pMap = new HashMap<>();
+	public UserConfig loadUserConfig(String path) throws SeMoDeException {
 		ObjectMapper om = new ObjectMapper();
 		try {
-			ProviderConfig[] providers = om.readValue(Paths.get(path).toFile(), ProviderConfig[].class);
-			for (ProviderConfig provider : providers) {
-				pMap.put(provider.getName(), provider);
-			}
+			return om.readValue(Paths.get(path).toFile(), UserConfig.class);
 		} catch (IOException e) {
 			throw new SeMoDeException("Error while parsing the " + path + " file. Check the config.");
 		}
-		return pMap;
 	}
 }
