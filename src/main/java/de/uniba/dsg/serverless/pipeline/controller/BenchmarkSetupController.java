@@ -124,45 +124,47 @@ public class BenchmarkSetupController {
 	}
 
 	public void prepareDeployment() throws SeMoDeException {
+		
 		System.out.println("copying sources...");
 		for (String provider : setup.properties.keySet()) {
 			for (String language : setup.properties.get(provider).getLanguage()) {
 				copySource(provider, language);
 			}
 		}
+		
+		// TODO run a single process builder for each provider / language combination		
+		String bashExeLocation = "C:\\Program Files\\Git\\bin\\bash.exe";
+		
+		// create Deployments
 		System.out.println("creating deployment sizes");
-		// TODO run bash scripts
-		// TODO run a single process builder for each provider / language combination
-		// TODO think about correct handling of input/output because buffers have a
-		// limited size, defined by the underlying platform
-		// TODO windows user version
+		executeBashCommand(bashExeLocation, "bash createDeployments ../../../../build/libs/SeMoDe.jar", "-preparation");
+		
+		// deployment
+		System.out.println("Deploying created functions... (may take a while)");
+		executeBashCommand(bashExeLocation, "bash deploy", "-deploy");
+
+	}
+
+	private void executeBashCommand(String bashExeLocation, String command, String fileSuffix) throws SeMoDeException {
 		for (String provider : setup.properties.keySet()) {
 			for (String language : setup.properties.get(provider).getLanguage()) {
-				ProcessBuilder processBuilder = new ProcessBuilder("C:\\Program Files\\Git\\bin\\bash.exe", "-c", "bash createDeployments ../../../../build/libs/SeMoDe.jar");
-//				ProcessBuilder processBuilder = new ProcessBuilder("cmd", "/c", "echo", "createDeployments");
+				ProcessBuilder processBuilder = new ProcessBuilder(bashExeLocation, "-c", command);
 				String providerLanguage = provider + "-" + language;
 				Path sourceLocation = Paths.get(setup.pathToSetup.toString(), "sources", providerLanguage);
-				System.out.println(sourceLocation);
 				processBuilder.directory(sourceLocation.toFile());
 				processBuilder.redirectErrorStream(true);
-				processBuilder.redirectInput();
 				Process process = null;
 				try {
 					process = processBuilder.start();
-
-//					this.writeProcessOutputToFile(process, providerLanguage);
-					System.out.println("output" + output(process.getInputStream()));
-
+					this.writeProcessOutputToFile(process, providerLanguage + fileSuffix);
 					int errCode = process.waitFor();
-					System.out
-							.println("Executed without errors? " + (errCode == 0 ? "Yes" : "No(code=" + errCode + ")"));
+					System.out.println("Executed without errors? " + (errCode == 0 ? "Yes" : "No(code=" + errCode + ")"));
 				} catch (IOException | InterruptedException e) {
 					e.printStackTrace();
 					process.destroy();
 				}
 			}
 		}
-
 	}
 
 	private void writeProcessOutputToFile(Process process, String fileName) throws SeMoDeException {
@@ -171,25 +173,12 @@ public class BenchmarkSetupController {
 
 			String line;
 			while ((line = br.readLine()) != null) {
-				bw.write(line);
+				bw.write(line + System.lineSeparator());
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new SeMoDeException("Error while writing the output of the deploymentscript to the file");
 		}
-	}
-
-	@Deprecated
-	private String output(InputStream inputStream) throws IOException {
-		StringBuilder sb = new StringBuilder();
-		try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));) {
-			String line = bufferedReader.readLine();
-			while (line != null) {
-				sb.append(line + System.getProperty("line.separator"));
-				line = bufferedReader.readLine();
-			}
-		}
-		return sb.toString();
 	}
 
 	private void copySource(String provider, String language) throws SeMoDeException {
