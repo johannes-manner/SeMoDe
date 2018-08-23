@@ -70,9 +70,12 @@ public class BenchmarkSetupController {
 				System.out.println(json);
 				try {
 					ProviderConfig p = om.readValue(json, ProviderConfig.class);
+					p.validate(setup.possibleProviders);
 					setup.properties.put(p.getName(), p);
 				} catch (IOException e) {
-					System.out.println("Incorrect json format: " + json);
+					System.err.println("Incorrect json format: " + json);
+				} catch (SeMoDeException e) {
+					System.err.println("Incorrect property value: " + e.getMessage());
 				}
 			}
 		} while (!"".equals(provider));
@@ -160,5 +163,4 @@ public class BenchmarkSetupController {
 		}
 	}
 	
-	// TODO : validate providers, when reading from cli
 }

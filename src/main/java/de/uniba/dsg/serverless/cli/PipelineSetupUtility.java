@@ -50,6 +50,11 @@ public class PipelineSetupUtility extends CustomUtility {
 	private void printRunCommandUsage() {
 		System.out.println();
 		System.out.println("Please type in a command or \"exit\".");
+		System.out.println(" (status) Get the current configuration");
+		System.out.println(" (config) Alter/Specify the current configuration");
+		System.out.println(" (save)   Save the current config to settings.json in your benchmarking folder");
+		System.out.println(" (deploy) Starts the deployment");
+		System.out.println(" (exit)   Terminate the program");
 	}
 
 	private void executeSetupCommand(String command, String name) throws SeMoDeException {
@@ -79,7 +84,7 @@ public class PipelineSetupUtility extends CustomUtility {
 		case "save":
 			controller.saveBenchmarkSetup();
 			break;
-		case "1":
+		case "deploy":
 			controller.prepareDeployment();
 			break;
 		default:
