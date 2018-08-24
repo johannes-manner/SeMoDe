@@ -30,4 +30,8 @@ public class BenchmarkConfig {
 		this.benchmarkParameters = benchmarkParameters;
 	}
 
+	@Override
+	public String toString() {
+		return "BenchmarkConfig [benchmarkMode=" + benchmarkMode + ", benchmarkParameters=" + benchmarkParameters + "]";
+	}
 }

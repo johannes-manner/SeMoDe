@@ -9,30 +9,30 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.model.BenchmarkConfig;
 
 public class BenchmarkingCommandGenerator {
 
-	private final Path benchmarkingRootPath;
-	private final String benchmarkingMode;
-	private final String benchmarkingParameters;
+	private final Path benchmarkCommandPath;
+	private final Path endpointsPath;
+	private final BenchmarkConfig benchmarkConfig;
+	private static final String SEMODE_JAR_LOCATION = "../../../build/libs/SeMoDe.jar";
 
-	public BenchmarkingCommandGenerator(Path benchmarkingRootPath, String benchmarkingMode, String benchmarkingParameters) {
-		this.benchmarkingRootPath = benchmarkingRootPath;
-		this.benchmarkingMode = benchmarkingMode;
-		this.benchmarkingParameters = benchmarkingParameters;
+	public BenchmarkingCommandGenerator(Path benchmarkCommandPath, Path endpointsPath, BenchmarkConfig benchmarkConfig) {
+		this.benchmarkCommandPath = benchmarkCommandPath;
+		this.endpointsPath = endpointsPath;
+		this.benchmarkConfig = benchmarkConfig;
 	}
 
 	public void generateCommands(String language, String provider) throws SeMoDeException {
+		
+		String providerLanguage = provider + "-" + language;
 
-		Path commandFolder = Paths
-				.get(benchmarkingRootPath + "/" + BenchmarkingPipelineHandler.BENCHMARKING_COMMANDS_FOLDER);
-		BenchmarkingPipelineHandler.createFolderIfNotExists(commandFolder);
+		Path outputCommands = Paths.get(this.benchmarkCommandPath.toString(), providerLanguage + ".bat");
+		Path inputEndpoints = Paths.get(this.endpointsPath.toString(), providerLanguage);
 
-		Path outputCommands = Paths.get(commandFolder + "/" + this.provider + "-" + this.language + ".bat");
-		Path inputEndpoints = Paths.get(this.benchmarkingRootPath + "/" + BenchmarkingPipelineHandler.ENDPOINTS_FOLDER
-				+ "/" + this.provider + "-" + this.language);
-
-		String firstPart = "start cmd /k java -jar build/libs/SeMoDe.jar benchmark";
+		String firstPart = "start cmd /k java -jar " + SEMODE_JAR_LOCATION + " benchmark";
+		// TODO params.json - how to deal with this file - locate in benchmarking commands folder
 		String jsonInput = "params.json";
 
 		try (BufferedWriter writer = Files.newBufferedWriter(outputCommands, StandardOpenOption.CREATE,
@@ -42,7 +42,7 @@ public class BenchmarkingCommandGenerator {
 				while (line != null) {
 					String[] functionPlusUrl = line.split(" ");
 					String command = firstPart + " " + functionPlusUrl[0] + " " + functionPlusUrl[1] + " " + jsonInput
-							+ " " + benchmarkingMode + " " + benchmarkingParameters;
+							+ " " + this.benchmarkConfig.getBenchmarkMode() + " " + this.benchmarkConfig.getBenchmarkParameters();
 					writer.write(command);
 					writer.newLine();
 					line = reader.readLine();

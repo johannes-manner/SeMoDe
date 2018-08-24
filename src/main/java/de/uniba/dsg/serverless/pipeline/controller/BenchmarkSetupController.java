@@ -10,11 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -24,15 +20,16 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import de.uniba.dsg.serverless.cli.PipelineSetupUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.model.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.BenchmarkSetup;
 import de.uniba.dsg.serverless.pipeline.model.ProviderConfig;
-import de.uniba.dsg.serverless.pipeline.model.UserConfig;
+import de.uniba.dsg.serverless.pipeline.utils.BenchmarkingCommandGenerator;
 import de.uniba.dsg.serverless.pipeline.utils.EndpointExtractor;
-import jersey.repackaged.com.google.common.collect.Lists;
 
 public class BenchmarkSetupController {
 
 	private static final Logger logger = LogManager.getLogger(BenchmarkSetupController.class.getName());
+	private static final String SEMODE_JAR_LOCATION = "../../../../build/libs/SeMoDe.jar";
 	private final ObjectMapper om;
 
 	private final BenchmarkSetup setup;
@@ -53,12 +50,7 @@ public class BenchmarkSetupController {
 		if (!Files.isDirectory(setup.pathToSetup)) {
 			throw new SeMoDeException("Test setup does not exist.");
 		}
-		UserConfig config = setup.loadUserConfig(setup.pathToConfig.toString());
-		Map<String, ProviderConfig> map = new HashMap<>();
-		for(ProviderConfig provider : config.getProviderConfigs()) {
-			map.put(provider.getName(), provider);
-		}
-		setup.userProviders.putAll(map);
+		setup.loadUserConfig(setup.pathToConfig.toString());
 		return controller;
 	}
 
@@ -70,6 +62,7 @@ public class BenchmarkSetupController {
 			Files.createDirectories(setup.pathToSetup);
 			Files.createDirectories(setup.pathToDeployment);
 			Files.createDirectories(setup.pathToEndpoints);
+			Files.createDirectories(setup.pathToBenchmarkingCommands);
 		} catch (IOException e) {
 			throw new SeMoDeException(e);
 		}
@@ -83,11 +76,13 @@ public class BenchmarkSetupController {
 			if (setup.possibleProviders.containsKey(provider)) {
 				List<String> providerJson = readProviderProperties(provider);
 				String json = "{" + providerJson.stream().collect(Collectors.joining(",")) + "}";
-				System.out.println(json);
 				try {
 					ProviderConfig p = om.readValue(json, ProviderConfig.class);
 					p.validate(setup.possibleProviders);
 					setup.userProviders.put(p.getName(), p);
+					
+					// auto save
+					this.saveBenchmarkSetup();
 				} catch (IOException e) {
 					System.err.println("Incorrect json format: " + json);
 				} catch (SeMoDeException e) {
@@ -116,12 +111,11 @@ public class BenchmarkSetupController {
 				"Please specify the property. Think about the correct JSON representation for the value. \n(empty to skip property)");
 	}
 
-	public void saveBenchmarkSetup() throws SeMoDeException {
+	private void saveBenchmarkSetup() throws SeMoDeException {
 
 		try {
-			UserConfig userConfig = new UserConfig(Lists.newArrayList(setup.userProviders.values().iterator()), setup.benchmarkConfig);
 			om.writer().withDefaultPrettyPrinter().writeValue(Paths.get(setup.pathToConfig.toString()).toFile(),
-					userConfig);
+					setup.assembleUserConfig());
 		} catch (IOException e) {
 			throw new SeMoDeException("Configuration could not be saved.", e);
 		}
@@ -131,27 +125,25 @@ public class BenchmarkSetupController {
 	public void printBenchmarkSetupStatus() throws SeMoDeException {
 		System.out.println("Printing status of benchmark setup \"" + setup.name + "\"");
 		System.out.println("Printing Properties:");
-		for (String key : setup.userProviders.keySet()) {
-			System.out.println(setup.userProviders.get(key));
-		}
+		System.out.println(setup.assembleUserConfig());
 	}
 
 	public void prepareDeployment() throws SeMoDeException {
-		
+
 		System.out.println("copying sources...");
 		for (String provider : setup.userProviders.keySet()) {
 			for (String language : setup.userProviders.get(provider).getLanguage()) {
 				copySource(provider, language);
 			}
 		}
-		
-		// TODO run a single process builder for each provider / language combination		
+
+		// TODO run a single process builder for each provider / language combination
 		String bashExeLocation = "C:\\Program Files\\Git\\bin\\bash.exe";
-		
+
 		// create Deployments
 		System.out.println("creating deployment sizes");
-		executeBashCommand(bashExeLocation, "bash createDeployments ../../../../build/libs/SeMoDe.jar", "-preparation");
-		
+		executeBashCommand(bashExeLocation, "bash createDeployments " + SEMODE_JAR_LOCATION, "-preparation");
+
 		// deployment
 		System.out.println("Deploying created functions... (may take a while)");
 		executeBashCommand(bashExeLocation, "bash deploy", "-deploy");
@@ -171,7 +163,8 @@ public class BenchmarkSetupController {
 					process = processBuilder.start();
 					this.writeProcessOutputToFile(process, providerLanguage + fileSuffix);
 					int errCode = process.waitFor();
-					System.out.println("Executed without errors? " + (errCode == 0 ? "Yes" : "No(code=" + errCode + ")"));
+					System.out
+							.println("Executed without errors? " + (errCode == 0 ? "Yes" : "No(code=" + errCode + ")"));
 				} catch (IOException | InterruptedException e) {
 					e.printStackTrace();
 					process.destroy();
@@ -207,11 +200,33 @@ public class BenchmarkSetupController {
 
 	public void generateEndpoints() throws SeMoDeException {
 		EndpointExtractor endpointExtractor = new EndpointExtractor(setup.config.getLanguageConfigMap(), setup.pathToDeployment, setup.pathToEndpoints);
-		for(String provider : setup.userProviders.keySet()) {
-			for(String language : setup.userProviders.get(provider).getLanguage()) {
+		for (String provider : setup.userProviders.keySet()) {
+			for (String language : setup.userProviders.get(provider).getLanguage()) {
 				endpointExtractor.extractEndpoints(language, provider);
 			}
 		}
 	}
 
+	public void generateBenchmarkingCommands() throws SeMoDeException {
+		
+		System.out.println("Insert a supported benchmarking mode");
+		String benchmarkingMode = PipelineSetupUtility.scanner.nextLine();
+		System.out.println("Insert benchmarking parameters");
+		String benchmarkingParameters = PipelineSetupUtility.scanner.nextLine();
+		System.out.println("Copy a file called 'params.json' in the 'benchmarkingCommands' folder");
+		
+		BenchmarkConfig config = new BenchmarkConfig(benchmarkingMode,benchmarkingParameters);
+		setup.benchmarkConfig = config;
+		
+		// auto save to store the benchmark
+		this.saveBenchmarkSetup();
+		
+		BenchmarkingCommandGenerator bcg = new BenchmarkingCommandGenerator(setup.pathToBenchmarkingCommands, setup.pathToEndpoints, setup.benchmarkConfig);
+		
+		for (String provider : setup.userProviders.keySet()) {
+			for (String language : setup.userProviders.get(provider).getLanguage()) {
+				bcg.generateCommands(language, provider);
+			}
+		}
+	}
 }

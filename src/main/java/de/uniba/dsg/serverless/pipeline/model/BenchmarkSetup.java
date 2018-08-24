@@ -3,7 +3,9 @@ package de.uniba.dsg.serverless.pipeline.model;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,7 +32,7 @@ public class BenchmarkSetup {
 
 	public final Config config;
 	public final Map<String, ProviderConfig> possibleProviders;
-	public final BenchmarkConfig benchmarkConfig;
+	public BenchmarkConfig benchmarkConfig;
 	public final Map<String, ProviderConfig> userProviders;
 
 	public final String name;
@@ -39,6 +41,7 @@ public class BenchmarkSetup {
 	public final Path pathToSources;
 	public final Path pathToDeployment;
 	public final Path pathToEndpoints;
+	public final Path pathToBenchmarkingCommands;
 
 	public BenchmarkSetup(String name) throws SeMoDeException {
 		this.name = name;
@@ -47,6 +50,7 @@ public class BenchmarkSetup {
 		this.pathToSources = pathToSetup.resolve("sources");
 		this.pathToDeployment = pathToSetup.resolve("deployments");
 		this.pathToEndpoints = pathToSetup.resolve("endpoints");
+		this.pathToBenchmarkingCommands = pathToSetup.resolve("benchmarkingCommands");
 		this.benchmarkConfig = new BenchmarkConfig();
 		this.userProviders = new HashMap<>();
 		this.config = loadConfig(PIPELINE_JSON);
@@ -64,17 +68,33 @@ public class BenchmarkSetup {
 
 	/**
 	 * Load the user config files.
-	 * The user only specifies provider configs.
 	 * 
 	 * @return
 	 * @throws SeMoDeException
 	 */
-	public UserConfig loadUserConfig(String path) throws SeMoDeException {
+	public void loadUserConfig(String path) throws SeMoDeException {
 		ObjectMapper om = new ObjectMapper();
 		try {
-			return om.readValue(Paths.get(path).toFile(), UserConfig.class);
+			UserConfig config = om.readValue(Paths.get(path).toFile(), UserConfig.class);
+			Map<String, ProviderConfig> map = new HashMap<>();
+			for (ProviderConfig provider : config.getProviderConfigs()) {
+				map.put(provider.getName(), provider);
+			}
+
+			// initialize all user config variables
+			this.userProviders.putAll(map);
+			this.benchmarkConfig = config.getBenchmarkConfig();
+
 		} catch (IOException e) {
 			throw new SeMoDeException("Error while parsing the " + path + " file. Check the config.");
 		}
+	}
+
+	public UserConfig assembleUserConfig() {
+		List<ProviderConfig> providerConfigs = new ArrayList<>();
+		for (ProviderConfig config : this.userProviders.values()) {
+			providerConfigs.add(config);
+		}
+		return new UserConfig(providerConfigs, this.benchmarkConfig);
 	}
 }

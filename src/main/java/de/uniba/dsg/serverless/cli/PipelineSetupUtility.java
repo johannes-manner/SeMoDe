@@ -52,9 +52,9 @@ public class PipelineSetupUtility extends CustomUtility {
 		System.out.println("Please type in a command or \"exit\".");
 		System.out.println(" (status)     Get the current configuration");
 		System.out.println(" (config)     Alter/Specify the current configuration");
-		System.out.println(" (save)       Save the current config to settings.json in your benchmarking folder");
 		System.out.println(" (deploy)     Starts the deployment");
 		System.out.println(" (endpoints)  Generate endpoints for benchmarking");
+		System.out.println(" (commands)   Generate benchmarking commands in a bat-file");
 		System.out.println(" (exit)       Terminate the program");
 	}
 
@@ -82,14 +82,14 @@ public class PipelineSetupUtility extends CustomUtility {
 		case "config":
 			controller.configureBenchmarkSetup();
 			break;
-		case "save":
-			controller.saveBenchmarkSetup();
-			break;
 		case "deploy":
 			controller.prepareDeployment();
 			break;
 		case "endpoints":
 			controller.generateEndpoints();
+			break;
+		case "commands":
+			controller.generateBenchmarkingCommands();
 			break;
 		default:
 			throw new SeMoDeException(
