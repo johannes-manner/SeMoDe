@@ -56,12 +56,12 @@ public class BenchmarkUtility extends CustomUtility {
 	}
 
 	private void logUsage() {
-		logger.fatal("Usage for each mode:\n" + "(Mode 1) FUNCTION_NAME URL JSONINPUT concurrent NUMBER_OF_REQUESTS\n"
-				+ "(Mode 2) FUNCTION_NAME URL JSONINPUT sequentialInterval NUMBER_OF_REQUESTS DELAY\n"
-				+ "(Mode 3) FUNCTION_NAME URL JSONINPUT sequentailWait NUMBER_OF_REQUESTS DELAY\n"
-				+ "(Mode 4) FUNCTION_NAME URL JSONINPUT sequentialConcurrent NUMBER_OF_GROUPS NUMBER_OF_REQUESTS_GROUP DELAY\n"
-				+ "(Mode 5) FUNCTION_NAME URL JSONINPUT sequentialChangingInterval NUMBER_OF_REQUESTS (DELAY)+"
-				+ "(Mode 6) FUNCTION_NAME URL JSONINPUT sequentialChangingWait NUMBER_OF_REQUESTS (DELAY)+");
+		logger.fatal("Usage for each mode:\n" + "(Mode 1) PROVIDER_FUNCTION_NAME URL JSONINPUT concurrent NUMBER_OF_REQUESTS\n"
+				+ "(Mode 2) PROVIDER_FUNCTION_NAME URL JSONINPUT sequentialInterval NUMBER_OF_REQUESTS DELAY\n"
+				+ "(Mode 3) PROVIDER_FUNCTION_NAME URL JSONINPUT sequentailWait NUMBER_OF_REQUESTS DELAY\n"
+				+ "(Mode 4) PROVIDER_FUNCTION_NAME URL JSONINPUT sequentialConcurrent NUMBER_OF_GROUPS NUMBER_OF_REQUESTS_GROUP DELAY\n"
+				+ "(Mode 5) PROVIDER_FUNCTION_NAME URL JSONINPUT sequentialChangingInterval NUMBER_OF_REQUESTS (DELAY)+"
+				+ "(Mode 6) PROVIDER_FUNCTION_NAME URL JSONINPUT sequentialChangingWait NUMBER_OF_REQUESTS (DELAY)+");
 	}
 
 	private int executeBenchmark() throws SeMoDeException {
