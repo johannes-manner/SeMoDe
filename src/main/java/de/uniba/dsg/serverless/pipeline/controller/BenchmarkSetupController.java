@@ -25,6 +25,7 @@ import de.uniba.dsg.serverless.pipeline.model.BenchmarkSetup;
 import de.uniba.dsg.serverless.pipeline.model.ProviderConfig;
 import de.uniba.dsg.serverless.pipeline.utils.BenchmarkingCommandGenerator;
 import de.uniba.dsg.serverless.pipeline.utils.EndpointExtractor;
+import de.uniba.dsg.serverless.pipeline.utils.FetchingCommandGenerator;
 
 public class BenchmarkSetupController {
 
@@ -63,6 +64,7 @@ public class BenchmarkSetupController {
 			Files.createDirectories(setup.pathToDeployment);
 			Files.createDirectories(setup.pathToEndpoints);
 			Files.createDirectories(setup.pathToBenchmarkingCommands);
+			Files.createDirectories(setup.pathToFetchingCommands);
 		} catch (IOException e) {
 			throw new SeMoDeException(e);
 		}
@@ -226,6 +228,17 @@ public class BenchmarkSetupController {
 		for (String provider : setup.userProviders.keySet()) {
 			for (String language : setup.userProviders.get(provider).getLanguage()) {
 				bcg.generateCommands(language, provider);
+			}
+		}
+	}
+
+	public void fetchPerformanceData() throws SeMoDeException {
+		
+		FetchingCommandGenerator fcg = new FetchingCommandGenerator(setup.pathToBenchmarkingCommands, setup.pathToFetchingCommands, setup.pathToEndpoints, setup.config.getLanguageConfigMap());
+
+		for (String provider : setup.userProviders.keySet()) {
+			for (String language : setup.userProviders.get(provider).getLanguage()) {
+				fcg.fetchCommands(provider, language);
 			}
 		}
 	}

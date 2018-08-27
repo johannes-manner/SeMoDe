@@ -55,6 +55,7 @@ public class PipelineSetupUtility extends CustomUtility {
 		System.out.println(" (deploy)     Starts the deployment");
 		System.out.println(" (endpoints)  Generate endpoints for benchmarking");
 		System.out.println(" (commands)   Generate benchmarking commands in a bat-file");
+		System.out.println(" (fetch)      Fetch log data from various platforms");
 		System.out.println(" (exit)       Terminate the program");
 	}
 
@@ -90,6 +91,9 @@ public class PipelineSetupUtility extends CustomUtility {
 			break;
 		case "commands":
 			controller.generateBenchmarkingCommands();
+			break;
+		case "fetch":
+			controller.fetchPerformanceData();
 			break;
 		default:
 			throw new SeMoDeException(

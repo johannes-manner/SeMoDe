@@ -42,6 +42,7 @@ public class BenchmarkSetup {
 	public final Path pathToDeployment;
 	public final Path pathToEndpoints;
 	public final Path pathToBenchmarkingCommands;
+	public final Path pathToFetchingCommands;
 
 	public BenchmarkSetup(String name) throws SeMoDeException {
 		this.name = name;
@@ -51,6 +52,7 @@ public class BenchmarkSetup {
 		this.pathToDeployment = pathToSetup.resolve("deployments");
 		this.pathToEndpoints = pathToSetup.resolve("endpoints");
 		this.pathToBenchmarkingCommands = pathToSetup.resolve("benchmarkingCommands");
+		this.pathToFetchingCommands = pathToSetup.resolve("fetchingCommands");
 		this.benchmarkConfig = new BenchmarkConfig();
 		this.userProviders = new HashMap<>();
 		this.config = loadConfig(PIPELINE_JSON);
