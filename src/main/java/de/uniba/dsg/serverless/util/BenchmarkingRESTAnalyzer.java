@@ -43,9 +43,7 @@ public class BenchmarkingRESTAnalyzer {
 	 */
 	public Map<String, WritableEvent> extractRESTEvents() throws SeMoDeException {
 		
-		Map<String, WritableEvent> extractedEvents = new HashMap<>();
-
-		Map<String, Map<String, LocalDateTime>> temporaryMap = new HashMap<>();
+		Map<String, LocalRESTEvent> extractedEvents = new HashMap<>();
 
 		// read the lines
 		// Sample line: 2018-05-25 13:44:54.826;[pool-2-thread-1];INFO ;de.uniba.dsg.serverless.benchmark.FunctionTrigger;69cfe08c-2b1e-4344-8a2c-0e7732f23146;284d7ba0-b0ce-40cb-9c5b-49696af5ded8;PLATFORMID
@@ -57,14 +55,29 @@ public class BenchmarkingRESTAnalyzer {
 				// minimum 6, otherwise an error message is logged and can not be computed in this way
 				if(s.length >= 6) {
 					String uuid = s[5].trim();
-					if (temporaryMap.containsKey(uuid) == false) {
-						Map<String, LocalDateTime> temp = new HashMap<>();
-						temporaryMap.put(uuid, temp);
+					if (extractedEvents.containsKey(uuid) == false) {
+						LocalRESTEvent event = new LocalRESTEvent();
+						extractedEvents.put(uuid, event);
 					}
 	
 					// parse other parameters
-					Map<String, LocalDateTime> temp = temporaryMap.get(uuid);
-					temp.put(s[4], LocalDateTime.parse(s[0], formatter));
+					LocalRESTEvent event = extractedEvents.get(uuid);
+					String key = s[4];
+					if ("START".equals(key)) {
+						event.setStartTime(LocalDateTime.parse(s[0], formatter));
+					} else if ("END".equals(key)) {
+						event.setEndTime(LocalDateTime.parse(s[0], formatter));
+					} else if ("ERROR".equals(key)) {
+						event.setErroneous(true);
+					} else if ("PLATFORMID".equals(key)){
+						event.setPlatformId(s[6]);
+					} else if ("CONTAINERID".equals(key)) {
+						event.setContainerId(s[6]);
+					} else {
+						logger.warn("The following key is no REST event property: " + key);
+					}
+				} else {
+					logger.warn("Check the benchmarking log file " + this.benchmarkingFile.toString() + " - corrupted line: " + s);
 				}
 			};
 
@@ -73,30 +86,12 @@ public class BenchmarkingRESTAnalyzer {
 				.map(splitLine)
 				.forEach(insertEvent);
 
-			for (String uuid : temporaryMap.keySet()) {
-				Map<String, LocalDateTime> temp = temporaryMap.get(uuid);
-				String platformId = "";
-				LocalDateTime start = LocalDateTime.MIN;
-				LocalDateTime end = LocalDateTime.MIN;
-				for (String key : temp.keySet()) {
-					if ("START".equals(key)) {
-						start = temp.get(key);
-					} else if ("END".equals(key)) {
-						end = temp.get(key);
-					} else if ("ERROR".equals(key)) {
-						platformId = "ERROR-" + UUID.randomUUID().toString();
-					}else {
-						// platformId is the key of this entry
-						platformId = key;
-					}
-				}
-				extractedEvents.put(platformId, new LocalRESTEvent(platformId, start, end));
-			}
-
 		} catch (IOException e) {
 			throw new SeMoDeException("Error while reading the file " + benchmarkingFile.toString(), e);
 		}
 		
-		return extractedEvents;
+		Map<String, WritableEvent> result = new HashMap<>();
+		result.putAll(extractedEvents);
+		return result;
 	}
 }
