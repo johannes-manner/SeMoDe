@@ -1,6 +1,8 @@
 'use strict';
 
 /* eslint-disable no-param-reassign */
+const uuidv4 = require('uuid/v4');
+const containerId = uuidv4();
 
 module.exports.handler = function (context, req) {
     var n;
@@ -44,7 +46,8 @@ var createSuccessResponse = function (message, platformId) {
 var createResponse = function (status, message, platformId) {
     var response = {
         result: message,
-        platformId: platformId
+        platformId: platformId,
+        containerId: containerId
     };
 
     return {

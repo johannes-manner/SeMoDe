@@ -6,6 +6,7 @@ import com.microsoft.azure.functions.HttpResponseMessage;
 import com.microsoft.azure.functions.annotation.*;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +15,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Azure Functions with HTTP Trigger.
  */
 public class Fibonacci {
+	
+	private static final String CONTAINER_ID = UUID.randomUUID().toString();
 
 	@FunctionName("fibonacci-java")
 	public HttpResponseMessage<String> handleRequest(
@@ -57,7 +60,7 @@ public class Fibonacci {
 	}
 
 	public String createResponseMessage(String message, String requestId) {
-		Response response = new Response(message, requestId);
+		Response response = new Response(message, requestId, CONTAINER_ID);
 
 		ObjectMapper mapper = new ObjectMapper();
 		try {

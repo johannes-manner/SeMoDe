@@ -4,10 +4,12 @@ public class Response {
 
 	private final String result;
 	private final String platformId;
+	private final String containerId;
 
-	public Response(String result, String platformId) {
+	public Response(String result, String platformId, String containerId) {
 		this.result = result;
 		this.platformId = platformId;
+		this.containerId = containerId;
 	}
 
 	public String getResult() {
@@ -16,5 +18,9 @@ public class Response {
 
 	public String getPlatformId() {
 		return this.platformId;
+	}
+	
+	public String getContainerId() {
+		return this.containerId;
 	}
 }

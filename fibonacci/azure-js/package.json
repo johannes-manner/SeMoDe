@@ -11,6 +11,7 @@
     "serverless-azure-functions": "*"
   },
   "dependencies": {
-    "serverless": "^1.27.3"
+    "serverless": "1.27.3",
+    "uuid" : "3.2.1"
   }
 }

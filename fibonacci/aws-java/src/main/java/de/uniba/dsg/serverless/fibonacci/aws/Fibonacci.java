@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.fibonacci.aws;
 
 import java.util.Map;
+import java.util.UUID;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -8,6 +9,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Fibonacci implements RequestHandler<Map<String, String>, Response> {
+	
+	private static final String CONTAINER_ID = UUID.randomUUID().toString();
 
 	@Override
 	public Response handleRequest(Map<String, String> parameters, Context context) {
@@ -32,7 +35,7 @@ public class Fibonacci implements RequestHandler<Map<String, String>, Response> 
 	}
 
 	public Response createErrorResponse(String message, String requestId) {
-		Response response = new Response("[400] " + message, requestId);
+		Response response = new Response("[400] " + message, requestId, CONTAINER_ID);
 
 		ObjectMapper mapper = new ObjectMapper();
 		try {
@@ -44,7 +47,7 @@ public class Fibonacci implements RequestHandler<Map<String, String>, Response> 
 	}
 
 	public Response createSuccessResponse(String message, String requestId) {
-		return new Response(message, requestId);
+		return new Response(message, requestId, CONTAINER_ID);
 	}
 
 	public boolean isNumeric(String value) {

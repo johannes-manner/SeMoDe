@@ -1,5 +1,8 @@
 'use strict';
 
+const uuidv4 = require('uuid/v4');
+const containerId = uuidv4();
+
 module.exports.handler = (event, context, callback) => {
     var n = event.n;
 
@@ -25,7 +28,8 @@ var fib = function(n) {
 var createErrorResponse = function (message, requestId) {
     var response = {
         result: "[400] " + message,
-        platformId: requestId
+        platformId: requestId,
+        containerId: containerId
     };
 
     return JSON.stringify(response);
@@ -34,7 +38,8 @@ var createErrorResponse = function (message, requestId) {
 var createSuccessResponse = function (message, requestId) {
     return {
         result: message,
-        platformId: requestId
+        platformId: requestId,
+        containerId: containerId
     }
 };
 

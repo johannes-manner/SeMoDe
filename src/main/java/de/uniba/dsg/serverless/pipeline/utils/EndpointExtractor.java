@@ -14,12 +14,13 @@ import de.uniba.dsg.serverless.pipeline.model.LanguageConfig;
 
 public class EndpointExtractor {
 
+	// Properties specific to our bash scripts
+	private static final String SERVICE_ESCAPE = "Deploy function: ";
+	
 	// Properties specific to serverless
-	private static final String SERVICE_ESCAPE_SERVERLESS = "service: ";
 	private static final String ENDPOINT_URL_SERVERLESS = "  GET - ";
 
 	// Properties specific to maven
-	private static final String SERVICE_ESCAPE_MAVEN = "[INFO] Successfully created Azure Functions ";
 	private static final String ENDPOINT_URL_MAVEN = "[INFO] Successfully deployed Azure Functions at ";
 
 	private final Map<String, LanguageConfig> languageConfigs;
@@ -49,8 +50,8 @@ public class EndpointExtractor {
 				while (line != null) {
 					switch (logType) {
 					case "maven":
-						if (line.startsWith(SERVICE_ESCAPE_MAVEN)) {
-							writer.write(line.substring(SERVICE_ESCAPE_MAVEN.length()));
+						if (line.startsWith(SERVICE_ESCAPE)) {
+							writer.write(line.substring(SERVICE_ESCAPE.length()));
 							writer.write(" ");
 						} else if (line.startsWith(ENDPOINT_URL_MAVEN)) {
 							url = line.substring(ENDPOINT_URL_MAVEN.length());
@@ -59,8 +60,8 @@ public class EndpointExtractor {
 						}
 						break;
 					case "serverless":
-						if (line.contains(SERVICE_ESCAPE_SERVERLESS)) {
-							writer.write(line.substring(SERVICE_ESCAPE_SERVERLESS.length()));
+						if (line.contains(SERVICE_ESCAPE)) {
+							writer.write(line.substring(SERVICE_ESCAPE.length()));
 							writer.write(" ");
 						} else if (line.contains(ENDPOINT_URL_SERVERLESS)) {
 							writer.write(line.substring(ENDPOINT_URL_SERVERLESS.length()));
