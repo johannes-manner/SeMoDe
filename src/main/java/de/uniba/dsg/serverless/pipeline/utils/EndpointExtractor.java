@@ -22,6 +22,10 @@ public class EndpointExtractor {
 
 	// Properties specific to maven
 	private static final String ENDPOINT_URL_MAVEN = "[INFO] Successfully deployed Azure Functions at ";
+	
+	// Properties specific to azure js (kudu)
+	private static final String AZURE_JS_SERVICE_NAME = "Serverless: Creating function app: ";
+	private static final String AZURE_JS_UPLOAD = "Serverless: Uploading function: ";
 
 	private final Map<String, LanguageConfig> languageConfigs;
 	private final Path deploymentFolderPath;
@@ -68,6 +72,16 @@ public class EndpointExtractor {
 							writer.newLine();
 						}
 						break;
+					case "kudu":
+						if (line.contains(SERVICE_ESCAPE)) {
+							writer.write(line.substring(SERVICE_ESCAPE.length()));
+							writer.write(" ");
+						} else if (line.startsWith(AZURE_JS_SERVICE_NAME)) {
+							writer.write("https://" + line.substring(AZURE_JS_SERVICE_NAME.length()) + ".azurewebsites.net/api/");
+						} else if (line.startsWith(AZURE_JS_UPLOAD)) {
+							writer.write(line.substring(AZURE_JS_UPLOAD.length()));
+							writer.newLine();
+						}
 					}
 					line = reader.readLine();
 				}

@@ -1,8 +1,7 @@
 'use strict';
 
 /* eslint-disable no-param-reassign */
-const uuidv4 = require('uuid/v4');
-const containerId = uuidv4();
+const containerId = Array.apply(0, Array(4)).reduce(function(p){return p + (Math.random() * 1e18).toString(36)}, '');
 
 module.exports.handler = function (context, req) {
     var n;

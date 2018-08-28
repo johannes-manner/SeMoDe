@@ -181,6 +181,7 @@ public class BenchmarkSetupController {
 
 			String line;
 			while ((line = br.readLine()) != null) {
+				System.out.println("Process output: " + line);
 				bw.write(line + System.lineSeparator());
 			}
 		} catch (IOException e) {

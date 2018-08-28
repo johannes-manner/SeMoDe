@@ -100,7 +100,7 @@
 		},
 		{
 		"identifier": "azure-js",
-		"logType": "serverless",
+		"logType": "kudu",
 		"fetcherType": "azure_serverless"
 		}
 	]
