@@ -31,6 +31,8 @@ public class BenchmarkSetupController {
 
 	private static final Logger logger = LogManager.getLogger(BenchmarkSetupController.class.getName());
 	private static final String SEMODE_JAR_LOCATION = "../../../../build/libs/SeMoDe.jar";
+	private static final String bashExeLocation = "C:\\Program Files\\Git\\bin\\bash.exe";
+	
 	private final ObjectMapper om;
 
 	private final BenchmarkSetup setup;
@@ -140,19 +142,22 @@ public class BenchmarkSetupController {
 		}
 
 		// TODO run a single process builder for each provider / language combination
-		String bashExeLocation = "C:\\Program Files\\Git\\bin\\bash.exe";
 
 		// create Deployments
 		System.out.println("creating deployment sizes");
-		executeBashCommand(bashExeLocation, "bash createDeployments " + SEMODE_JAR_LOCATION, "-preparation");
+		executeBashCommand("bash createDeployments " + SEMODE_JAR_LOCATION, "-preparation");
 
 		// deployment
 		System.out.println("Deploying created functions... (may take a while)");
-		executeBashCommand(bashExeLocation, "bash deploy", "-deploy");
+		executeBashCommand("bash deploy", "-deploy");
 
 	}
+	
+	public void undeploy() throws SeMoDeException {
+		executeBashCommand("bash undeploy", "-undeploy");
+	}
 
-	private void executeBashCommand(String bashExeLocation, String command, String fileSuffix) throws SeMoDeException {
+	private void executeBashCommand(String command, String fileSuffix) throws SeMoDeException {
 		for (String provider : setup.userProviders.keySet()) {
 			for (String language : setup.userProviders.get(provider).getLanguage()) {
 				ProcessBuilder processBuilder = new ProcessBuilder(bashExeLocation, "-c", command);
