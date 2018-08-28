@@ -55,6 +55,7 @@ function createServices() {
 function addFunctionToServerlessConfig() {
     size="$1"
     serviceDir="$2"
+    uuid=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 20 | head -n 1)
 
     function="  fibonacci-js-${size}:
     handler: fibonacci.handler
@@ -67,7 +68,7 @@ function addFunctionToServerlessConfig() {
           direction: out
           name: res"
 
-    echo "service: fibonacci-js-${size}" >> "${serviceDir}/serverless.yml" 
+    echo "service: fibonacci-js-${size}-${uuid}" >> "${serviceDir}/serverless.yml" 
     echo "functions:" >> "${serviceDir}/serverless.yml"
     echo "${function}" >> "${serviceDir}/serverless.yml"
 }
