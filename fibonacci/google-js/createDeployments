@@ -41,7 +41,7 @@ function createServices() {
         for mem in ${MEMORY_SETTINGS[@]}; do
             echo "Create function: size=${size} memory=${mem}"
 
-            serviceDir="$DEPLOYMENT_DIR/fibonacci-js-${size}-${mem}"
+            serviceDir="$DEPLOYMENT_DIR/fibonacci_js_${size}_${mem}"
 
             createDir "${serviceDir}"
             cp "${PACKAGES_DIR}/${size}/fibonacci-js-${size}.js" "${serviceDir}/function.js"
@@ -62,6 +62,7 @@ function addFunctionToServerlessConfig() {
     mem="$2"
     serviceDir="$3"
 
+#if you alter the region or project, also alter the deploy bash script
 yml="provider:
   name: google
   runtime: nodejs
@@ -87,7 +88,7 @@ package:
 service: fibonacci-js-${size}-${mem}
 
 functions:
-  fibonacci-js-${size}-${mem}:
+  fibonacci_js_${size}_${mem}:
     handler: fibonacci_js_${size}_${mem}
     events:
       - http: path"
