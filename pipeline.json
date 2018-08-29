@@ -102,6 +102,11 @@
 		"identifier": "azure-js",
 		"logType": "kudu",
 		"fetcherType": "azure_serverless"
+		},
+		{
+		"identifier": "google-js",
+		"logType": "serverless",
+		"fetcherType": "google"
 		}
 	]
 }

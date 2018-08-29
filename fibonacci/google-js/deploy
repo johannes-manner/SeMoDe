@@ -1,5 +1,7 @@
 #!/bin/bash
 DEPLOYMENT_DIR=deployment
+REGION=europe-west1
+PROJECT=cloudfunctionsdsg
 cd "${DEPLOYMENT_DIR}"
 
 for service in *; do
@@ -8,6 +10,7 @@ for service in *; do
         cd "${service}"
         serverless deploy
         cd ..
+        echo "  GET - https://${REGION}-${PROJECT}.cloudfunctions.net/${service}"
         echo " "
     fi
 done

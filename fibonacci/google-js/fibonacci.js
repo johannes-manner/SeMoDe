@@ -15,7 +15,7 @@ exports.HANDLER = (req, res) => {
 
     n = parseInt(n);
     var result = fib(n);
-
+    console.log("SEMODE::" + createResponse(result, requestId));
     res.status(200).send(createResponse(result, requestId));
 };
 

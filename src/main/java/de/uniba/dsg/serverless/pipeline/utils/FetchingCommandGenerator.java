@@ -63,6 +63,10 @@ public class FetchingCommandGenerator {
 			}
 			
 			this.generateCommands(provider, language, startTime, endTime, insightsFolder, functionName);
+		} else if ("google".equals(provider)) {
+			this.generateCommands(provider, language, startTime, endTime);
+		} else {
+			throw new SeMoDeException("Provider is not supported " + provider);
 		}
 	}
 
@@ -91,6 +95,9 @@ public class FetchingCommandGenerator {
 				case "azure_serverless":
 					commands = getAzureFetchCommands(functionNames, this.pathToBenchmarkLogs, Paths.get(args[0]), logFilesMap, providerLanguage, 
 							Optional.empty(), startTime, endTime);
+					break;
+				case "google":
+					commands = getGoogleFetchCommands(functionNames, logFilesMap, startTime, endTime);
 					break;
 				}
 				for (String command : commands) {
@@ -134,6 +141,20 @@ public class FetchingCommandGenerator {
 					+ startTime + " " + endTime + " " + "../benchmarkingCommands/logs/" + logFile);
 		}
 
+		return commands;
+	}
+	
+	private List<String> getGoogleFetchCommands(List<String> functionNames,
+			Map<String, String> logFilesMap, String startTime, String endTime) {
+
+		List<String> commands = new ArrayList<>();
+		
+		for(String function : functionNames) {
+			String logFile = logFilesMap.get(function);
+			
+			commands.add("start cmd /C java -jar ../../../build/libs/SeMoDe.jar googlePerformanceData " + function + " " + startTime + " " + endTime + " " +  "../benchmarkingCommands/logs/" + logFile);
+		}
+		
 		return commands;
 	}
 
