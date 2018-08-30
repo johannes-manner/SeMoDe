@@ -65,6 +65,13 @@ public class FetchingCommandGenerator {
 			this.generateCommands(provider, language, startTime, endTime, insightsFolder, functionName);
 		} else if ("google".equals(provider)) {
 			this.generateCommands(provider, language, startTime, endTime);
+		} else if ("ibm".equals(provider)) {
+			System.out.println("Specify the authorization key to get log infos from ibm openwhisk");
+			String authorizationKey = scanner.nextLine();
+			System.out.println("Specify the namespace (defaultOrg_defaultSpace)");
+			String namespace = scanner.nextLine();
+			
+			this.generateCommands(provider, language, startTime, endTime, authorizationKey, namespace);
 		} else {
 			throw new SeMoDeException("Provider is not supported " + provider);
 		}
@@ -98,6 +105,9 @@ public class FetchingCommandGenerator {
 					break;
 				case "google":
 					commands = getGoogleFetchCommands(functionNames, logFilesMap, startTime, endTime);
+					break;
+				case "ibm":
+					commands = getIbmFetchCommands(functionNames, logFilesMap, startTime, endTime, args[0], args[1]);
 					break;
 				}
 				for (String command : commands) {
@@ -153,6 +163,20 @@ public class FetchingCommandGenerator {
 			String logFile = logFilesMap.get(function);
 			
 			commands.add("start cmd /C java -jar ../../../build/libs/SeMoDe.jar googlePerformanceData " + function + " " + startTime + " " + endTime + " " +  "../benchmarkingCommands/logs/" + logFile);
+		}
+		
+		return commands;
+	}
+	
+	private List<String> getIbmFetchCommands(List<String> functionNames, Map<String, String> logFilesMap,
+			String startTime, String endTime, String authorizationKey, String namespace) {
+
+		List<String> commands = new ArrayList<>();
+		
+		for(String function : functionNames) {
+			String logFile = logFilesMap.get(function);
+			
+			commands.add("start cmd /C java -jar ../../../build/libs/SeMoDe.jar openWhiskPerformanceData " + namespace + " " + function + "-dev-" + function + " " + authorizationKey + " " + startTime + " " + endTime + " " +  "../benchmarkingCommands/logs/" + logFile);
 		}
 		
 		return commands;
