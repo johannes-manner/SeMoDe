@@ -137,10 +137,16 @@ public class BenchmarkSetupController {
 		System.out.println("copying sources...");
 		for (String provider : setup.userProviders.keySet()) {
 			for (String language : setup.userProviders.get(provider).getLanguage()) {
+				
+				// copies the sources from the fibonacci folder into the specific setup config
 				copySource(provider, language);
+				
+				// change parameters in createDeployments bashscripts
+				changeDeploymentParameters(setup.userProviders.get(provider), language);
+				
 			}
 		}
-
+		
 		// TODO run a single process builder for each provider / language combination
 
 		// create Deployments
@@ -152,7 +158,7 @@ public class BenchmarkSetupController {
 		executeBashCommand("bash deploy", "-deploy");
 
 	}
-	
+
 	public void undeploy() throws SeMoDeException {
 		executeBashCommand("bash undeploy", "-undeploy");
 	}
@@ -203,6 +209,20 @@ public class BenchmarkSetupController {
 			FileUtils.copyDirectory(source, target);
 		} catch (IOException e) {
 			throw new SeMoDeException("Copying the source of " + sourceFolderName + "failed.", e);
+		}
+	}
+	
+	private void changeDeploymentParameters(ProviderConfig providerConfig, String language) throws SeMoDeException {
+		String sourceFolderName = providerConfig.getName() + "-" + language;
+		Path createDeployments = Paths.get(setup.pathToSources.toString(), sourceFolderName, "createDeployments");
+		
+		try {
+			String content = new String(Files.readAllBytes(createDeployments));
+			content = content.replaceAll("DEPLOYMENT_SIZES", providerConfig.getDeploymentSize().stream().map(i -> i.toString()).collect(Collectors.joining(" ")));
+			content = content.replaceAll("MEMORY_SIZES", providerConfig.getMemorySize().stream().map(i -> i.toString()).collect(Collectors.joining(" ")));
+			Files.write(createDeployments, content.getBytes());
+		} catch (IOException e) {
+			throw new SeMoDeException("File is not readable or writable: " + createDeployments.toString(), e);
 		}
 	}
 

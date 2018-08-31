@@ -14,6 +14,7 @@ public class ProviderConfig {
 	private String name;
 	private List<Integer> memorySize;
 	private List<String> language;
+	private List<Integer> deploymentSize;
 
 	public ProviderConfig() {
 	}
@@ -42,13 +43,22 @@ public class ProviderConfig {
 		this.language = language;
 	}
 
+	public List<Integer> getDeploymentSize() {
+		return deploymentSize;
+	}
+
+	public void setDeploymentSize(List<Integer> deploymentSize) {
+		this.deploymentSize = deploymentSize;
+	}
+
 	@Override
 	public String toString() {
-		return "Provider [name=" + name + ", memorySize=" + memorySize + ", language=" + language + "]";
+		return "ProviderConfig [name=" + name + ", memorySize=" + memorySize + ", language=" + language
+				+ ", deploymentSize=" + deploymentSize + "]";
 	}
 
 	public static List<String> jsonProviderProperties(){
-		return Arrays.asList("name", "memorySize", "language");
+		return Arrays.asList("name", "memorySize", "language", "deploymentSize");
 	}
 	
 	public void validate(Map<String, ProviderConfig> validConfigs) throws SeMoDeException {
