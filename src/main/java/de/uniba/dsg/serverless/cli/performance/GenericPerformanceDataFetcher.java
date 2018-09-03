@@ -74,34 +74,12 @@ public interface GenericPerformanceDataFetcher {
 
 					if (providerEvent != null) {
 						writer.write(providerEvent.toCSVString());
-					} else {
-						// there was an error due to api limitations or other problems
-						// where the platform does not return a valid response with
-						// the platform id included. The idea is to get these matching due
-						// to the local start time and the relation to the start time of the
-						// cloud function.
-						Optional<WritableEvent> matchingEvent = this.findMatchingEvent(restEvent, performanceProviderMap);
-						if (matchingEvent.isPresent()) {
-							writer.write(matchingEvent.get().toCSVString());
-						}
-					}
+					} 
 					writer.write(System.lineSeparator());
 				}
 			}
 		} catch (IOException e) {
 			throw new SeMoDeException("Writing to file failed");
 		}
-	}
-
-	default Optional<WritableEvent> findMatchingEvent(WritableEvent localRestEvent, Map<String, WritableEvent> performanceProviderMap) {
-		long localRestTime = localRestEvent.getStartTime().toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli();
-		for(String key : performanceProviderMap.keySet() ) {
-			// one second is big enough to get the right matching and small enough to avoid false matchings.
-			if ( Math.abs( localRestTime - performanceProviderMap.get(key).getStartTime().toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli() ) < NETWORK_AND_PLATFORM_DELAY){
-				return Optional.of(performanceProviderMap.get(key));
-			}
-		}
-		
-		return Optional.empty();
 	}
 }

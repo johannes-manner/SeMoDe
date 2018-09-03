@@ -75,4 +75,9 @@ public class PerformanceData implements WritableEvent{
 		return this.startTime;
 	}
 
+	@Override
+	public String getPlatformId() {
+		return this.requestId;
+	}
+
 }
