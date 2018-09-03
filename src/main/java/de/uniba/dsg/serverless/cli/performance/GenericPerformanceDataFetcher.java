@@ -22,13 +22,13 @@ public interface GenericPerformanceDataFetcher {
 
 	public static final double NETWORK_AND_PLATFORM_DELAY = 5000.0;
 
-	default String generateFileName(String functionName) {
+	default String generateFileName(String provider, String functionName) {
 		String dateText = new SimpleDateFormat("MM-dd-HH-mm-ss").format(new Date());
-		String fileName = functionName + "-" + dateText + ".csv";
+		String fileName = provider + "-" + functionName + "-" + dateText + ".csv";
 		return fileName;
 	}
 
-	default void writePerformanceDataToFile(LogHandler logHandler, String functionName, Optional<String> restFile)
+	default void writePerformanceDataToFile(String provider, LogHandler logHandler, String functionName, Optional<String> restFile)
 			throws SeMoDeException {
 
 		Map<String, WritableEvent> restMap = new HashMap<>();
@@ -39,7 +39,7 @@ public interface GenericPerformanceDataFetcher {
 			restMap = restAnalyzer.extractRESTEvents();
 		}
 
-		this.writePerformanceDataToFile(this.generateFileName(functionName), restMap, logHandler.getPerformanceData());
+		this.writePerformanceDataToFile(this.generateFileName(provider, functionName), restMap, logHandler.getPerformanceData());
 	}
 
 	default void writePerformanceDataToFile(String fileName, Map<String, WritableEvent> restMap,

@@ -261,7 +261,7 @@ public class BenchmarkSetupController {
 	public void fetchPerformanceData() throws SeMoDeException {
 		
 		FetchingCommandGenerator fcg = new FetchingCommandGenerator(setup.pathToBenchmarkingCommands, setup.pathToFetchingCommands, setup.pathToEndpoints, setup.config.getLanguageConfigMap());
-
+		
 		for (String provider : setup.userProviders.keySet()) {
 			for (String language : setup.userProviders.get(provider).getLanguage()) {
 				fcg.fetchCommands(provider, language);

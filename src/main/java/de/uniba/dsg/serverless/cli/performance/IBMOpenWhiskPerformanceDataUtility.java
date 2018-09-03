@@ -52,7 +52,7 @@ public class IBMOpenWhiskPerformanceDataUtility extends CustomUtility implements
 				restFile = Optional.empty();
 			}
 			
-			this.writePerformanceDataToFile(logHandler, functionName, restFile);
+			this.writePerformanceDataToFile("ibm", logHandler, functionName, restFile);
 		} catch (SeMoDeException e) {
 			logger.fatal(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!"
 					: e.getCause().getMessage()));

@@ -30,33 +30,36 @@ public class FetchingCommandGenerator {
 	private final Path pathToFetchingCommands;
 	private final Path pathToEndpoints;
 	private final Map<String, LanguageConfig> languageConfig;
+	private final String startTime;
+	private final String endTime;
 	
 	public FetchingCommandGenerator(Path pathToBenchmarkFolder, Path pathToFetchingCommands, Path pathToEndpoints, Map<String, LanguageConfig> languageConfig) {
 		this.pathToBenchmarkLogs = Paths.get(pathToBenchmarkFolder.toString(), "logs");
 		this.pathToFetchingCommands = pathToFetchingCommands;
 		this.pathToEndpoints = pathToEndpoints;
 		this.languageConfig = languageConfig;
+		
+		// provider independent parameters
+		System.out.println("Specify a start time in the format YYYY-MM-DD_HH:MM");
+		startTime = scanner.nextLine();
+		System.out.println("Specify a end time in the format YYYY-MM-DD_HH:MM");
+		endTime = scanner.nextLine();
 	}
-	
 	
 	public void fetchCommands(String provider, String language) throws SeMoDeException {
 
-		// provider independent parameters
-		System.out.println("Specify a start time in the format YYYY-MM-DD_HH:MM");
-		String startTime = scanner.nextLine();
-		System.out.println("Specify a end time in the format YYYY-MM-DD_HH:MM");
-		String endTime = scanner.nextLine();
+		String providerLanguage = provider + "-" + language;
 		
 		// provider specific parameters
 		if("aws".equals(provider)) {
-			System.out.println("Specify the region, where the functions were executed");
+			System.out.println("(" + providerLanguage + ") Specify the region, where the functions were executed");
 			String region = scanner.nextLine();
 			
 			this.generateCommands(provider, language, startTime, endTime, region);
 		}else if("azure".equals(provider)){
-			System.out.println("Specify the application insights key folder");
+			System.out.println("(" + providerLanguage + ") Specify the application insights key folder");
 			String insightsFolder = scanner.nextLine();
-			System.out.println("Specify the function name");
+			System.out.println("(" + providerLanguage + ") Specify the function name");
 			String functionName = scanner.nextLine();
 			if(functionName == null) {
 				functionName = "";
@@ -66,9 +69,9 @@ public class FetchingCommandGenerator {
 		} else if ("google".equals(provider)) {
 			this.generateCommands(provider, language, startTime, endTime);
 		} else if ("ibm".equals(provider)) {
-			System.out.println("Specify the authorization key to get log infos from ibm openwhisk");
+			System.out.println("(" + providerLanguage + ") Specify the authorization key to get log infos from ibm openwhisk");
 			String authorizationKey = scanner.nextLine();
-			System.out.println("Specify the namespace (defaultOrg_defaultSpace)");
+			System.out.println("(" + providerLanguage + ") Specify the namespace (defaultOrg_defaultSpace)");
 			String namespace = scanner.nextLine();
 			
 			this.generateCommands(provider, language, startTime, endTime, authorizationKey, namespace);

@@ -50,7 +50,7 @@ public class GooglePerformanceDataUtility extends CustomUtility implements Gener
 				restFile = Optional.empty();
 			}
 
-			this.writePerformanceDataToFile(logHandler, functionName, restFile);
+			this.writePerformanceDataToFile("google", logHandler, functionName, restFile);
 			
 		} catch (SeMoDeException e) {
 			logger.fatal(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!" : e.getCause().getMessage()));
