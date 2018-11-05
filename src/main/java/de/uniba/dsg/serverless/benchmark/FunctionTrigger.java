@@ -33,9 +33,10 @@ public class FunctionTrigger implements Callable<String> {
 	private static final String CSV_SEPARATOR = System.getProperty("CSV_SEPARATOR");
 
 	// used in the response header element to map the executions on the cloud
-	// platform
+	// platform and containerId
 	private static final String PLATFORM_ID = "platformId";
-
+	private static final String CONTAINER_ID = "containerId";
+	
 	private static final ObjectReader jsonReader = new ObjectMapper().reader();
 
 	private static final int REQUEST_PASSED_STATUS = 200;
@@ -98,15 +99,18 @@ public class FunctionTrigger implements Callable<String> {
 					"Request exited with an error: " + response.getStatus() + " - " + response.getStatusInfo());
 		}
 
-		// the response entity has to be a json representation with a platformId and a
-		// result key
+		// the response entity has to be a json representation with a platformId,
+		// result key and a containerId
 		String responseEntity = response.readEntity(String.class);
 		String platformId = "";
-
+		String containerId = "";
 		try {
 			JsonNode responseNode = jsonReader.readTree(responseEntity);
 			if (responseNode.has(PLATFORM_ID)) {
 				platformId = responseNode.get(PLATFORM_ID).asText();
+			}
+			if(responseNode.has(CONTAINER_ID)) {
+				containerId = responseNode.get(CONTAINER_ID).asText();
 			}
 		} catch (IOException e) {
 			// swallow the exception, because the platformId is an optional parameter and
@@ -117,7 +121,8 @@ public class FunctionTrigger implements Callable<String> {
 
 		String responseValue = response.getStatus() + " " + responseEntity;
 
-		logger.info(platformId + CSV_SEPARATOR + uuid + CSV_SEPARATOR + "PLATFORMID");
+		logger.info("PLATFORMID" + CSV_SEPARATOR + uuid + CSV_SEPARATOR +  platformId);
+		logger.info("CONTAINERID" + CSV_SEPARATOR + uuid + CSV_SEPARATOR +  containerId);
 
 		return responseValue;
 	}

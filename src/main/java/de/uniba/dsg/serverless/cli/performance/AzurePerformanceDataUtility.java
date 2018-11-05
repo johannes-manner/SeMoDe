@@ -50,7 +50,7 @@ public final class AzurePerformanceDataUtility extends CustomUtility implements 
 				restFile = Optional.empty();
 			}
 
-			this.writePerformanceDataToFile(azureLogHandler, serviceName, restFile);
+			this.writePerformanceDataToFile("azure", azureLogHandler, serviceName, restFile);
 		} catch (SeMoDeException e) {
 			logger.fatal(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!" : e.getCause().getMessage()));
 		}

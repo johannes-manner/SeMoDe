@@ -14,4 +14,6 @@ public interface WritableEvent {
 	public String getCSVMetadata();
 	
 	public String toCSVString();
+	
+	public String getPlatformId();
 }

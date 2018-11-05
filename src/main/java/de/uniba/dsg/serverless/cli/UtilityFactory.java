@@ -12,13 +12,20 @@ import de.uniba.dsg.serverless.cli.performance.IBMOpenWhiskPerformanceDataUtilit
 public class UtilityFactory {
 
 	private static List<CustomUtility> utilityList = Arrays.asList(
+			
+			// fetcher for performance data
 			new AWSPerformanceDataUtility("awsPerformanceData"),
 			new AzurePerformanceDataUtility("azurePerformanceData"),
-			new GooglePerformanceDataUtility("googlePerformanceData"),
 			new IBMOpenWhiskPerformanceDataUtility("openWhiskPerformanceData"),
-			new SeMoDeUtility("awsSeMoDe"),
+			new GooglePerformanceDataUtility("googlePerformanceData"),
+			
+			// parts of benchmarking
+			new PipelineSetupUtility("pipelineSetup"),
 			new BenchmarkUtility("benchmark"),
-			new DeploymentSizeUtility("deploymentSize")
+			new DeploymentSizeUtility("deploymentSize"),
+			
+			// automated test generation
+			new SeMoDeUtility("awsSeMoDe")			
 	);
 
 	public static Optional<CustomUtility> getUtilityClass(String name) {

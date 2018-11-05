@@ -1,0 +1,17 @@
+{
+  "name": "dsg-benchmark",
+  "version": "1.0.0",
+  "description": "Fibonacci benchmark in JavaScript for Azure Functions",
+  "main": "fibonacci.js",
+  "keywords": [
+    "azure",
+    "fibonacci"
+  ],
+  "devDependencies": {
+    "serverless-azure-functions": "*"
+  },
+  "dependencies": {
+    "serverless": "1.27.3",
+    "uuid" : "3.2.1"
+  }
+}

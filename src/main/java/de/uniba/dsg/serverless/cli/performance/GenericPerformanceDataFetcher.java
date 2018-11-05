@@ -22,13 +22,13 @@ public interface GenericPerformanceDataFetcher {
 
 	public static final double NETWORK_AND_PLATFORM_DELAY = 5000.0;
 
-	default String generateFileName(String functionName) {
+	default String generateFileName(String provider, String functionName) {
 		String dateText = new SimpleDateFormat("MM-dd-HH-mm-ss").format(new Date());
-		String fileName = functionName + "-" + dateText + ".csv";
+		String fileName = provider + "-" + functionName + "-" + dateText + ".csv";
 		return fileName;
 	}
 
-	default void writePerformanceDataToFile(LogHandler logHandler, String functionName, Optional<String> restFile)
+	default void writePerformanceDataToFile(String provider, LogHandler logHandler, String functionName, Optional<String> restFile)
 			throws SeMoDeException {
 
 		Map<String, WritableEvent> restMap = new HashMap<>();
@@ -39,7 +39,7 @@ public interface GenericPerformanceDataFetcher {
 			restMap = restAnalyzer.extractRESTEvents();
 		}
 
-		this.writePerformanceDataToFile(this.generateFileName(functionName), restMap, logHandler.getPerformanceData());
+		this.writePerformanceDataToFile(this.generateFileName(provider, functionName), restMap, logHandler.getPerformanceData());
 	}
 
 	default void writePerformanceDataToFile(String fileName, Map<String, WritableEvent> restMap,
@@ -74,34 +74,12 @@ public interface GenericPerformanceDataFetcher {
 
 					if (providerEvent != null) {
 						writer.write(providerEvent.toCSVString());
-					} else {
-						// there was an error due to api limitations or other problems
-						// where the platform does not return a valid response with
-						// the platform id included. The idea is to get these matching due
-						// to the local start time and the relation to the start time of the
-						// cloud function.
-						Optional<WritableEvent> matchingEvent = this.findMatchingEvent(restEvent, performanceProviderMap);
-						if (matchingEvent.isPresent()) {
-							writer.write(matchingEvent.get().toCSVString());
-						}
-					}
+					} 
 					writer.write(System.lineSeparator());
 				}
 			}
 		} catch (IOException e) {
 			throw new SeMoDeException("Writing to file failed");
 		}
-	}
-
-	default Optional<WritableEvent> findMatchingEvent(WritableEvent localRestEvent, Map<String, WritableEvent> performanceProviderMap) {
-		long localRestTime = localRestEvent.getStartTime().toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli();
-		for(String key : performanceProviderMap.keySet() ) {
-			// one second is big enough to get the right matching and small enough to avoid false matchings.
-			if ( Math.abs( localRestTime - performanceProviderMap.get(key).getStartTime().toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli() ) < NETWORK_AND_PLATFORM_DELAY){
-				return Optional.of(performanceProviderMap.get(key));
-			}
-		}
-		
-		return Optional.empty();
 	}
 }

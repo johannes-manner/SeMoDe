@@ -136,7 +136,7 @@ public class GoogleLogHandler implements LogHandler {
 		LocalDateTime endTime = LocalDateTime.MIN;
 		double preciseDuration = -1.0;
 		String platformId= "";
-		String instanceId = "";
+		String containerId = "";
 		
 		for(LogEntry entry : cohesiveEvent) {
 			Payload payload = entry.getPayload();
@@ -152,7 +152,7 @@ public class GoogleLogHandler implements LogHandler {
 					try {
 						JsonNode node = om.readTree(data.split(SEMODE_CUSTOM_LOG_REGEX)[1]);
 						platformId = this.extractStringValue(node, "platformId");
-						instanceId = this.extractStringValue(node, "instanceId");
+						containerId = this.extractStringValue(node, "containerId");
 					} catch (IOException e) {
 						throw new SeMoDeException("Exception while reading the custom json message from google API", e);
 					}
@@ -166,7 +166,7 @@ public class GoogleLogHandler implements LogHandler {
 		}
 		
 		PerformanceData data = new PerformanceData(this.functionName,
-				instanceId,
+				containerId,
 				platformId,
 				startTime,
 				endTime,

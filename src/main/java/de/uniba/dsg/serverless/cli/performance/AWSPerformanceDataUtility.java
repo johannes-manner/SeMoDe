@@ -45,7 +45,7 @@ public final class AWSPerformanceDataUtility extends CustomUtility implements Ge
 				restFile = Optional.empty();
 			}
 			
-			this.writePerformanceDataToFile(logHandler, logGroupName.substring("/aws/lambda/".length()), restFile);
+			this.writePerformanceDataToFile("aws", logHandler, logGroupName.substring("/aws/lambda/".length()), restFile);
 			
 		} catch (SeMoDeException e) {
 			logger.fatal(e.getMessage() + "Cause: "

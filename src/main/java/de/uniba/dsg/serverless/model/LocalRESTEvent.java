@@ -2,16 +2,34 @@ package de.uniba.dsg.serverless.model;
 
 import java.time.LocalDateTime;
 
-public class LocalRESTEvent implements WritableEvent{
+public class LocalRESTEvent implements WritableEvent {
 
-	private final String platformId;
-	private final LocalDateTime startTime;
-	private final LocalDateTime endTime;
+	private String platformId;
+	private String containerId;
+	private LocalDateTime startTime;
+	private LocalDateTime endTime;
+	private boolean erroneous = false;
 
-	public LocalRESTEvent(String platformId, LocalDateTime startTime, LocalDateTime endTime) {
+	public LocalRESTEvent() {
+	}
+
+	public LocalRESTEvent(String platformId, String containerId, LocalDateTime startTime, LocalDateTime endTime) {
 		super();
 		this.platformId = platformId;
+		this.containerId = containerId;
 		this.startTime = startTime;
+		this.endTime = endTime;
+	}
+
+	public void setPlatformId(String platformId) {
+		this.platformId = platformId;
+	}
+
+	public void setStartTime(LocalDateTime startTime) {
+		this.startTime = startTime;
+	}
+
+	public void setEndTime(LocalDateTime endTime) {
 		this.endTime = endTime;
 	}
 
@@ -27,19 +45,31 @@ public class LocalRESTEvent implements WritableEvent{
 		return endTime;
 	}
 
-	@Override
-	public String toString() {
-		return "LocalRESTEvent [platformId=" + platformId + ", startTime=" + startTime + ", endTime=" + endTime + "]";
+	public String getContainerId() {
+		return containerId;
+	}
+
+	public void setContainerId(String containerId) {
+		this.containerId = containerId;
+	}
+
+	public boolean isErroneous() {
+		return erroneous;
+	}
+
+	public void setErroneous(boolean erroneous) {
+		this.erroneous = erroneous;
 	}
 
 	@Override
 	public String getCSVMetadata() {
-		return "PlatformId" + CSV_SEPARATOR + "StartRESTTime" + CSV_SEPARATOR + "EndRESTTime" + CSV_SEPARATOR;
+		return "PlatformId" + CSV_SEPARATOR + "ContainerId" + CSV_SEPARATOR + "StartRESTTime" + CSV_SEPARATOR + "EndRESTTime" + CSV_SEPARATOR + "Erroneous" + CSV_SEPARATOR;
 	}
 
 	@Override
 	public String toCSVString() {
-		return this.platformId + CSV_SEPARATOR + this.startTime.format(CSV_FORMATTER) + CSV_SEPARATOR + this.endTime.format(CSV_FORMATTER) + CSV_SEPARATOR;
+		return this.platformId + CSV_SEPARATOR + this.containerId + CSV_SEPARATOR + this.startTime.format(CSV_FORMATTER) + CSV_SEPARATOR
+				+ this.endTime.format(CSV_FORMATTER) + CSV_SEPARATOR + this.erroneous + CSV_SEPARATOR;
 	}
 
 }

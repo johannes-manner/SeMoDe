@@ -78,7 +78,7 @@ public class IBMLogHandler implements LogHandler {
 					memoryUsed = n.get("value").get("memory").asInt();
 				}
 			}
-			PerformanceData data = new PerformanceData(this.functionName, result.get("instanceId").asText(),
+			PerformanceData data = new PerformanceData(this.functionName, result.get("containerId").asText(),
 					result.get("platformId").asText(),
 					LocalDateTime.ofInstant(Instant.ofEpochMilli(activation.get("start").asLong()),
 							ZoneId.systemDefault()),
