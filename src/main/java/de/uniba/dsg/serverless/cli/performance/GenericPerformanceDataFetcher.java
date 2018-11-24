@@ -6,8 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.time.ZoneOffset;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,8 +26,8 @@ public interface GenericPerformanceDataFetcher {
 		return fileName;
 	}
 
-	default void writePerformanceDataToFile(String provider, LogHandler logHandler, String functionName, Optional<String> restFile)
-			throws SeMoDeException {
+	default void writePerformanceDataToFile(String provider, LogHandler logHandler, String functionName,
+			Optional<String> restFile) throws SeMoDeException {
 
 		Map<String, WritableEvent> restMap = new HashMap<>();
 
@@ -39,7 +37,8 @@ public interface GenericPerformanceDataFetcher {
 			restMap = restAnalyzer.extractRESTEvents();
 		}
 
-		this.writePerformanceDataToFile(this.generateFileName(provider, functionName), restMap, logHandler.getPerformanceData());
+		this.writePerformanceDataToFile(this.generateFileName(provider, functionName), restMap,
+				logHandler.getPerformanceData());
 	}
 
 	default void writePerformanceDataToFile(String fileName, Map<String, WritableEvent> restMap,
@@ -53,33 +52,63 @@ public interface GenericPerformanceDataFetcher {
 			Path file = Files.createFile(Paths.get(OUTPUT_DIRECTORY + "/" + fileName));
 			try (BufferedWriter writer = Files.newBufferedWriter(file)) {
 
-				// Writing header line
-				for (Map<String, WritableEvent> map : Arrays.asList(restMap, performanceProviderMap)) {
-					if (map.isEmpty()) {
-						throw new SeMoDeException(
-								"The platform map is empty. The most likely reason is the wrong start and end time.");
-					} else {
-						String key = map.keySet().iterator().next();
-						writer.write(map.get(key).getCSVMetadata());
-					}
+				// If no platform data is available - exit the program
+				if (performanceProviderMap.isEmpty()) {
+					throw new SeMoDeException(
+							"The platform map is empty. The most likely reason is the wrong start and end time.");
 				}
-				writer.write(System.lineSeparator());
 
-				// Writing rows
-				for (String key : restMap.keySet()) {
-					WritableEvent restEvent = restMap.get(key);
-					writer.write(restEvent.toCSVString());
-
-					WritableEvent providerEvent = performanceProviderMap.get(key);
-
-					if (providerEvent != null) {
-						writer.write(providerEvent.toCSVString());
-					} 
-					writer.write(System.lineSeparator());
+				if (restMap.isEmpty()) {
+					this.writeOnlyPerformanceDataToFile(writer, performanceProviderMap);
+				} else {
+					this.writeRESTAndPerformanceDataToFile(writer, restMap, performanceProviderMap);
 				}
+
 			}
 		} catch (IOException e) {
 			throw new SeMoDeException("Writing to file failed");
 		}
+	}
+
+	default void writeRESTAndPerformanceDataToFile(BufferedWriter writer, Map<String, WritableEvent> restMap,
+			Map<String, WritableEvent> performanceProviderMap) throws IOException {
+
+		// write header lines
+		this.writeHeaderLines(writer, restMap);
+		this.writeHeaderLines(writer, performanceProviderMap);
+
+		writer.write(System.lineSeparator());
+
+		// Writing rows
+		for (String key : restMap.keySet()) {
+			WritableEvent restEvent = restMap.get(key);
+			writer.write(restEvent.toCSVString());
+
+			WritableEvent providerEvent = performanceProviderMap.get(key);
+
+			if (providerEvent != null) {
+				writer.write(providerEvent.toCSVString());
+			}
+			writer.write(System.lineSeparator());
+		}
+	}
+
+	default void writeOnlyPerformanceDataToFile(BufferedWriter writer,
+			Map<String, WritableEvent> performanceProviderMap) throws IOException {
+		
+		// Writing header lines
+		this.writeHeaderLines(writer, performanceProviderMap);
+		writer.write(System.lineSeparator());
+		
+		// Writing rows
+		for(String key : performanceProviderMap.keySet()) {
+			writer.write(performanceProviderMap.get(key).toCSVString());
+			writer.write(System.lineSeparator());
+		}
+	}
+
+	default void writeHeaderLines(BufferedWriter writer, Map<String, WritableEvent> map) throws IOException {
+		String key = map.keySet().iterator().next();
+		writer.write(map.get(key).getCSVMetadata());
 	}
 }
