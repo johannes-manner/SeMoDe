@@ -5,7 +5,7 @@ DEPLOYMENT_DIR=deployment
 #MEMORY_SETTINGS=(128 256 512 1024 2048 3008)
 SERVICE_SIZES=(initial DEPLOYMENT_SIZES)
 MEMORY_SETTINGS=(MEMORY_SIZES)
-CREDENTIALS=
+CREDENTIALS=C:/Users/jmanner/gcloud/serverless-framework.json
 
 if [ -z "$1" ]; then
     echo "Usage: createDeployments <PATH_TO_SEMODE.JAR>"
