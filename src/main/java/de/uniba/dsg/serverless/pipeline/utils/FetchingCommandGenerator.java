@@ -32,12 +32,14 @@ public class FetchingCommandGenerator {
 	private final Map<String, LanguageConfig> languageConfig;
 	private final String startTime;
 	private final String endTime;
+	private final String seMoDeJarLocation;
 	
-	public FetchingCommandGenerator(Path pathToBenchmarkFolder, Path pathToFetchingCommands, Path pathToEndpoints, Map<String, LanguageConfig> languageConfig) {
+	public FetchingCommandGenerator(Path pathToBenchmarkFolder, Path pathToFetchingCommands, Path pathToEndpoints, Map<String, LanguageConfig> languageConfig, String seMoDeJarLocation) {
 		this.pathToBenchmarkLogs = Paths.get(pathToBenchmarkFolder.toString(), "logs");
 		this.pathToFetchingCommands = pathToFetchingCommands;
 		this.pathToEndpoints = pathToEndpoints;
 		this.languageConfig = languageConfig;
+		this.seMoDeJarLocation = seMoDeJarLocation;
 		
 		// provider independent parameters
 		System.out.println("Specify a start time in the format YYYY-MM-DD_HH:MM");
@@ -150,7 +152,7 @@ public class FetchingCommandGenerator {
 			// Performance data is missing when executing in parallel
 			// hard coded relative paths, because also the folder structure is created in this prototype
 			// there should be no change due to the folder structure
-			commands.add("java -jar ../../../build/libs/SeMoDe.jar awsPerformanceData " + region + " " + logGroup + " "
+			commands.add("java -jar "  + this.seMoDeJarLocation + " awsPerformanceData " + region + " " + logGroup + " "
 					+ startTime + " " + endTime + " " + "../benchmarkingCommands/logs/" + logFile);
 		}
 
@@ -165,7 +167,7 @@ public class FetchingCommandGenerator {
 		for(String function : functionNames) {
 			String logFile = logFilesMap.get(function);
 			
-			commands.add("start cmd /C java -jar ../../../build/libs/SeMoDe.jar googlePerformanceData " + function + " " + startTime + " " + endTime + " " +  "../benchmarkingCommands/logs/" + logFile);
+			commands.add("start cmd /C java -jar " + this.seMoDeJarLocation + " googlePerformanceData " + function + " " + startTime + " " + endTime + " " +  "../benchmarkingCommands/logs/" + logFile);
 		}
 		
 		return commands;
@@ -179,7 +181,7 @@ public class FetchingCommandGenerator {
 		for(String function : functionNames) {
 			String logFile = logFilesMap.get(function);
 			
-			commands.add("start cmd /C java -jar ../../../build/libs/SeMoDe.jar openWhiskPerformanceData " + namespace + " " + function + "-dev-" + function + " " + authorizationKey + " " + startTime + " " + endTime + " " +  "../benchmarkingCommands/logs/" + logFile);
+			commands.add("start cmd /C java -jar " + this.seMoDeJarLocation + " openWhiskPerformanceData " + namespace + " " + function + "-dev-" + function + " " + authorizationKey + " " + startTime + " " + endTime + " " +  "../benchmarkingCommands/logs/" + logFile);
 		}
 		
 		return commands;
@@ -204,11 +206,11 @@ public class FetchingCommandGenerator {
 			// hard coded relative paths, because also the folder structure is created in this prototype
 			// there should be no change due to the folder structure
 			if (functionName.isPresent()) {
-				commands.add("start cmd /C java -jar ../../../build/libs/SeMoDe.jar azurePerformanceData " + apiKey[0] + " "
+				commands.add("start cmd /C java -jar " + this.seMoDeJarLocation + " azurePerformanceData " + apiKey[0] + " "
 						+ apiKey[1] + " " + serviceName + " " + functionName.get() + " " + startTime + " " + endTime
 						+ " " + "../benchmarkingCommands/logs/" + logFile);
 			} else {
-				commands.add("start cmd /C java -jar ../../../build/libs/SeMoDe.jar azurePerformanceData " + apiKey[0] + " "
+				commands.add("start cmd /C java -jar " + this.seMoDeJarLocation + " azurePerformanceData " + apiKey[0] + " "
 						+ apiKey[1] + " " + serviceName + " " + serviceName + " " + startTime + " " + endTime + " "
 						+ "../benchmarkingCommands/logs/" + logFile);
 			}

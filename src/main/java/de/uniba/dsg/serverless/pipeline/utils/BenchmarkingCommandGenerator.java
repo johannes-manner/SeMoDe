@@ -16,12 +16,13 @@ public class BenchmarkingCommandGenerator {
 	private final Path benchmarkCommandPath;
 	private final Path endpointsPath;
 	private final BenchmarkConfig benchmarkConfig;
-	private static final String SEMODE_JAR_LOCATION = "../../../build/libs/SeMoDe.jar";
+	private final String seMoDeJarLocation;
 
-	public BenchmarkingCommandGenerator(Path benchmarkCommandPath, Path endpointsPath, BenchmarkConfig benchmarkConfig) {
+	public BenchmarkingCommandGenerator(Path benchmarkCommandPath, Path endpointsPath, BenchmarkConfig benchmarkConfig, String seMoDeJarLocation) {
 		this.benchmarkCommandPath = benchmarkCommandPath;
 		this.endpointsPath = endpointsPath;
 		this.benchmarkConfig = benchmarkConfig;
+		this.seMoDeJarLocation = seMoDeJarLocation;
 	}
 
 	public void generateCommands(String language, String provider) throws SeMoDeException {
@@ -31,7 +32,7 @@ public class BenchmarkingCommandGenerator {
 		Path outputCommands = Paths.get(this.benchmarkCommandPath.toString(), providerLanguage + ".bat");
 		Path inputEndpoints = Paths.get(this.endpointsPath.toString(), providerLanguage);
 
-		String firstPart = "start cmd /k java -jar " + SEMODE_JAR_LOCATION + " benchmark";
+		String firstPart = "start cmd /k java -jar " + this.seMoDeJarLocation + " benchmark";
 		// TODO params.json - how to deal with this file - locate in benchmarking commands folder
 		String jsonInput = "params.json";
 

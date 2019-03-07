@@ -30,7 +30,6 @@ import de.uniba.dsg.serverless.pipeline.utils.FetchingCommandGenerator;
 public class BenchmarkSetupController {
 
 	private static final Logger logger = LogManager.getLogger(BenchmarkSetupController.class.getName());
-	private static final String SEMODE_JAR_LOCATION = "../../../../build/libs/SeMoDe.jar";
 	private static final String bashExeLocation = "C:\\Program Files\\Git\\bin\\bash.exe";
 	
 	private final ObjectMapper om;
@@ -148,10 +147,10 @@ public class BenchmarkSetupController {
 		}
 		
 		// TODO run a single process builder for each provider / language combination
-
+		
 		// create Deployments
 		System.out.println("creating deployment sizes");
-		executeBashCommand("bash createDeployments " + SEMODE_JAR_LOCATION, "-preparation");
+		executeBashCommand("bash createDeployments " + this.setup.getSeMoDeJarLocation(), "-preparation");
 
 		// deployment
 		System.out.println("Deploying created functions... (may take a while)");
@@ -249,7 +248,7 @@ public class BenchmarkSetupController {
 		// auto save to store the benchmark
 		this.saveBenchmarkSetup();
 		
-		BenchmarkingCommandGenerator bcg = new BenchmarkingCommandGenerator(setup.pathToBenchmarkingCommands, setup.pathToEndpoints, setup.benchmarkConfig);
+		BenchmarkingCommandGenerator bcg = new BenchmarkingCommandGenerator(setup.pathToBenchmarkingCommands, setup.pathToEndpoints, setup.benchmarkConfig, setup.getSeMoDeJarLocation());
 		
 		for (String provider : setup.userProviders.keySet()) {
 			for (String language : setup.userProviders.get(provider).getLanguage()) {
@@ -260,7 +259,7 @@ public class BenchmarkSetupController {
 
 	public void fetchPerformanceData() throws SeMoDeException {
 		
-		FetchingCommandGenerator fcg = new FetchingCommandGenerator(setup.pathToBenchmarkingCommands, setup.pathToFetchingCommands, setup.pathToEndpoints, setup.config.getLanguageConfigMap());
+		FetchingCommandGenerator fcg = new FetchingCommandGenerator(setup.pathToBenchmarkingCommands, setup.pathToFetchingCommands, setup.pathToEndpoints, setup.config.getLanguageConfigMap(), setup.getSeMoDeJarLocation());
 		
 		for (String provider : setup.userProviders.keySet()) {
 			for (String language : setup.userProviders.get(provider).getLanguage()) {
