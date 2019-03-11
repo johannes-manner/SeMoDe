@@ -8,6 +8,7 @@ import de.uniba.dsg.serverless.cli.performance.AWSPerformanceDataUtility;
 import de.uniba.dsg.serverless.cli.performance.AzurePerformanceDataUtility;
 import de.uniba.dsg.serverless.cli.performance.GooglePerformanceDataUtility;
 import de.uniba.dsg.serverless.cli.performance.IBMOpenWhiskPerformanceDataUtility;
+import de.uniba.dsg.serverless.simulation.load.SimulationUtility;
 
 public class UtilityFactory {
 
@@ -25,7 +26,10 @@ public class UtilityFactory {
 			new DeploymentSizeUtility("deploymentSize"),
 			
 			// automated test generation
-			new SeMoDeUtility("awsSeMoDe")			
+			new SeMoDeUtility("awsSeMoDe"),		
+			
+			// simulation
+			new SimulationUtility("loadSimulation")
 	);
 
 	public static Optional<CustomUtility> getUtilityClass(String name) {
