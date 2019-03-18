@@ -69,9 +69,11 @@ public class SimulationUtility extends CustomUtility {
 		for (SimulationInput simInput : simInputs) {
 
 			LoadPatternSimulator sim = new LoadPatternSimulator(interpreter.getDoubleValues());
-			Map<Integer, Integer> containerDistribution = sim.simulate(simInput);
+			Map<String, Map<Integer, Integer>> simulationResults = sim.simulate(simInput);
 
-			values.add(new SimulationInputAndDistributionMap(simInput.toString(), containerDistribution));
+			for (String key : simulationResults.keySet()) {
+				values.add(new SimulationInputAndDistributionMap(key, simulationResults.get(key)));
+			}
 		}
 
 		this.createSimulationDirectory();
@@ -90,38 +92,36 @@ public class SimulationUtility extends CustomUtility {
 
 	}
 
-	private void writeDistributionToFile(String fileName, List<SimulationInputAndDistributionMap> values) throws SeMoDeException {
+	private void writeDistributionToFile(String fileName, List<SimulationInputAndDistributionMap> values)
+			throws SeMoDeException {
 		List<String> lines = new ArrayList<>();
-		
+
 		// find the maximum time in all the simulation steps
-		Optional<Integer> max = values.stream()
-			.map(s -> s.values.keySet().stream().max(Integer::compareTo))
-			.filter(op -> op.isPresent())
-			.map(op -> op.get())
-			.max(Integer::compareTo);
-		
-		if(max.isPresent() == false) {
+		Optional<Integer> max = values.stream().map(s -> s.values.keySet().stream().max(Integer::compareTo))
+				.filter(op -> op.isPresent()).map(op -> op.get()).max(Integer::compareTo);
+
+		if (max.isPresent() == false) {
 			throw new SeMoDeException("There is no value present in none of the provided maps");
 		}
-		
+
 		int maxTime = max.get();
 		String headline = "Timestamp;";
-		for (SimulationInputAndDistributionMap simMap : values ) {
+		for (SimulationInputAndDistributionMap simMap : values) {
 			headline += simMap.name + ";";
 		}
 		lines.add(headline);
-		
-		for ( int i = 0 ; i < maxTime ; i ++ ) {
+
+		for (int i = 0; i <= maxTime; i++) {
 			String line = "" + i + ";";
-			
-			for (SimulationInputAndDistributionMap simMap : values ) {
-				if ( simMap.values.containsKey(i)) {
+
+			for (SimulationInputAndDistributionMap simMap : values) {
+				if (simMap.values.containsKey(i)) {
 					line += simMap.values.get(i) + ";";
 				} else {
 					line += "0;";
 				}
 			}
-				
+
 			lines.add(line);
 		}
 

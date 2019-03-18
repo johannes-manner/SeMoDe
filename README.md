@@ -29,6 +29,10 @@ local timestamps via log4j2 are used on the execution machine.
 
 Further information [here](docu/benchmark.md)
 
+### Simulation Aspects
+
+Further information [here](simulation/benchmark.md)
+
 ##### Usefull infos and links
 
 Issue with the google cloud function serverless plugin.
