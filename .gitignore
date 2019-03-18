@@ -111,6 +111,7 @@ logs/
 setups/
 benchmarkSetting/
 simulation/*.csv
+paper/
 
 
 # User-specific stuff

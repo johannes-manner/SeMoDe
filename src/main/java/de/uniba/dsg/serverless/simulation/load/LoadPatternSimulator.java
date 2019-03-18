@@ -13,7 +13,7 @@ import de.uniba.dsg.serverless.simulation.load.model.ContainerInstance;
 import de.uniba.dsg.serverless.simulation.load.model.SimulationInput;
 
 public class LoadPatternSimulator {
-	
+
 	private static final Logger logger = LogManager.getLogger(LoadPatternSimulator.class);
 
 	private final List<Double> inputValues;
@@ -22,16 +22,18 @@ public class LoadPatternSimulator {
 		this.inputValues = inputValues;
 	}
 
-	public Map<Integer, Integer> simulate(SimulationInput simulationValues) {
+	public Map<String, Map<Integer, Integer>> simulate(SimulationInput simulationValues) {
 
 		SimulationStep simulation = new SimulationStep(simulationValues);
 
 		for (Double timestamp : inputValues) {
 
-			// checks all running container, if they are finished, moving them to idle containers
+			// checks all running container, if they are finished, moving them to idle
+			// containers
 			simulation.checkFinishedContainers(timestamp);
 
-			// checks all idle container, if they are longer idle than the assumed shutdown period
+			// checks all idle container, if they are longer idle than the assumed shutdown
+			// period
 			simulation.shutdownIdleContainer(timestamp);
 
 			// check, if a container is idle
@@ -54,7 +56,15 @@ public class LoadPatternSimulator {
 		simulation.shutdownAllContainer();
 
 		// compute the distribution map
-		return simulation.getContainerDistribution();
+		Map<Integer, Integer> containerDistribution = simulation.getContainerDistribution();
+		// compute the output map
+		Map<Integer, Integer> outputLoadPattern = simulation.getOutputLoadPattern();
+
+		Map<String, Map<Integer, Integer>> simulationResults = new HashMap<>();
+		simulationResults.put(simulationValues.toString(), containerDistribution);
+		simulationResults.put(simulationValues.toString() + "-output load", outputLoadPattern);
+
+		return simulationResults;
 	}
 }
 
@@ -64,12 +74,14 @@ class SimulationStep {
 	private final List<ContainerInstance> executingContainers;
 	private final List<ContainerInstance> idleContainers;
 	private final SimulationInput simulationValues;
+	private final Map<Integer, Integer> outputLoadPattern;
 
 	public SimulationStep(SimulationInput simulationValues) {
 		this.containerList = new ArrayList<>();
 		this.executingContainers = new ArrayList<>();
 		this.idleContainers = new ArrayList<>();
 		this.simulationValues = simulationValues;
+		this.outputLoadPattern = new HashMap<>();
 	}
 
 	public boolean idleContainerAvailable() {
@@ -94,7 +106,8 @@ class SimulationStep {
 
 	/**
 	 * Checks if some executing containers are finished and move them to the idle
-	 * list.
+	 * list. Also add them to the output load pattern map to see the incoming
+	 * request rate for another part of the application.
 	 */
 	public void checkFinishedContainers(double ongoingTime) {
 
@@ -106,6 +119,8 @@ class SimulationStep {
 			this.executingContainers.remove(container);
 			this.idleContainers.add(container);
 
+			// update the output load pattern list
+			this.updateOutputLoadPatternList(container);
 		}
 	}
 
@@ -131,6 +146,7 @@ class SimulationStep {
 
 		for (ContainerInstance container : this.executingContainers) {
 			container.setShutdownTime(container.getBussyUntil() + shutdownTime);
+			this.updateOutputLoadPatternList(container);
 		}
 
 		for (ContainerInstance container : this.idleContainers) {
@@ -154,11 +170,11 @@ class SimulationStep {
 		// 0 to 5.2 (maxBussyUntil) means 6 values in the array
 		int size = (int) maxBussyUntil + 1;
 		int[] containerDistributionInt = new int[size];
-		
+
 		for (int i = 0; i < size; i++) {
 			containerDistributionInt[i] = 0;
 		}
-		
+
 		for (ContainerInstance container : this.containerList) {
 			for (int i = (int) container.getStartTime(); i <= (int) container.getBussyUntil(); i++) {
 				containerDistributionInt[i]++;
@@ -168,7 +184,22 @@ class SimulationStep {
 		for (int i = 0; i < size; i++) {
 			containerDistribution.put(i, containerDistributionInt[i]);
 		}
-		
+
 		return containerDistribution;
+	}
+
+	private void updateOutputLoadPatternList(ContainerInstance container) {
+		// uses the time until the container is bussy, which means that the container is
+		// finished its execution
+		int finishTime = (int) container.getBussyUntil();
+		if ( this.outputLoadPattern.containsKey(finishTime) ) {
+			this.outputLoadPattern.put(finishTime, this.outputLoadPattern.get(finishTime)+ 1);
+		} else {
+			this.outputLoadPattern.put(finishTime, 1);
+		}
+	}
+
+	public Map<Integer, Integer> getOutputLoadPattern() {
+		return this.outputLoadPattern;
 	}
 }
