@@ -4,11 +4,11 @@
 
 2. Sequential triggering of a function with a fixed time interval between triggering it (mode: "sequentialInterval")
 
-4. Sequential combined with concurrent triggering of a function. Multiple sequential groups of requests execute functions concurrently. (mode: "sequentialConcurrent")
+3. Sequential combined with concurrent triggering of a function. Multiple sequential groups of requests execute functions concurrently. (mode: "sequentialConcurrent")
 
-5. Similar to mode sequentialInterval. This mode triggers functions in an interval with varying delays between execution start times. (mode: "sequentialChangingInterval")
+4. This mode triggers functions in an interval with varying delays between execution start times. (mode: "sequentialChangingInterval")
 
-
+5. This mode triggers the function endpoint based on a csv file. The file contains double values, when a specific call should be submitted. (mode: "arbitraryLoadPattern")
 
 ##### General Usage
 
@@ -69,6 +69,9 @@ java -jar SeMoDe.jar "benchmark" "FUNCTION_NAME" "URL" "FILENAME.json" "sequenti
 
 6. List of delays. (at least one)
 
+##### Additional Parameters - Mode "arbitraryLoadPattern"
+
+5. File name of the csv load pattern file.
 
 ### Utility Features
 
