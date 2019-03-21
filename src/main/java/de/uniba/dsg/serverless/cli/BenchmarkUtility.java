@@ -100,7 +100,12 @@ public class BenchmarkUtility extends CustomUtility {
 				validateArgumentSize(args, 6);
 				loadPatternFile = loadpatternGenerator.generateSequentialChangingInterval(args);
 				break;
+			case ARBITRARY_LOAD_PATTERN:
+				validateArgumentSize(args, 5);
+				loadPatternFile = Paths.get(args.get(4));
+				break;
 			default:
+				this.logUsage();
 				throw new SeMoDeException("Mode " + mode + " is not implemented.");
 			}
 		} catch (NumberFormatException e) {
