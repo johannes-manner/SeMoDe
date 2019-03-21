@@ -2,16 +2,27 @@ package de.uniba.dsg.serverless.pipeline.model;
 
 public class BenchmarkConfig {
 
+	// corePoolSize for executor service
+	private String numberThreads;
 	private String benchmarkMode;
 	private String benchmarkParameters;
 
 	public BenchmarkConfig() {
 	}
 
-	public BenchmarkConfig(String benchmarkMode, String benchmarkParameters) {
+	public BenchmarkConfig(String numberOfThreads, String benchmarkMode, String benchmarkParameters) {
 		super();
+		this.numberThreads = numberOfThreads;
 		this.benchmarkMode = benchmarkMode;
 		this.benchmarkParameters = benchmarkParameters;
+	}
+
+	public String getNumberThreads() {
+		return numberThreads;
+	}
+
+	public void setNumberThreads(String numberThreads) {
+		this.numberThreads = numberThreads;
 	}
 
 	public String getBenchmarkMode() {
@@ -32,6 +43,8 @@ public class BenchmarkConfig {
 
 	@Override
 	public String toString() {
-		return "BenchmarkConfig [benchmarkMode=" + benchmarkMode + ", benchmarkParameters=" + benchmarkParameters + "]";
+		return "BenchmarkConfig [numberThreads=" + numberThreads + ", benchmarkMode=" + benchmarkMode
+				+ ", benchmarkParameters=" + benchmarkParameters + "]";
 	}
+
 }

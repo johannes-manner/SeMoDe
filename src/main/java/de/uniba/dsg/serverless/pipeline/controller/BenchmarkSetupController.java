@@ -236,13 +236,15 @@ public class BenchmarkSetupController {
 
 	public void generateBenchmarkingCommands() throws SeMoDeException {
 		
+		System.out.println("Insert number of threads");
+		String numberOfThreads = PipelineSetupUtility.scanner.nextLine();
 		System.out.println("Insert a supported benchmarking mode");
 		String benchmarkingMode = PipelineSetupUtility.scanner.nextLine();
 		System.out.println("Insert benchmarking parameters");
 		String benchmarkingParameters = PipelineSetupUtility.scanner.nextLine();
 		System.out.println("Copy a file called 'params.json' in the 'benchmarkingCommands' folder");
 		
-		BenchmarkConfig config = new BenchmarkConfig(benchmarkingMode,benchmarkingParameters);
+		BenchmarkConfig config = new BenchmarkConfig(numberOfThreads, benchmarkingMode,benchmarkingParameters);
 		setup.benchmarkConfig = config;
 		
 		// auto save to store the benchmark
