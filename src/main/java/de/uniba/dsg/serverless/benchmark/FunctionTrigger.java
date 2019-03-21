@@ -50,7 +50,12 @@ public class FunctionTrigger implements Callable<String> {
 
 		this.jsonInput = jsonInput;
 
-		this.host = url.getProtocol() + "://" + url.getHost();
+		String tempHost = url.getProtocol() + "://" + url.getHost();
+		if( url.getPort() != -1) {
+			tempHost = tempHost +  ":" + url.getPort();
+		}
+		
+		this.host = tempHost;
 		this.path = url.getPath();
 
 		this.queryParameters = new HashMap<>();
@@ -71,8 +76,8 @@ public class FunctionTrigger implements Callable<String> {
 		logger.info("START" + CSV_SEPARATOR + uuid);
 
 		Client client = ClientBuilder.newClient();
-		client.property(ClientProperties.CONNECT_TIMEOUT, BenchmarkExecutor.PLATFORM_FUNCTION_TIMEOUT * 1000);
-		client.property(ClientProperties.READ_TIMEOUT, BenchmarkExecutor.PLATFORM_FUNCTION_TIMEOUT * 1000);
+		client.property(ClientProperties.CONNECT_TIMEOUT, LoadPatternGenerator.PLATFORM_FUNCTION_TIMEOUT * 1000);
+		client.property(ClientProperties.READ_TIMEOUT, LoadPatternGenerator.PLATFORM_FUNCTION_TIMEOUT * 1000);
 
 		WebTarget target = client.target(host).path(path);
 

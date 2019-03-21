@@ -14,7 +14,7 @@ import de.uniba.dsg.serverless.cli.UtilityFactory;
 
 public class ArgumentProcessor {
 
-	public static void main(String[] args) {
+	public static void initLog4JParameters(String[] args) {
 		// defining dynamic properties for log4j2
 		System.setProperty("logFilename", "benchmarking_" + new SimpleDateFormat("MM-dd-HH-mm-ss").format(new Date()));
 		System.setProperty("CSV_SEPARATOR", ";");
@@ -22,10 +22,15 @@ public class ArgumentProcessor {
 
 		if (args != null && args.length > 2 && args[0].equals("benchmark")) {
 			System.setProperty("functionName", args[1]);
-		}else {
+		} else {
 			// When no function name is needed, it is set explicitly
 			System.setProperty("functionName", "");
 		}
+	}
+
+	public static void main(String[] args) {
+
+		initLog4JParameters(args);
 
 		Logger logger = LogManager.getLogger(ArgumentProcessor.class.getName());
 
