@@ -8,7 +8,7 @@
 
 5. Similar to mode sequentialInterval. This mode triggers functions in an interval with varying delays between execution start times. (mode: "sequentialChangingInterval")
 
-6. Similar to mode sequentialWait. This mode triggers functions with a varying delay between the execution termination and the next triggering/ request. (mode: "sequentialChangingWait")
+
 
 ##### General Usage
 
@@ -69,15 +69,6 @@ java -jar SeMoDe.jar "benchmark" "FUNCTION_NAME" "URL" "FILENAME.json" "sequenti
 
 6. List of delays. (at least one)
 
-##### Additional Parameters - Mode "sequentialChangingWait"
-
-```
-java -jar SeMoDe.jar "benchmark" "FUNCTION_NAME" "URL" "FILENAME.json" "sequentialChangingWait" "NUMBER_OF_REQUESTS" ("DELAY")+
-```
-
-5. Total number of executions.
-
-6. List of delays. (at least one)
 
 ### Utility Features
 

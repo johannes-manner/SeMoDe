@@ -35,32 +35,7 @@ public class LoadPatternGenerator {
 
 	}
 
-//
-//	/**
-//	 * Executes the Benchmark in mode {@link BenchmarkMode#SEQUENTIAL_CONCURRENT}.
-//	 * <br>
-//	 * The mode executes functions in groups of concurrent requests. The group
-//	 * executions are delayed, group g + 1 will start after group g terminated +
-//	 * delay.
-//	 * 
-//	 * @param numberOfGroups
-//	 * @param numberOfRequestsEachGroup
-//	 * @param delay
-//	 *            between the end of group execution g and the start of group
-//	 *            execution g+1 in seconds
-//	 * @return number of failed requests
-//	 * @throws SeMoDeException
-//	 */
-//	public int executeSequentialConcurrentBenchmark(int numberOfGroups, int numberOfRequestsEachGroup, int delay)
-//			throws SeMoDeException {
-//		int failedRequests = 0;
-//		for (int burst = 0; burst < numberOfGroups; burst++) {
-//			failedRequests += executeConcurrentBenchmark(numberOfRequestsEachGroup);
-//			Uninterruptibles.sleepUninterruptibly(delay, TimeUnit.SECONDS);
-//		}
-//		return failedRequests;
-//	}
-//
+
 //	/**
 //	 * Executes the Benchmark in mode
 //	 * {@link BenchmarkMode#SEQUENTIAL_CHANGING_INTERVAL}. <br>
@@ -150,8 +125,25 @@ public class LoadPatternGenerator {
 		for (int i = 0; i < numberOfRequests; i++) {
 			timestamps.add(0.0 + i * delay);
 		}
-		
+
 		return this.writeLoadPatternToFile(timestamps, BenchmarkMode.SEQUENTIAL_INTERVAL.getText());
+	}
+
+	public Path generateSequentialConcurrent(List<String> args) throws SeMoDeException {
+
+		List<Double> timestamps = new ArrayList<>();
+		
+		int numberOfGroups = Integer.parseInt(args.get(4));
+		int numberOfRequestsEachGroup = Integer.parseInt(args.get(5));
+		int delay = Integer.parseInt(args.get(6));
+		
+		for (int burst = 0; burst < numberOfGroups; burst++) {
+			for ( int i = 0 ; i < numberOfRequestsEachGroup ; i++ ) {
+				timestamps.add(0.0 + burst * delay);
+			}
+		}
+		
+		return this.writeLoadPatternToFile(timestamps, BenchmarkMode.SEQUENTIAL_CONCURRENT.getText());
 	}
 
 	private Path writeLoadPatternToFile(List<Double> timestamps, String fileName) throws SeMoDeException {

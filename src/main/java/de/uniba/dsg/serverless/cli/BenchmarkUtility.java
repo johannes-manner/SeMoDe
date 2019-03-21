@@ -94,9 +94,7 @@ public class BenchmarkUtility extends CustomUtility {
 				break;
 			case SEQUENTIAL_CONCURRENT:
 				validateArgumentSize(args, 7);
-				numberOfGroups = Integer.parseInt(args.get(4));
-				numberOfRequestsEachGroup = Integer.parseInt(args.get(5));
-				delay = Integer.parseInt(args.get(6));
+				loadPatternFile = loadpatternGenerator.generateSequentialConcurrent(args);
 				break;
 			case SEQUENTIAL_CHANGING_INTERVAL:
 				// Uses the same parameters as SEQUENTIAL_CHANGING_WAIT
