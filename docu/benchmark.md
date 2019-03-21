@@ -4,8 +4,6 @@
 
 2. Sequential triggering of a function with a fixed time interval between triggering it (mode: "sequentialInterval")
 
-3. Sequential triggering of a function with a fixed time between the execution termination and the next triggering/ request (mode: "sequentialWait")
-
 4. Sequential combined with concurrent triggering of a function. Multiple sequential groups of requests execute functions concurrently. (mode: "sequentialConcurrent")
 
 5. Similar to mode sequentialInterval. This mode triggers functions in an interval with varying delays between execution start times. (mode: "sequentialChangingInterval")
@@ -15,7 +13,7 @@
 ##### General Usage
 
 ```
-java -jar SeMoDe.jar "benchmark" "URL" "FILENAME.json" "MODE" <additional parameters>
+java -jar SeMoDe.jar "benchmark" "URL" "FILENAME.json" "MODE" "NoOfThreads"<additional parameters>
 ```
 
 0. "benchmark" is a constant, which specifies the used utility mechanism.
@@ -28,13 +26,16 @@ java -jar SeMoDe.jar "benchmark" "URL" "FILENAME.json" "MODE" <additional parame
 
 4. Mode can be "concurrent", "sequentialInterval", "sequentialWait", "sequentialConcurrent", "sequentialChangingInterval" or "sequentialChangingWait". See above for the description of the modes.
 
+5. No of Threads determines the number of the core pool size of the scheduled executor service which is used 
+to send the REST calls. Currently this parameter has to be set directly.
+
 ##### Additional Parameters - Mode "concurrent"
 
 ```
 java -jar SeMoDe.jar "benchmark" "FUNCTION_NAME" "URL" "FILENAME.json" "concurrent" "NUMBER_OF_REQUESTS"
 ```  
 
-5. Number of function executions.
+6. Number of function executions.
 
 ##### Additional Parameters - Mode "sequentialInterval"
 
@@ -42,19 +43,9 @@ java -jar SeMoDe.jar "benchmark" "FUNCTION_NAME" "URL" "FILENAME.json" "concurre
 java -jar SeMoDe.jar "benchmark" "FUNCTION_NAME" "URL" "FILENAME.json" "sequentialInterval" "NUMBER_OF_REQUESTS" "DELAY"
 ```  
 
-5. Number of function executions.
+6. Number of function executions.
 
-6. Time between request execution start times in seconds.
-
-##### Additional Parameters - Mode "sequentialWait"
-
-```
-java -jar SeMoDe.jar "benchmark" "FUNCTION_NAME" "URL" "FILENAME.json" "sequentialWait" "NUMBER_OF_REQUESTS" "DELAY"
-```  
-
-5. Number of requests.
-
-6. Delay between termination of function execution n and start of execution n + 1 in seconds.
+7. Time between request execution start times in seconds.
 
 ##### Additional Parameters - Mode "sequentialConcurrent"
 

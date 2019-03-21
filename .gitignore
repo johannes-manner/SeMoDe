@@ -112,6 +112,7 @@ setups/
 benchmarkSetting/
 simulation/*.csv
 paper/
+*.csv
 
 
 # User-specific stuff

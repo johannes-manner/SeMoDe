@@ -32,9 +32,8 @@ public class LoadPatternGenerator {
 	private static final Logger logger = LogManager.getLogger(LoadPatternGenerator.class);
 
 	public LoadPatternGenerator() {
-		
-	}
 
+	}
 
 //
 //	/**
@@ -130,26 +129,31 @@ public class LoadPatternGenerator {
 //
 //	}
 
-	
-	
-
 	public Path generateConcurrentLoadPattern(List<String> args) throws SeMoDeException {
 		List<Double> timestamps = new ArrayList<>();
 		int numberOfRequests = Integer.parseInt(args.get(4));
-		
-		for( int i = 0 ; i < numberOfRequests ; i++ ) {
+
+		for (int i = 0; i < numberOfRequests; i++) {
 			timestamps.add(0.0);
 		}
-		
+
 		return this.writeLoadPatternToFile(timestamps, BenchmarkMode.CONCURRENT.getText());
 	}
-	
-	public Path generateSequentialInterval(List<String> args) {
-		// TODO Auto-generated method stub
-		return null;
+
+	public Path generateSequentialInterval(List<String> args) throws SeMoDeException {
+
+		List<Double> timestamps = new ArrayList<>();
+
+		int numberOfRequests = Integer.parseInt(args.get(4));
+		int delay = Integer.parseInt(args.get(5));
+
+		for (int i = 0; i < numberOfRequests; i++) {
+			timestamps.add(0.0 + i * delay);
+		}
+		
+		return this.writeLoadPatternToFile(timestamps, BenchmarkMode.SEQUENTIAL_INTERVAL.getText());
 	}
-	
-	
+
 	private Path writeLoadPatternToFile(List<Double> timestamps, String fileName) throws SeMoDeException {
 		try {
 			List<String> lines = timestamps.stream().map(d -> "" + d).collect(Collectors.toList());
@@ -158,7 +162,5 @@ public class LoadPatternGenerator {
 			throw new SeMoDeException("Was unable to write the load pattern csv.", e);
 		}
 	}
-
-	
 
 }
