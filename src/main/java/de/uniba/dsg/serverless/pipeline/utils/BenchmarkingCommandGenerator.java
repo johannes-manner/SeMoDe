@@ -43,14 +43,14 @@ public class BenchmarkingCommandGenerator {
 				while (line != null) {
 					String[] functionPlusUrl = line.split(" ");
 					String command = firstPart + " " + provider + "_" + functionPlusUrl[0] + " " + functionPlusUrl[1] + " " + jsonInput
-							+ " " + this.benchmarkConfig.getNumberThreads() + " " + this.benchmarkConfig.getBenchmarkMode() + " " + this.benchmarkConfig.getBenchmarkParameters();
+							+ " "  + this.benchmarkConfig.getBenchmarkMode() + " "  + this.benchmarkConfig.getNumberThreads() + " " + this.benchmarkConfig.getBenchmarkParameters();
 					writer.write(command);
 					writer.newLine();
 					line = reader.readLine();
 				}
 			}
 		} catch (IOException e) {
-			throw new SeMoDeException("Something went wrong during file operations. " + e.getMessage(), e);
+			throw new SeMoDeException("Something went wrong during file operations. " + e.getMessage(), e); 
 		}
 	}
 
