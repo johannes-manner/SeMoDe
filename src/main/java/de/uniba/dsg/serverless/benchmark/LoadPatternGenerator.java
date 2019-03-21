@@ -35,7 +35,6 @@ public class LoadPatternGenerator {
 
 	}
 
-
 //	/**
 //	 * Executes the Benchmark in mode
 //	 * {@link BenchmarkMode#SEQUENTIAL_CHANGING_INTERVAL}. <br>
@@ -132,18 +131,38 @@ public class LoadPatternGenerator {
 	public Path generateSequentialConcurrent(List<String> args) throws SeMoDeException {
 
 		List<Double> timestamps = new ArrayList<>();
-		
+
 		int numberOfGroups = Integer.parseInt(args.get(4));
 		int numberOfRequestsEachGroup = Integer.parseInt(args.get(5));
 		int delay = Integer.parseInt(args.get(6));
-		
+
 		for (int burst = 0; burst < numberOfGroups; burst++) {
-			for ( int i = 0 ; i < numberOfRequestsEachGroup ; i++ ) {
+			for (int i = 0; i < numberOfRequestsEachGroup; i++) {
 				timestamps.add(0.0 + burst * delay);
 			}
 		}
-		
+
 		return this.writeLoadPatternToFile(timestamps, BenchmarkMode.SEQUENTIAL_CONCURRENT.getText());
+	}
+
+	public Path generateSequentialChangingInterval(List<String> args) throws SeMoDeException {
+		
+		List<Double> timestamps = new ArrayList<>();
+		
+		int numberOfRequests = Integer.parseInt(args.get(4));
+		int used = 5;
+		int[] delays = new int[args.size() - used];
+		for (int i = 0; i < args.size() - used; i++) {
+			delays[i] = Integer.parseInt(args.get(used + i));
+		}
+		
+		double time = 0.0;
+		for (int i = 0; i < numberOfRequests; i++) {
+			timestamps.add(time);
+			time += delays[i % delays.length];
+		}
+		
+		return this.writeLoadPatternToFile(timestamps, BenchmarkMode.SEQUENTIAL_CHANGING_INTERVAL.getText());
 	}
 
 	private Path writeLoadPatternToFile(List<Double> timestamps, String fileName) throws SeMoDeException {

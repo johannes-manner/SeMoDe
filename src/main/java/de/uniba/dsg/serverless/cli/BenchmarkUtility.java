@@ -97,15 +97,8 @@ public class BenchmarkUtility extends CustomUtility {
 				loadPatternFile = loadpatternGenerator.generateSequentialConcurrent(args);
 				break;
 			case SEQUENTIAL_CHANGING_INTERVAL:
-				// Uses the same parameters as SEQUENTIAL_CHANGING_WAIT
-			case SEQUENTIAL_CHANGING_WAIT:
 				validateArgumentSize(args, 6);
-				numberOfRequests = Integer.parseInt(args.get(4));
-				int used = 5;
-				delays = new int[args.size() - used];
-				for (int i = 0; i < args.size() - used; i++) {
-					delays[i] = Integer.parseInt(args.get(used + i));
-				}
+				loadPatternFile = loadpatternGenerator.generateSequentialChangingInterval(args);
 				break;
 			default:
 				throw new SeMoDeException("Mode " + mode + " is not implemented.");

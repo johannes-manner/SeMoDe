@@ -7,7 +7,6 @@ public enum BenchmarkMode {
 	SEQUENTIAL_INTERVAL("sequentialInterval"),
 	SEQUENTIAL_CONCURRENT("sequentialConcurrent"),
 	SEQUENTIAL_CHANGING_INTERVAL("sequentialChangingInterval"),
-	SEQUENTIAL_CHANGING_WAIT("sequentialChangingWait"),
 	ARBITRARY_LOAD_PATTERN("arbitraryLoadPattern");
 
 	private String text;
