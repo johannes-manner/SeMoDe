@@ -5,10 +5,9 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
 public enum BenchmarkMode {
 	CONCURRENT("concurrent"),
 	SEQUENTIAL_INTERVAL("sequentialInterval"),
-	SEQUENTIAL_WAIT("sequentialWait"),
 	SEQUENTIAL_CONCURRENT("sequentialConcurrent"),
 	SEQUENTIAL_CHANGING_INTERVAL("sequentialChangingInterval"),
-	SEQUENTIAL_CHANGING_WAIT("sequentialChangingWait");
+	ARBITRARY_LOAD_PATTERN("arbitraryLoadPattern");
 
 	private String text;
 

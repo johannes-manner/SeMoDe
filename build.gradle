@@ -1,6 +1,3 @@
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.7'
-}
 
 apply plugin: 'idea'
 apply plugin: 'eclipse'
@@ -16,35 +13,36 @@ repositories {
 dependencies {
     testImplementation 'junit:junit:4.12'
     
-    implementation group: 'com.google.guava', name: 'guava', version: '27.0-jre'
+    compile group: 'com.google.guava', name: 'guava', version: '27.0-jre'
     
     // aws
-    implementation group: 'com.amazonaws', name: 'aws-java-sdk-cloudwatch', version: '1.11.214'
-    implementation group: 'com.amazonaws', name: 'aws-java-sdk-logs', version: '1.11.214'
-    implementation group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.0'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-cloudwatch', version: '1.11.214'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-logs', version: '1.11.214'
+    compile group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.0'
     
     // azure - signature problems - see jar section
-    implementation group: 'com.microsoft.azure', name: 'azure-core', version: '0.6.0'
-    implementation group: 'com.microsoft.azure', name: 'azure-storage', version: '7.0.0'
+    compile group: 'com.microsoft.azure', name: 'azure-core', version: '0.6.0'
+    compile group: 'com.microsoft.azure', name: 'azure-storage', version: '7.0.0'
     
     // google
-    implementation 'com.google.cloud:google-cloud-logging:1.27.0'
+    compile 'com.google.cloud:google-cloud-logging:1.27.0'
+    
     // see https://www.slf4j.org/codes.html#StaticLoggerBinder get rid of an error during logger initialization
-    implementation group: 'org.slf4j', name: 'slf4j-nop', version: '1.7.21'
+    compile group: 'org.slf4j', name: 'slf4j-nop', version: '1.7.21'
     
     // jersey client
-    implementation group: 'org.glassfish.jersey.core', name: 'jersey-client', version: '2.25'
-    implementation group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.25'
+    compile group: 'org.glassfish.jersey.core', name: 'jersey-client', version: '2.25'
+    compile group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.25'
     
     // log4j2
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.0'
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.0'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.0'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.0'
     
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
-	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
 	
 	// https://mvnrepository.com/artifact/commons-io/commons-io
-	implementation group: 'commons-io', name: 'commons-io', version: '2.6'
+	compile group: 'commons-io', name: 'commons-io', version: '2.6'
 	
 }
 
