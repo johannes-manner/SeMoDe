@@ -30,12 +30,6 @@ public class BenchmarkUtility extends CustomUtility {
 
 	private static final Logger logger = LogManager.getLogger(BenchmarkUtility.class.getName());
 
-	private int numberOfRequests;
-	private int delay;
-	private int numberOfGroups;
-	private int numberOfRequestsEachGroup;
-	private int[] delays;
-
 	public BenchmarkUtility(String name) {
 		super(name);
 	}
