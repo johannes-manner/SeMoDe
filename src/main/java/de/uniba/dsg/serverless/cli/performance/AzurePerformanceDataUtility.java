@@ -11,12 +11,15 @@ import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.provider.azure.AzureLogHandler;
 
-public final class AzurePerformanceDataUtility extends CustomUtility implements GenericPerformanceDataFetcher {
+public final class AzurePerformanceDataUtility extends CustomUtility {
 
 	private static final Logger logger = LogManager.getLogger(AzurePerformanceDataUtility.class.getName());
 
+	private final GenericPerformanceDataFetcher fetcher;
+	
 	public AzurePerformanceDataUtility(String name) {
 		super(name);
+		this.fetcher = new GenericPerformanceDataFetcher();
 	}
 
 	public void start(List<String> args) {
@@ -50,7 +53,7 @@ public final class AzurePerformanceDataUtility extends CustomUtility implements 
 				restFile = Optional.empty();
 			}
 
-			this.writePerformanceDataToFile("azure", azureLogHandler, serviceName, restFile);
+			this.fetcher.writePerformanceDataToFile("azure", azureLogHandler, serviceName, restFile);
 		} catch (SeMoDeException e) {
 			logger.fatal(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!" : e.getCause().getMessage()));
 		}

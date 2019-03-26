@@ -11,12 +11,15 @@ import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.provider.aws.AWSLogHandler;
 
-public final class AWSPerformanceDataUtility extends CustomUtility implements GenericPerformanceDataFetcher{
+public final class AWSPerformanceDataUtility extends CustomUtility{
 
 	private static final Logger logger = LogManager.getLogger(AWSPerformanceDataUtility.class.getName());
+	
+	private final GenericPerformanceDataFetcher fetcher;
 
 	public AWSPerformanceDataUtility(String name) {
 		super(name);
+		this.fetcher = new GenericPerformanceDataFetcher();
 	}
 
 	public void start(List<String> args) {
@@ -45,7 +48,7 @@ public final class AWSPerformanceDataUtility extends CustomUtility implements Ge
 				restFile = Optional.empty();
 			}
 			
-			this.writePerformanceDataToFile("aws", logHandler, logGroupName.substring("/aws/lambda/".length()), restFile);
+			this.fetcher.writePerformanceDataToFile("aws", logHandler, logGroupName.substring("/aws/lambda/".length()), restFile);
 			
 		} catch (SeMoDeException e) {
 			logger.fatal(e.getMessage() + "Cause: "

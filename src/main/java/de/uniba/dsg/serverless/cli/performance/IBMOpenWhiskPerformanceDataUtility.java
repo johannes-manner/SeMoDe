@@ -11,12 +11,15 @@ import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.provider.ibm.IBMLogHandler;
 
-public class IBMOpenWhiskPerformanceDataUtility extends CustomUtility implements GenericPerformanceDataFetcher {
+public class IBMOpenWhiskPerformanceDataUtility extends CustomUtility {
 
 	public static final Logger logger = LogManager.getLogger(IBMOpenWhiskPerformanceDataUtility.class.getName());
 
+	private final GenericPerformanceDataFetcher fetcher;
+	
 	public IBMOpenWhiskPerformanceDataUtility(String name) {
 		super(name);
+		this.fetcher = new GenericPerformanceDataFetcher();
 	}
 
 	@Override
@@ -52,7 +55,7 @@ public class IBMOpenWhiskPerformanceDataUtility extends CustomUtility implements
 				restFile = Optional.empty();
 			}
 			
-			this.writePerformanceDataToFile("ibm", logHandler, functionName, restFile);
+			this.fetcher.writePerformanceDataToFile("ibm", logHandler, functionName, restFile);
 		} catch (SeMoDeException e) {
 			logger.fatal(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!"
 					: e.getCause().getMessage()));

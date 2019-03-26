@@ -11,12 +11,15 @@ import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.provider.google.GoogleLogHandler;
 
-public class GooglePerformanceDataUtility extends CustomUtility implements GenericPerformanceDataFetcher {
+public class GooglePerformanceDataUtility extends CustomUtility {
 	
 	private static final Logger logger = LogManager.getLogger(GooglePerformanceDataUtility.class.getName());
+	
+	private final GenericPerformanceDataFetcher fetcher;
 
 	public GooglePerformanceDataUtility(String name) {
 		super(name);
+		this.fetcher = new GenericPerformanceDataFetcher();
 	}
 
 	@Override
@@ -50,7 +53,7 @@ public class GooglePerformanceDataUtility extends CustomUtility implements Gener
 				restFile = Optional.empty();
 			}
 
-			this.writePerformanceDataToFile("google", logHandler, functionName, restFile);
+			this.fetcher.writePerformanceDataToFile("google", logHandler, functionName, restFile);
 			
 		} catch (SeMoDeException e) {
 			logger.fatal(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!" : e.getCause().getMessage()));

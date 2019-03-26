@@ -16,17 +16,11 @@ import de.uniba.dsg.serverless.model.WritableEvent;
 import de.uniba.dsg.serverless.provider.LogHandler;
 import de.uniba.dsg.serverless.util.BenchmarkingRESTAnalyzer;
 
-public interface GenericPerformanceDataFetcher {
+final class GenericPerformanceDataFetcher {
 
 	public static final double NETWORK_AND_PLATFORM_DELAY = 5000.0;
 
-	default String generateFileName(String provider, String functionName) {
-		String dateText = new SimpleDateFormat("MM-dd-HH-mm-ss").format(new Date());
-		String fileName = provider + "-" + functionName + "-" + dateText + ".csv";
-		return fileName;
-	}
-
-	default void writePerformanceDataToFile(String provider, LogHandler logHandler, String functionName,
+	protected void writePerformanceDataToFile(String provider, LogHandler logHandler, String functionName,
 			Optional<String> restFile) throws SeMoDeException {
 
 		Map<String, WritableEvent> restMap = new HashMap<>();
@@ -41,7 +35,7 @@ public interface GenericPerformanceDataFetcher {
 				logHandler.getPerformanceData());
 	}
 
-	default void writePerformanceDataToFile(String fileName, Map<String, WritableEvent> restMap,
+	private void writePerformanceDataToFile(String fileName, Map<String, WritableEvent> restMap,
 			Map<String, WritableEvent> performanceProviderMap) throws SeMoDeException {
 		try {
 			String OUTPUT_DIRECTORY = "performanceData";
@@ -70,7 +64,7 @@ public interface GenericPerformanceDataFetcher {
 		}
 	}
 
-	default void writeRESTAndPerformanceDataToFile(BufferedWriter writer, Map<String, WritableEvent> restMap,
+	private void writeRESTAndPerformanceDataToFile(BufferedWriter writer, Map<String, WritableEvent> restMap,
 			Map<String, WritableEvent> performanceProviderMap) throws IOException {
 
 		// write header lines
@@ -93,7 +87,7 @@ public interface GenericPerformanceDataFetcher {
 		}
 	}
 
-	default void writeOnlyPerformanceDataToFile(BufferedWriter writer,
+	private void writeOnlyPerformanceDataToFile(BufferedWriter writer,
 			Map<String, WritableEvent> performanceProviderMap) throws IOException {
 		
 		// Writing header lines
@@ -107,8 +101,14 @@ public interface GenericPerformanceDataFetcher {
 		}
 	}
 
-	default void writeHeaderLines(BufferedWriter writer, Map<String, WritableEvent> map) throws IOException {
+	private void writeHeaderLines(BufferedWriter writer, Map<String, WritableEvent> map) throws IOException {
 		String key = map.keySet().iterator().next();
 		writer.write(map.get(key).getCSVMetadata());
+	}
+	
+	private String generateFileName(String provider, String functionName) {
+		String dateText = new SimpleDateFormat("MM-dd-HH-mm-ss").format(new Date());
+		String fileName = provider + "-" + functionName + "-" + dateText + ".csv";
+		return fileName;
 	}
 }
