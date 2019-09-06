@@ -1,6 +1,5 @@
 package de.uniba.dsg.serverless.benchmark;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,10 +17,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.glassfish.jersey.client.ClientProperties;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-
 import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public class FunctionTrigger implements Callable<String> {
@@ -31,13 +26,6 @@ public class FunctionTrigger implements Callable<String> {
 	private static final Logger logger = LogManager.getLogger(FunctionTrigger.class.getName());
 
 	private static final String CSV_SEPARATOR = System.getProperty("CSV_SEPARATOR");
-
-	// used in the response header element to map the executions on the cloud
-	// platform and containerId
-	private static final String PLATFORM_ID = "platformId";
-	private static final String CONTAINER_ID = "containerId";
-	
-	private static final ObjectReader jsonReader = new ObjectMapper().reader();
 
 	private static final int REQUEST_PASSED_STATUS = 200;
 
@@ -107,27 +95,12 @@ public class FunctionTrigger implements Callable<String> {
 		// the response entity has to be a json representation with a platformId,
 		// result key and a containerId
 		String responseEntity = response.readEntity(String.class);
-		String platformId = "";
-		String containerId = "";
-		try {
-			JsonNode responseNode = jsonReader.readTree(responseEntity);
-			if (responseNode.has(PLATFORM_ID)) {
-				platformId = responseNode.get(PLATFORM_ID).asText();
-			}
-			if(responseNode.has(CONTAINER_ID)) {
-				containerId = responseNode.get(CONTAINER_ID).asText();
-			}
-		} catch (IOException e) {
-			// swallow the exception, because the platformId is an optional parameter and
-			// not
-			// only relevant when linking the local and remote execution on the platform
-			logger.warn("Error parsing the response from the server. The response should be a json.");
-		}
+		
+		CloudFunctionResponse functionResponse = new CloudFunctionResponse(responseEntity, uuid);
+		functionResponse.extractMetadata();
+		functionResponse.logMetadata();
 
 		String responseValue = response.getStatus() + " " + responseEntity;
-
-		logger.info("PLATFORMID" + CSV_SEPARATOR + uuid + CSV_SEPARATOR +  platformId);
-		logger.info("CONTAINERID" + CSV_SEPARATOR + uuid + CSV_SEPARATOR +  containerId);
 
 		return responseValue;
 	}
