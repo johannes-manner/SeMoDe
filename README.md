@@ -31,9 +31,9 @@ Further information [here](docu/benchmark.md)
 
 ### Simulation Aspects
 
-Further information [here](simulation/benchmark.md)
+Further information [here](docu/simulation.md)
 
-##### Usefull infos and links
+##### Useful infos and links
 
 Issue with the google cloud function serverless plugin.
 https://github.com/serverless/serverless-google-cloudfunctions/issues/110

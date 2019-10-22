@@ -2,7 +2,7 @@
 # Created by https://www.gitignore.io/api/git,java,gradle,eclipse
 
 ### Eclipse ###
-
+.idea
 .metadata
 bin/
 tmp/
