@@ -16,5 +16,12 @@
         "mem_size_mib": 1024,
         "ht_enabled": false,
         "cpu_template": null
-    }
+    },
+    "network-interfaces": [
+        {
+            "iface_id": "eth0",
+            "host_dev_name": "tap0",
+            "guest_mac": "b6:75:50:4e:ea:a4"
+        }
+    ]
 }
