@@ -33,6 +33,9 @@ dependencies {
     // jersey client
     compile group: 'org.glassfish.jersey.core', name: 'jersey-client', version: '2.25'
     compile group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.25'
+
+    // https://mvnrepository.com/artifact/com.github.docker-java/docker-java
+    compile group: 'com.github.docker-java', name: 'docker-java', version: '3.1.2'
     
     // log4j2
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.0'
