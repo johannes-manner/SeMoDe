@@ -19,6 +19,7 @@ dependencies {
     compile group: 'com.amazonaws', name: 'aws-java-sdk-cloudwatch', version: '1.11.214'
     compile group: 'com.amazonaws', name: 'aws-java-sdk-logs', version: '1.11.214'
     compile group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.0'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.610'
     
     // azure - signature problems - see jar section
     compile group: 'com.microsoft.azure', name: 'azure-core', version: '0.6.0'

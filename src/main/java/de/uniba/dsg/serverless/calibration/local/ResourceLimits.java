@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.calibration;
+package de.uniba.dsg.serverless.calibration.local;
 
 import com.google.gson.Gson;
 import de.uniba.dsg.serverless.model.SeMoDeException;

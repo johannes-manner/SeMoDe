@@ -1,6 +1,8 @@
 package de.uniba.dsg.serverless.cli;
 
-import de.uniba.dsg.serverless.calibration.Calibration;
+import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
+import de.uniba.dsg.serverless.calibration.aws.AWSConfig;
+import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.calibration.CalibrationCommand;
 import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.model.SeMoDeException;
@@ -16,6 +18,7 @@ public class CalibrationUtility extends CustomUtility {
     private CalibrationPlatform platform;
     private String calibrationName;
     private CalibrationCommand command;
+    private AWSConfig awsConfig;
 
 
     public CalibrationUtility(String name) {
@@ -30,7 +33,15 @@ public class CalibrationUtility extends CustomUtility {
                 case INFO:
                     break;
                 case PERFORM_CALIBRATION:
-                    new Calibration(platform, calibrationName).calibrate();
+                    if (platform == CalibrationPlatform.LOCAL) {
+                        new LocalCalibration(calibrationName).performCalibration();
+                    } else if (platform == CalibrationPlatform.AWS) {
+                        new AWSCalibration(calibrationName).performCalibration(awsConfig.targetUrl,
+                                awsConfig.apiKey,
+                                awsConfig.bucketName,
+                                awsConfig.memorySizes,
+                                awsConfig.numberOfAWSExecutions);
+                    }
                     break;
             }
         } catch (SeMoDeException e) {
@@ -51,6 +62,8 @@ public class CalibrationUtility extends CustomUtility {
         if (calibrationName.isEmpty() || calibrationName.contains("/") || calibrationName.contains(".")) {
             throw new SeMoDeException("Illegal filename " + calibrationName);
         }
+
+        awsConfig = AWSConfig.fromFile("aws_calibration.json");
     }
 
     private void printUsage() {
