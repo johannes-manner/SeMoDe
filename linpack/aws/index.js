@@ -9,7 +9,7 @@ exports.handler = (event, context) => {
 
   var name = getToday()
   if (event.queryStringParameters != null) {
-    name = event.queryStringParameters.experiment || name;
+    name = event.queryStringParameters.resultFileName || name;
   }
   const filePath = "linpack/" + context.memoryLimitInMB + "/" + name;
   const start = Date.now();

@@ -37,7 +37,18 @@ public class AWSCalibration extends Calibration {
 
         AWSClient client = new AWSClient(targetUrl, apiKey, bucketName);
         for (int i = 0; i < numberOfCalibrations; i++) {
-            List<Double> results = executeBenchmark(i, client, memorySizes);
+            for (int memory : memorySizes) {
+                String fileName = name + "/" + memory + "_" + i;
+                client.invokeBenchmarkFunctions(memory, fileName);
+            }
+            List<Double> results = new ArrayList<>();
+            for (int memory : memorySizes) {
+                String fileName = name + "/" + memory + "_" + i;
+                client.waitForBucketObject(fileName, 600);
+                Path log = calibrationLogs.resolve(fileName);
+                client.getFileFromBucket(fileName, log);
+                results.add(new BenchmarkParser(log).parseBenchmark());
+            }
             sb.append(results.stream().map(DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
             sb.append("\n");
         }
@@ -46,20 +57,6 @@ public class AWSCalibration extends Calibration {
         } catch (IOException e) {
             throw new SeMoDeException(e);
         }
-    }
-
-    private List<Double> executeBenchmark(int i, AWSClient client, List<Integer> memorySizes) throws SeMoDeException {
-        for (int memory : memorySizes) {
-            client.invokeBenchmarkFunctions(memory);
-        }
-        List<Double> results = new ArrayList<>();
-        for (int memory : memorySizes) {
-            client.waitForBucketObject("" + memory, 600);
-            Path log = calibrationLogs.resolve(memory + "_" + i + ".log");
-            client.getFileFromBucket("" + memory, log);
-            results.add(new BenchmarkParser(log).parseBenchmark());
-        }
-        return results;
     }
 
 }

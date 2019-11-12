@@ -60,10 +60,11 @@ public class AWSClient {
      *
      * @param memory memory setting (specified in linpack/aws)
      */
-    public void invokeBenchmarkFunctions(int memory) throws SeMoDeException {
+    public void invokeBenchmarkFunctions(int memory,String resultFileName) throws SeMoDeException {
         String path = "linpack_" + memory;
         try {
             Response r = lambdaTarget.path(path)
+                    .queryParam("resultFileName",resultFileName)
                     .request()
                     .header("x-api-key", apiKey)
                     .get();
