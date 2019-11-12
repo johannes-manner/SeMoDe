@@ -13,33 +13,34 @@ repositories {
 dependencies {
     testImplementation 'junit:junit:4.12'
     
-    compile group: 'com.google.guava', name: 'guava', version: '27.0-jre'
+    compile group: 'com.google.guava', name: 'guava', version: '28.1-jre'
     
     // aws
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-cloudwatch', version: '1.11.214'
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-logs', version: '1.11.214'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-cloudwatch', version: '1.11.625'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-logs', version: '1.11.625'
     compile group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.0'
     
     // azure - signature problems - see jar section
-    compile group: 'com.microsoft.azure', name: 'azure-core', version: '0.6.0'
-    compile group: 'com.microsoft.azure', name: 'azure-storage', version: '7.0.0'
+    compile group: 'com.microsoft.azure', name: 'azure-core', version: '0.9.8'
+    compile group: 'com.microsoft.azure', name: 'azure-storage', version: '8.4.0'
     
     // google
-    compile 'com.google.cloud:google-cloud-logging:1.27.0'
+    compile 'com.google.cloud:google-cloud-logging:1.89.0'
     
     // see https://www.slf4j.org/codes.html#StaticLoggerBinder get rid of an error during logger initialization
     compile group: 'org.slf4j', name: 'slf4j-nop', version: '1.7.21'
     
     // jersey client
-    compile group: 'org.glassfish.jersey.core', name: 'jersey-client', version: '2.25'
-    compile group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.25'
+    compile group: 'org.glassfish.jersey.core', name: 'jersey-client', version: '2.29'
+    compile group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.29'
+    compile group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '2.29'
     
     // log4j2
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.0'
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.0'
     
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
-	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
 	
 	// https://mvnrepository.com/artifact/commons-io/commons-io
 	compile group: 'commons-io', name: 'commons-io', version: '2.6'

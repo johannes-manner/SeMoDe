@@ -47,11 +47,12 @@ public class Fibonacci implements RequestHandler<Map<String, String>, Response> 
 	}
 
 	public Response createSuccessResponse(String message, String requestId) {
-		return new Response(message, requestId, CONTAINER_ID);
+		Response response = new Response(message, requestId, CONTAINER_ID);
+		response.addCPUAndVMInfo();
+		return response;
 	}
 
 	public boolean isNumeric(String value) {
 		return value.matches("\\d+");
 	}
-
 }
