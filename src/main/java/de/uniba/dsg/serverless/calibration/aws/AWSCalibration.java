@@ -17,8 +17,6 @@ public class AWSCalibration extends Calibration {
 
     private static final Logger logger = LogManager.getLogger(AWSCalibration.class.getName());
 
-    // private final Path temporaryLog = null;
-
     public AWSCalibration(String name) throws SeMoDeException {
         super(name);
     }

@@ -16,6 +16,7 @@ import org.glassfish.jersey.client.ClientProperties;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -59,13 +60,16 @@ public class AWSClient {
      *
      * @param memory memory setting (specified in linpack/aws)
      */
-    public void invokeBenchmarkFunctions(int memory) {
-        String path = "linpack_affinity_" + memory;
+    public void invokeBenchmarkFunctions(int memory) throws SeMoDeException {
+        String path = "linpack_" + memory;
         try {
-            lambdaTarget.path(path)
+            Response r = lambdaTarget.path(path)
                     .request()
                     .header("x-api-key", apiKey)
                     .get();
+            if (r.getStatus() == 403) {
+                throw new SeMoDeException("Cannot invoke function. Forbidden (403).");
+            }
         } catch (ProcessingException ignored) {
             // expected, since the AWS gateway timeout < function execution
         }
