@@ -19,6 +19,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
@@ -60,11 +61,11 @@ public class AWSClient {
      *
      * @param memory memory setting (specified in linpack/aws)
      */
-    public void invokeBenchmarkFunctions(int memory,String resultFileName) throws SeMoDeException {
+    public void invokeBenchmarkFunctions(int memory, String resultFileName) throws SeMoDeException {
         String path = "linpack_" + memory;
         try {
             Response r = lambdaTarget.path(path)
-                    .queryParam("resultFileName",resultFileName)
+                    .queryParam("resultFileName", resultFileName)
                     .request()
                     .header("x-api-key", apiKey)
                     .get();
@@ -105,12 +106,14 @@ public class AWSClient {
      */
     public void getFileFromBucket(String keyName, Path outputPath) throws SeMoDeException {
         S3Object s3Object = amazonS3Client.getObject(bucketName, keyName);
-        try (S3ObjectInputStream objectContent = s3Object.getObjectContent();
-             FileOutputStream fileOutputStream = new FileOutputStream(outputPath.toFile())) {
-            byte[] readBuffer = new byte[1024];
-            int length = 0;
-            while ((length = objectContent.read(readBuffer)) > 0) {
-                fileOutputStream.write(readBuffer, 0, length);
+        try (S3ObjectInputStream objectContent = s3Object.getObjectContent()) {
+            Files.createDirectories(outputPath.getParent());
+            try (FileOutputStream fileOutputStream = new FileOutputStream(outputPath.toFile())) {
+                byte[] readBuffer = new byte[1024];
+                int length = 0;
+                while ((length = objectContent.read(readBuffer)) > 0) {
+                    fileOutputStream.write(readBuffer, 0, length);
+                }
             }
         } catch (IOException e) {
             throw new SeMoDeException("File could not be read.", e);

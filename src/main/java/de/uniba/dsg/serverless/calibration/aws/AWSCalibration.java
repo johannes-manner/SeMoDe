@@ -44,9 +44,9 @@ public class AWSCalibration extends Calibration {
             List<Double> results = new ArrayList<>();
             for (int memory : memorySizes) {
                 String fileName = name + "/" + memory + "_" + i;
-                client.waitForBucketObject(fileName, 600);
+                client.waitForBucketObject("linpack/" + fileName, 600);
                 Path log = calibrationLogs.resolve(fileName);
-                client.getFileFromBucket(fileName, log);
+                client.getFileFromBucket("linpack/" + fileName, log);
                 results.add(new BenchmarkParser(log).parseBenchmark());
             }
             sb.append(results.stream().map(DOUBLE_FORMAT::format).collect(Collectors.joining(",")));

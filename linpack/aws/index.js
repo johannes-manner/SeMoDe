@@ -11,7 +11,7 @@ exports.handler = (event, context) => {
   if (event.queryStringParameters != null) {
     name = event.queryStringParameters.resultFileName || name;
   }
-  const filePath = "linpack/" + context.memoryLimitInMB + "/" + name;
+  const filePath = "linpack/" + name;
   const start = Date.now();
   var btime;
   exec("cat /proc/stat | grep btime", (error, stdout, stderr) => {
