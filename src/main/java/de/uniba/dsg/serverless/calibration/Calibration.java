@@ -17,9 +17,9 @@ public class Calibration {
     protected final Path calibrationLogs;
     protected final DecimalFormat DOUBLE_FORMAT = new DecimalFormat("#.###");
 
-    public Calibration(String name) throws SeMoDeException {
-        calibrationFile = CALIBRATION_FILES.resolve(CalibrationPlatform.AWS.getText()).resolve(name + ".csv");
-        calibrationLogs = CALIBRATION_FILES.resolve(CalibrationPlatform.AWS.getText()).resolve(name + "_logs");
+    public Calibration(String name, CalibrationPlatform platform) throws SeMoDeException {
+        calibrationFile = CALIBRATION_FILES.resolve(platform.getText()).resolve(name + ".csv");
+        calibrationLogs = CALIBRATION_FILES.resolve(platform.getText()).resolve(name + "_logs");
         this.name = name;
         createDirectories(calibrationFile.getParent());
     }

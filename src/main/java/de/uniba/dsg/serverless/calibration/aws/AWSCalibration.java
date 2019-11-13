@@ -2,6 +2,7 @@ package de.uniba.dsg.serverless.calibration.aws;
 
 import de.uniba.dsg.serverless.calibration.BenchmarkParser;
 import de.uniba.dsg.serverless.calibration.Calibration;
+import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,7 +19,7 @@ public class AWSCalibration extends Calibration {
     private static final Logger logger = LogManager.getLogger(AWSCalibration.class.getName());
 
     public AWSCalibration(String name) throws SeMoDeException {
-        super(name);
+        super(name, CalibrationPlatform.AWS);
     }
 
     public void performCalibration(

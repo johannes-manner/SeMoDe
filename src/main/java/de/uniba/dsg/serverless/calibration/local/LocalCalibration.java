@@ -2,6 +2,7 @@ package de.uniba.dsg.serverless.calibration.local;
 
 import de.uniba.dsg.serverless.calibration.BenchmarkParser;
 import de.uniba.dsg.serverless.calibration.Calibration;
+import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,7 +28,7 @@ public class LocalCalibration extends Calibration {
     private static final String LINPACK_IMAGE = "semode/linpack";
 
     public LocalCalibration(String name) throws SeMoDeException {
-        super(name);
+        super(name, CalibrationPlatform.LOCAL);
         temporaryLog = calibrationLogs.resolve("output").resolve("out.txt");
     }
 
