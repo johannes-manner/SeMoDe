@@ -78,7 +78,13 @@ public class BenchmarkingRESTAnalyzer {
 						event.setPlatformId(s[6]);
 					} else if ("CONTAINERID".equals(key)) {
 						event.setContainerId(s[6]);
-					} else {
+					} else if ("VMIDENTIFICATION".equals(key)) {
+						event.setVmIdentification(s[6]);
+					} else if ("CPUMODEL".equals(key)) {
+						event.setCpuModel(s[6]);
+					}  else if ("CPUMODELNAME".equals(key)) {
+						event.setCpuModelName(s[6]);
+					}else {
 						logger.warn("The following key is no REST event property: " + key);
 					}
 				} else {
@@ -92,9 +98,9 @@ public class BenchmarkingRESTAnalyzer {
 		} catch (IOException e) {
 			throw new SeMoDeException("Error while reading the file " + benchmarkingFile.toString(), e);
 		}
-		
+
 		Map<String, WritableEvent> result = new HashMap<>();
-		for(String uuid : extractedEvents.keySet()) {
+		for (String uuid : extractedEvents.keySet()) {
 			WritableEvent value = extractedEvents.get(uuid);
 			result.put(value.getPlatformId(), value);
 		}

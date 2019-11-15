@@ -62,7 +62,7 @@ public final class AWSLogAnalyzer {
 	 * Number of strings in an report message (AWS Cloud Watch), when splitting
 	 * with a blank.
 	 */
-	private static final int STRING_IN_END_MESSAGE = 16;
+	private static final int STRING_IN_END_MESSAGE = 19;
 
 	/**
 	 * Generates a list of cohesive elements out of the log messages in the
@@ -224,9 +224,13 @@ public final class AWSLogAnalyzer {
 			}
 		}
 		
-		if(messageParts == null || messageParts.length != STRING_IN_END_MESSAGE) {
+		if(messageParts == null || (messageParts.length != STRING_IN_END_MESSAGE && messageParts.length != STRING_IN_END_MESSAGE + 3)) {
 			logger.fatal("The investigated log event does not contain an end message with performance data.");
-			logger.info("Split of the report message : " + Arrays.toString(messageParts));
+			String errorMessage = "Size of the report message: " + messageParts.length +" Split of the report message : ";
+			for(int i = 0 ; i < messageParts.length; i++) {
+				errorMessage += i + " " + messageParts[i] + ", ";
+			}
+			logger.info(errorMessage);
 			return new PerformanceData();
 		}
 		
@@ -234,8 +238,8 @@ public final class AWSLogAnalyzer {
 		
 		double preciseDuration = Double.parseDouble(messageParts[3]);
 		int billedDuration = Integer.parseInt(messageParts[6]);
-		int memorySize = Integer.parseInt(messageParts[10]);
-		int memoryUsed = Integer.parseInt(messageParts[14]);
+		int memorySize = Integer.parseInt(messageParts[9]);
+		int memoryUsed = Integer.parseInt(messageParts[13]);
 		
 		return new PerformanceData(event.getFunctionName(), 
 				event.getLogStream(),

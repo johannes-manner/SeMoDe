@@ -4,18 +4,18 @@ repositories {
     mavenCentral()
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
 dependencies {
     compile (
-        'com.amazonaws:aws-lambda-java-core:1.1.0',
+        'com.amazonaws:aws-lambda-java-core:1.2.0',
         'com.amazonaws:aws-lambda-java-log4j:1.0.0',
         'com.fasterxml.jackson.core:jackson-core:2.9.8',
         'com.fasterxml.jackson.core:jackson-databind:2.9.8',
         'com.fasterxml.jackson.core:jackson-annotations:2.9.8'
     )
 }
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 // Task for building the zip file for upload
 task buildZip(type: Zip) {
@@ -37,6 +37,3 @@ task buildZip(type: Zip) {
 
 build.dependsOn buildZip
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.7'
-}
