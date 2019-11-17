@@ -112,7 +112,7 @@ setups/
 benchmarkSetting/
 simulation/*.csv
 paper/
-calibration/
+/calibration/
 *.csv
 src/main/resources/aws_calibration.json
 /profiling/profiling_*/
