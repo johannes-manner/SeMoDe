@@ -3,14 +3,17 @@ package de.uniba.dsg.serverless.calibration.local;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.command.LogContainerCmd;
 import com.github.dockerjava.api.exception.DockerClientException;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.ContainerNetwork;
+import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Statistics;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.InvocationBuilder.AsyncResultCallback;
 import com.github.dockerjava.core.command.BuildImageResultCallback;
+import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.github.dockerjava.core.command.WaitContainerResultCallback;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.util.DockerUtil;
@@ -30,16 +33,17 @@ public class DockerContainer {
 
     private String containerId;
     private String imageId;
+    private final List<String> logs = new ArrayList<>();
 
     public final File dockerFile;
-    public final String imageName;
+    public final String imageTag;
     private final DockerClient client;
 
     public static final long DEFAULT_CPU_PERIOD = 100000;
     public static final long CPU_QUOTA_CONST = 100000;
 
-    public DockerContainer(String dockerFile, String imageName) throws SeMoDeException {
-        this.imageName = imageName;
+    public DockerContainer(String dockerFile, String imageTag) throws SeMoDeException {
+        this.imageTag = imageTag;
         this.dockerFile = new File(dockerFile);
 
         if (!this.dockerFile.exists() || !this.dockerFile.isFile()) {
@@ -49,18 +53,29 @@ public class DockerContainer {
     }
 
     /**
-     * Build the execution image defined in executor/Dockerfile.
+     * Build the Docker image
      *
      * @return image id
-     * @throws SeMoDeException
+     * @throws SeMoDeException build failed
      */
     public String buildContainer() throws SeMoDeException {
-        File baseDir = new File(".");
+        return buildContainer(".");
+    }
+
+    /**
+     * Build the Docker image
+     *
+     * @param baseDirectory optional, specifies the base directory
+     * @return image id
+     * @throws SeMoDeException build failed
+     */
+    public String buildContainer(String baseDirectory) throws SeMoDeException {
+        File baseDir = new File(baseDirectory);
         try {
             imageId = client.buildImageCmd(dockerFile)
                     .withBaseDirectory(baseDir)
                     .withDockerfile(dockerFile)
-                    .withTags(Collections.singleton(imageName))
+                    .withTags(Collections.singleton(imageTag))
                     .exec(new BuildImageResultCallback())
                     .awaitImageId();
             return imageId;
@@ -108,7 +123,7 @@ public class DockerContainer {
      */
     public String startContainer(Map<String, String> envParams, ResourceLimits limits) {
         CreateContainerResponse container = client
-                .createContainerCmd(imageName)
+                .createContainerCmd(imageTag)
                 .withEnv(envParams.entrySet().stream().map(a -> a.getKey() + "=" + a.getValue()).collect(Collectors.toList()))
                 .withHostConfig(getHostConfig(limits))
                 .withAttachStdin(true)
@@ -233,6 +248,30 @@ public class DockerContainer {
             return Optional.empty();
         }
         return Optional.of(s);
+    }
+
+    /**
+     * Returns
+     * @return
+     * @throws SeMoDeException
+     */
+    public List<String> getLogs() throws SeMoDeException {
+        LogContainerCmd logContainerCmd = client.logContainerCmd(containerId);
+        logContainerCmd.withStdOut(true).withStdErr(true);
+        logContainerCmd.withTimestamps(true);
+
+        try {
+            List<String> logs = new ArrayList<>();
+            logContainerCmd.exec(new LogContainerResultCallback() {
+                @Override
+                public void onNext(Frame item) {
+                    logs.add(item.toString());
+                }
+            }).awaitCompletion();
+            return logs;
+        } catch (InterruptedException e) {
+            throw new SeMoDeException("Could not get logs from container " + containerId + ".", e);
+        }
     }
 
     /**

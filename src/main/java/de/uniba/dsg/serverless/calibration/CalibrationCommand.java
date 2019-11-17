@@ -4,8 +4,7 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public enum CalibrationCommand {
 
-
-    PERFORM_CALIBRATION("calibrate"), INFO("info");
+    PERFORM_CALIBRATION("calibrate"), INFO("info"), RUN_CONTAINER("runContainer");
 
     private String text;
 
@@ -31,7 +30,6 @@ public enum CalibrationCommand {
         }
         throw new SeMoDeException("Mode is unknown. Entered mode = " + tag);
     }
-
 
 
 }

@@ -22,28 +22,23 @@ public class AWSCalibration extends Calibration {
         super(name, CalibrationPlatform.AWS);
     }
 
-    public void performCalibration(
-            String targetUrl,
-            String apiKey,
-            String bucketName,
-            List<Integer> memorySizes,
-            int numberOfCalibrations) throws SeMoDeException {
+    public void performCalibration(AWSConfig config) throws SeMoDeException {
         if (Files.exists(calibrationFile)) {
             System.out.println("Provider calibration already performed.");
             return;
         }
         StringBuilder sb = new StringBuilder();
-        sb.append(memorySizes.stream().map(String::valueOf).collect(Collectors.joining(",")));
+        sb.append(config.memorySizes.stream().map(String::valueOf).collect(Collectors.joining(",")));
         sb.append("\n");
 
-        AWSClient client = new AWSClient(targetUrl, apiKey, bucketName);
-        for (int i = 0; i < numberOfCalibrations; i++) {
-            for (int memory : memorySizes) {
+        AWSClient client = new AWSClient(config.targetUrl, config.apiKey, config.bucketName);
+        for (int i = 0; i < config.numberOfAWSExecutions; i++) {
+            for (int memory : config.memorySizes) {
                 String fileName = name + "/" + memory + "_" + i;
                 client.invokeBenchmarkFunctions(memory, fileName);
             }
             List<Double> results = new ArrayList<>();
-            for (int memory : memorySizes) {
+            for (int memory : config.memorySizes) {
                 String fileName = name + "/" + memory + "_" + i;
                 client.waitForBucketObject("linpack/" + fileName, 600);
                 Path log = calibrationLogs.resolve(fileName);

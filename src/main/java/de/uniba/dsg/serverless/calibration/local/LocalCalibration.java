@@ -42,6 +42,7 @@ public class LocalCalibration extends Calibration {
         List<Double> results = new ArrayList<>();
         int physicalCores = getPhysicalCores();
         logger.info("Number of cores: " + physicalCores);
+        // TODO fix me, make this part also configurable!!
         List<Double> quotas = IntStream
                 .range(1, 1 + physicalCores * 10)
                 .mapToDouble(v -> 0.1 * v)
