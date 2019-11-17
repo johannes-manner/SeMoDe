@@ -115,6 +115,7 @@ paper/
 calibration/
 *.csv
 src/main/resources/aws_calibration.json
+/profiling/profiling_*/
 
 
 # User-specific stuff
