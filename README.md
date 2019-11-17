@@ -21,6 +21,18 @@ This feature is to generate tests automatically from your Lambda function execut
 This feature is to generate .csv files from the cloud watch logs with the metadata, like
 memory consumption, billing duration etc. Further information [here](docu/performance.md)
 
+### Calibration Feature
+
+This feature compares the resources available on FaaS providers with local machines. It conducts the CPU-intensive linpack
+benchmark both locally and on the provider infrastructure and creates a mapping between the two platforms. From there, 
+FaaS workloads can be simulated locally with corresponding CPU resources.
+
+Further information [here](docu/calibration.md)
+
+### Firecracker
+
+Documentation on the work in progress can be found [here](docu/firecracker.md)
+
 ### Benchmarking Tool for REST Interfaces
 
 This feature triggers API requests in a controlled environment. It also logs the start and end time of the request to get
