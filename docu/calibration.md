@@ -19,7 +19,7 @@ java -jar SeMoDe.jar "calibration" "calibrate" PLATFORM CALIBRATION_NAME
 3. The name under which the results are stored is the second argument.
 
 
-#### Info
+#### Mapping
 This subcommands calculates the corresponding CPU quota for a combination of two linpack calibrations, for example "aws/calibration1" and "local/calibration2".
 
 It is not implemented yet.

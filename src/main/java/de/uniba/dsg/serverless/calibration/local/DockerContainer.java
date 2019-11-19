@@ -90,7 +90,7 @@ public class DockerContainer {
      * @return container id
      */
     public String startContainer() {
-        return startContainer(Collections.emptyMap(), ResourceLimits.unlimited());
+        return startContainer(Collections.emptyMap(), ResourceLimit.unlimited());
     }
 
 
@@ -100,7 +100,7 @@ public class DockerContainer {
      * @param limits resource limits
      * @return container id
      */
-    public String startContainer(ResourceLimits limits) {
+    public String startContainer(ResourceLimit limits) {
         return startContainer(Collections.emptyMap(), limits);
     }
 
@@ -111,7 +111,7 @@ public class DockerContainer {
      * @return container id
      */
     public String startContainer(Map<String, String> envParams) {
-        return startContainer(envParams, ResourceLimits.unlimited());
+        return startContainer(envParams, ResourceLimit.unlimited());
     }
 
     /**
@@ -121,7 +121,7 @@ public class DockerContainer {
      * @param envParams environment parameters
      * @return container id
      */
-    public String startContainer(Map<String, String> envParams, ResourceLimits limits) {
+    public String startContainer(Map<String, String> envParams, ResourceLimit limits) {
         CreateContainerResponse container = client
                 .createContainerCmd(imageTag)
                 .withEnv(envParams.entrySet().stream().map(a -> a.getKey() + "=" + a.getValue()).collect(Collectors.toList()))
@@ -149,27 +149,28 @@ public class DockerContainer {
     /**
      * Returns the host config based on the provided settings
      *
-     * @param limits resource limits
-     * @return host config based on limits
+     * @param limit resource limit
+     * @return host config based on limit
      * @see <a href="https://github.com/docker-java/docker-java/issues/1008">https://github.com/docker-java/docker-java/issues/1008</a>
      */
-    private HostConfig getHostConfig(ResourceLimits limits) {
+    private HostConfig getHostConfig(ResourceLimit limit) {
         HostConfig config = new HostConfig();
 
-        if (limits.cpuLimit > 0.0) {
-            long cpuQuota = (long) (limits.cpuLimit * CPU_QUOTA_CONST);
+        if (limit.cpuLimit > 0.0) {
+            long cpuQuota = (long) (limit.cpuLimit * CPU_QUOTA_CONST);
             config.withCpuQuota(cpuQuota).withCpuPeriod(DEFAULT_CPU_PERIOD);
         }
-        if (limits.memoryLimit > 0L) {
-            config.withMemory(limits.memoryLimit);
+        if (limit.memoryLimit > 0L) {
+            config.withMemory(limit.memoryLimit);
         }
-        if (limits.pinCPU) {
+        if (limit.pinCPU) {
             config.withCpusetCpus("0");
         }
         return config;
 
     }
 
+    // TODO any use for this?
     public long getStartedAt() throws SeMoDeException {
         String startedAt = client.inspectContainerCmd(containerId)
                 .exec()
@@ -183,6 +184,7 @@ public class DockerContainer {
      *
      * @throws SeMoDeException if the bridge network does not exist
      */
+    // TODO any use for this?
     public String getIpAddress() throws SeMoDeException {
         ContainerNetwork bridge = client.inspectContainerCmd(containerId)
                 .exec()
@@ -319,6 +321,7 @@ public class DockerContainer {
     /**
      * Kills the Container
      */
+    // TODO any use for this?
     public void kill() {
         client.killContainerCmd(containerId).exec();
         client.removeContainerCmd(containerId).exec();

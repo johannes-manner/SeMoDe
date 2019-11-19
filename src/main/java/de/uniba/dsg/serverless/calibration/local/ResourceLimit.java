@@ -10,7 +10,7 @@ import java.io.Reader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class ResourceLimits {
+public class ResourceLimit {
     public final double cpuLimit;
     public final long memoryLimit;
     public final boolean pinCPU;
@@ -23,7 +23,7 @@ public class ResourceLimits {
      * @param cpuLimit    cpu Quota
      * @param memoryLimit memory limit
      */
-    public ResourceLimits(double cpuLimit, boolean pinCPU, long memoryLimit) {
+    public ResourceLimit(double cpuLimit, boolean pinCPU, long memoryLimit) {
         this(cpuLimit, pinCPU, memoryLimit, MemoryUnit.MB);
     }
 
@@ -34,26 +34,28 @@ public class ResourceLimits {
      * @param memoryLimit memory limit
      * @param unit        memory unit
      */
-    public ResourceLimits(double cpuLimit, boolean pinCPU, long memoryLimit, MemoryUnit unit) {
+    public ResourceLimit(double cpuLimit, boolean pinCPU, long memoryLimit, MemoryUnit unit) {
         this.pinCPU = pinCPU;
         this.cpuLimit = cpuLimit;
         this.memoryLimit = unit.toBytes(memoryLimit);
     }
 
-    public static ResourceLimits unlimited() {
-        return new ResourceLimits(0.0, false, 0L);
+    public static ResourceLimit unlimited() {
+        return new ResourceLimit(0.0, false, 0L);
     }
 
-    public static ResourceLimits fromFile(String fileName) throws SeMoDeException {
+    // TODO enable reading resource config from file
+    public static ResourceLimit fromFile(String fileName) throws SeMoDeException {
         Gson parser = new Gson();
         try {
             Reader reader = new BufferedReader(new FileReader(FOLDER.resolve(fileName).toString()));
-            return parser.fromJson(reader, ResourceLimits.class);
+            return parser.fromJson(reader, ResourceLimit.class);
         } catch (IOException e) {
             throw new SeMoDeException("Resource limits could not be read. ", e);
         }
     }
 
+    // TODO any use for this?
     public long getMemoryLimitInMb() {
         return MemoryUnit.MB.fromBytes(this.memoryLimit);
     }

@@ -1,8 +1,8 @@
 package de.uniba.dsg.serverless.calibration.aws;
 
-import de.uniba.dsg.serverless.calibration.BenchmarkParser;
 import de.uniba.dsg.serverless.calibration.Calibration;
 import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
+import de.uniba.dsg.serverless.calibration.LinpackParser;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,7 +43,7 @@ public class AWSCalibration extends Calibration {
                 client.waitForBucketObject("linpack/" + fileName, 600);
                 Path log = calibrationLogs.resolve(fileName);
                 client.getFileFromBucket("linpack/" + fileName, log);
-                results.add(new BenchmarkParser(log).parseBenchmark());
+                results.add(new LinpackParser(log).parseLinpack());
             }
             sb.append(results.stream().map(DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
             sb.append("\n");

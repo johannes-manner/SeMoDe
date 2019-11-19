@@ -3,7 +3,7 @@ package de.uniba.dsg.serverless.calibration.profiling;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Statistics;
 import de.uniba.dsg.serverless.calibration.local.DockerContainer;
-import de.uniba.dsg.serverless.calibration.local.ResourceLimits;
+import de.uniba.dsg.serverless.calibration.local.ResourceLimit;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,7 +31,7 @@ public class ContainerExecutor {
         }
     }
 
-    public void runContainer(Map<String, String> envParams, ResourceLimits limits) throws SeMoDeException {
+    public void runContainer(Map<String, String> envParams, ResourceLimit limits) throws SeMoDeException {
         containerId = container.startContainer(envParams, limits);
         long containerStartTime = ContainerMetrics.parseTime(container.inspectContainer().getState().getStartedAt());
         List<Statistics> stats = container.logStatistics();

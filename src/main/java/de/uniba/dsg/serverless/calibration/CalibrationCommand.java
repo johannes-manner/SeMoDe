@@ -4,7 +4,7 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
 
 public enum CalibrationCommand {
 
-    PERFORM_CALIBRATION("calibrate"), INFO("info"), RUN_CONTAINER("runContainer");
+    PERFORM_CALIBRATION("calibrate"), MAPPING("mapping"), RUN_CONTAINER("runContainer");
 
     private String text;
 

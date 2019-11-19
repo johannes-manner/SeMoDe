@@ -6,7 +6,7 @@ import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.aws.AWSConfig;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
-import de.uniba.dsg.serverless.calibration.local.ResourceLimits;
+import de.uniba.dsg.serverless.calibration.local.ResourceLimit;
 import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import org.apache.logging.log4j.LogManager;
@@ -31,16 +31,17 @@ public class CalibrationUtility extends CustomUtility {
     // calibration
     private CalibrationPlatform platform;
     private String calibrationName;
+    // TODO make it provider independent (for later experiments)
     private AWSConfig awsConfig;
 
-    // info
+    // mapping
 
     // runContainer
     private ContainerExecutor containerExecutor;
     public static final Path PROFILING_PATH = Paths.get("profiling");
     private Path profilingOutputFolder;
     private Map<String, String> environmentVariables;
-    private ResourceLimits limits;
+    private ResourceLimit limits;
 
     public CalibrationUtility(String name) {
         super(name);
@@ -58,7 +59,7 @@ public class CalibrationUtility extends CustomUtility {
                         new AWSCalibration(calibrationName).performCalibration(awsConfig);
                     }
                     break;
-                case INFO:
+                case MAPPING:
                     break;
                 case RUN_CONTAINER:
                     containerExecutor.runContainer(environmentVariables, limits);
@@ -90,7 +91,7 @@ public class CalibrationUtility extends CustomUtility {
                 }
                 awsConfig = AWSConfig.fromFile("aws_calibration.json");
                 break;
-            case INFO:
+            case MAPPING:
                 throw new SeMoDeException("Info Utility not yet supported.");
             case RUN_CONTAINER:
                 validateArgumentSize(arguments, 3);
@@ -112,7 +113,7 @@ public class CalibrationUtility extends CustomUtility {
                 profilingOutputFolder = PROFILING_PATH.resolve("profiling_" + time);
 
                 // TODO Replace this with calibration. (see Note in documentation)
-                limits = new ResourceLimits(1.5, false, 300);
+                limits = new ResourceLimit(1.5, false, 300);
                 break;
         }
     }
@@ -123,5 +124,4 @@ public class CalibrationUtility extends CustomUtility {
         logger.info("calibration info PROVIDER_CALIBRATION LOCAL_CALIBRATION ..(TBD)");
         logger.info("calibration runContainer IMAGE_NAME ENV_FILE");
     }
-
 }

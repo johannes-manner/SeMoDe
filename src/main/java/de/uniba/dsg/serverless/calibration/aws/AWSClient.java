@@ -78,7 +78,8 @@ public class AWSClient {
     }
 
     /**
-     * Blocking function that waits for a file to be created in the S3 bucket. If the timeout is reached, an exception is thrown
+     * Blocking function that waits for a file, if not already available, to be created in the S3 bucket.
+     * If the timeout is reached, an exception is thrown.
      *
      * @param keyName key of the file
      * @param timeout timeout in seconds

@@ -1,6 +1,6 @@
 package de.uniba.dsg.serverless.calibration.local;
 
-import de.uniba.dsg.serverless.calibration.BenchmarkParser;
+import de.uniba.dsg.serverless.calibration.LinpackParser;
 import de.uniba.dsg.serverless.calibration.Calibration;
 import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.model.SeMoDeException;
@@ -59,7 +59,8 @@ public class LocalCalibration extends Calibration {
         stringBuilder.append("\n");
         try {
             Files.write(calibrationFile, stringBuilder.toString().getBytes());
-            Files.delete(temporaryLog.getParent());
+            // TODO Discuss with Martin - logs are maybe relevant for later usage
+//            Files.delete(temporaryLog.getParent());
         } catch (IOException e) {
             throw new SeMoDeException("Could not write local calibration to " + calibrationFile.toString(), e);
         }
@@ -69,21 +70,21 @@ public class LocalCalibration extends Calibration {
      * Executes runs a docker container executing the benchmark with specified resource limit.
      *
      * @param linpackContainer container
-     * @param limit            todo change
+     * @param cpuLimit            todo change
      * @return average performance of linpack in GFLOPS
      * @throws SeMoDeException
      */
-    private double executeBenchmark(DockerContainer linpackContainer, double limit) throws SeMoDeException {
-        linpackContainer.startContainer(new ResourceLimits(limit, false, 0));
+    private double executeBenchmark(DockerContainer linpackContainer, double cpuLimit) throws SeMoDeException {
+        linpackContainer.startContainer(new ResourceLimit(cpuLimit, false, 0));
         int statusCode = linpackContainer.awaitTermination();
         if (statusCode != 0) {
             throw new SeMoDeException("Benchmark failed. (status code = " + statusCode + ")");
         }
         linpackContainer.getFilesFromContainer(CONTAINER_RESULT_FOLDER, calibrationLogs);
         try {
-            Path logFile = calibrationLogs.resolve("linpack_" + DOUBLE_FORMAT.format(limit) + ".log");
+            Path logFile = calibrationLogs.resolve("linpack_" + DOUBLE_FORMAT.format(cpuLimit) + ".log");
             Files.move(temporaryLog, logFile);
-            return new BenchmarkParser(logFile).parseBenchmark();
+            return new LinpackParser(logFile).parseLinpack();
         } catch (IOException e) {
             throw new SeMoDeException(e);
         }
