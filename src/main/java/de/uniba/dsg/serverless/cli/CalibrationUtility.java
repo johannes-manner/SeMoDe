@@ -7,6 +7,7 @@ import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.aws.AWSConfig;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.calibration.local.ResourceLimit;
+import de.uniba.dsg.serverless.calibration.mapping.MappingMaster;
 import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import org.apache.logging.log4j.LogManager;
@@ -18,9 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class CalibrationUtility extends CustomUtility {
 
@@ -35,6 +34,8 @@ public class CalibrationUtility extends CustomUtility {
     private AWSConfig awsConfig;
 
     // mapping
+    private Path localCalibrationFile;
+    private Map<String, Path> providerFiles;
 
     // runContainer
     private ContainerExecutor containerExecutor;
@@ -60,6 +61,7 @@ public class CalibrationUtility extends CustomUtility {
                     }
                     break;
                 case MAPPING:
+                    new MappingMaster(this.localCalibrationFile, this.providerFiles).computeMapping();
                     break;
                 case RUN_CONTAINER:
                     containerExecutor.runContainer(environmentVariables, limits);
@@ -92,7 +94,13 @@ public class CalibrationUtility extends CustomUtility {
                 awsConfig = AWSConfig.fromFile("aws_calibration.json");
                 break;
             case MAPPING:
-                throw new SeMoDeException("Info Utility not yet supported.");
+                validateArgumentSize(arguments, 3);
+                this.localCalibrationFile = Paths.get(arguments.get(1));
+                this.providerFiles = new HashMap<>();
+                for(int i = 2 ; i < arguments.size() ; i=i+2) {
+                    this.providerFiles.put(arguments.get(i), Paths.get(arguments.get(i+1)));
+                }
+                break;
             case RUN_CONTAINER:
                 validateArgumentSize(arguments, 3);
                 String imageName = arguments.get(1);
