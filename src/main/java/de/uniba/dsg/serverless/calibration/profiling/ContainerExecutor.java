@@ -24,6 +24,7 @@ public class ContainerExecutor {
     private List<String> logs;
 
     public ContainerExecutor(String containerTag, String dockerFile, boolean buildContainer) throws SeMoDeException {
+        // TODO maybe change so context is passed here instead of dockerfile -> Dockerfile by default
         container = new DockerContainer(dockerFile, containerTag);
         if (buildContainer) {
             logger.info("building container " + containerTag);

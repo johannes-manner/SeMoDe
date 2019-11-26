@@ -180,25 +180,6 @@ public class DockerContainer {
     }
 
     /**
-     * Returns the IP address of the container.
-     *
-     * @throws SeMoDeException if the bridge network does not exist
-     */
-    // TODO any use for this?
-    public String getIpAddress() throws SeMoDeException {
-        ContainerNetwork bridge = client.inspectContainerCmd(containerId)
-                .exec()
-                .getNetworkSettings()
-                .getNetworks()
-                .get("bridge");
-        if (bridge != null) {
-            return bridge.getIpAddress();
-        } else {
-            throw new SeMoDeException("No bridge network found");
-        }
-    }
-
-    /**
      * Blocking function that retrieves all statistics (docker stats) of the container until it terminates.
      *
      * @return List of statistics
@@ -318,12 +299,4 @@ public class DockerContainer {
         tarInputStream.close();
     }
 
-    /**
-     * Kills the Container
-     */
-    // TODO any use for this?
-    public void kill() {
-        client.killContainerCmd(containerId).exec();
-        client.removeContainerCmd(containerId).exec();
-    }
 }
