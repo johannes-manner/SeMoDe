@@ -10,7 +10,7 @@ import java.text.DecimalFormat;
 
 public class Calibration {
 
-    private static final Path CALIBRATION_FILES = Paths.get("calibration");
+    public static final Path CALIBRATION_FILES = Paths.get("calibration");
 
     protected final String name;
     protected final Path calibrationFile;

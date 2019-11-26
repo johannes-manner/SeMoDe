@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.cli;
 
 import com.google.common.collect.Maps;
+import de.uniba.dsg.serverless.calibration.Calibration;
 import de.uniba.dsg.serverless.calibration.CalibrationCommand;
 import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
@@ -15,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -35,7 +37,7 @@ public class CalibrationUtility extends CustomUtility {
 
     // mapping
     private Path localCalibrationFile;
-    private Map<String, Path> providerFiles;
+    private Path providerCalibrationFile;
 
     // runContainer
     private ContainerExecutor containerExecutor;
@@ -61,7 +63,7 @@ public class CalibrationUtility extends CustomUtility {
                     }
                     break;
                 case MAPPING:
-                    new MappingMaster(this.localCalibrationFile, this.providerFiles).computeMapping();
+                    new MappingMaster(this.localCalibrationFile, this.providerCalibrationFile).computeMapping(1337.0);
                     break;
                 case RUN_CONTAINER:
                     containerExecutor.runContainer(environmentVariables, limits);
@@ -96,13 +98,16 @@ public class CalibrationUtility extends CustomUtility {
             case MAPPING:
                 validateArgumentSize(arguments, 3);
                 this.localCalibrationFile = Paths.get(arguments.get(1));
-                this.providerFiles = new HashMap<>();
-                for(int i = 2 ; i < arguments.size() ; i=i+2) {
-                    this.providerFiles.put(arguments.get(i), Paths.get(arguments.get(i+1)));
+                this.providerCalibrationFile = Paths.get(arguments.get(2));
+                if (!Files.exists(providerCalibrationFile) || !Files.exists(localCalibrationFile)) {
+                    throw new SeMoDeException("Calibration file missing. Please check CLI arguments. Path: calibration/PLATFORM/CALIBRATION_FILE");
+                }
+                if (!localCalibrationFile.startsWith(Calibration.CALIBRATION_FILES) || !providerCalibrationFile.startsWith(Calibration.CALIBRATION_FILES)) {
+                    throw new SeMoDeException("Calibration file must be in calibration/");
                 }
                 break;
             case RUN_CONTAINER:
-                validateArgumentSize(arguments, 3);
+                validateArgumentSize(arguments, 6);
                 String imageName = arguments.get(1);
                 String tag = "semode/" + imageName;
                 String dockerfile = PROFILING_PATH.resolve(imageName).resolve("Dockerfile").toString();
@@ -117,11 +122,18 @@ public class CalibrationUtility extends CustomUtility {
                     throw new SeMoDeException("Could not load environment variables from " + envFile + ".", e);
                 }
 
+                this.localCalibrationFile = Paths.get(arguments.get(3));
+                this.providerCalibrationFile = Paths.get(arguments.get(4));
+                try {
+                    int simulatedMemory = Integer.parseInt(arguments.get(5));
+                    double quota = new MappingMaster(localCalibrationFile, providerCalibrationFile).computeMapping(simulatedMemory);
+                    limits = new ResourceLimit(quota, false, simulatedMemory);
+                } catch (NumberFormatException e) {
+                    throw new SeMoDeException("Simulated Memory must be an Integer.", e);
+                }
+
                 String time = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                 profilingOutputFolder = PROFILING_PATH.resolve("profiling_" + time);
-
-                // TODO Replace this with calibration. (see Note in documentation)
-                limits = new ResourceLimit(1.5, false, 300);
                 break;
         }
     }
