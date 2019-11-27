@@ -1,7 +1,7 @@
 FROM node
 
 WORKDIR /app/
-COPY . .
+COPY profiling/fibonacci-js/ .
 
 RUN npm install
 
