@@ -22,7 +22,20 @@ java -jar SeMoDe.jar "calibration" "calibrate" PLATFORM CALIBRATION_NAME
 #### Mapping
 This subcommands calculates the corresponding CPU quota for a combination of two linpack calibrations, for example "aws/calibration1" and "local/calibration2".
 
-It is not implemented yet.
+Usage:
+
+```
+java -jar SeMoDe.jar "calibration" "mapping" LOCAL_CALIBRATION PROVIDER_CALIBRATION
+```
+
+0. "calibration" is a constant, which specifies the used utility mechanism.
+
+1. "mapping" is a constant, which specifies the used subcommand.
+
+2. The local calibration file stored in /calibration/local/ 
+
+3. The calibration file of a provider stored in /calibration/<provider>/.
+
 
 #### Run Container
 This subcommand runs a docker container and measures and stores the CPU and memory usage in a CSV file. Additionally, meta information about the execution is stored in a JSON file. The logs of the the docker container are also stored.
@@ -31,7 +44,7 @@ All three files are stored in "profiling/profiling_TIMESTAMP/".
 Usage:
 
 ```
-java -jar SeMoDe.jar "calibration" "runContainer" IMAGE_NAME ENV_FILE LOCAL_CALIBRATION PROVIDER_CALIBRATION SIMULATEDMEMORY
+java -jar SeMoDe.jar "calibration" "runContainer" IMAGE_NAME ENV_FILE LOCAL_CALIBRATION PROVIDER_CALIBRATION SIMULATED_MEMORY NUMBER_OF_PROFILES
 ```
 
 1. "calibration" is a constant, which specifies the used utility mechanism.
@@ -48,8 +61,4 @@ java -jar SeMoDe.jar "calibration" "runContainer" IMAGE_NAME ENV_FILE LOCAL_CALI
 
 7. The Simulated Memory Setting will be used to estimate the equivalent local container quota.
 
-**Note:**
-The ability to configure resources is WIP. It would be great to be able to generate Resource settings by providing a pair of calibrations and a desired simulated memory setting.
-
-
-
+8. The Profiling Container will be executed n times.
