@@ -25,6 +25,7 @@ public class Profile {
     public final ContainerMetrics lastMetrics;
     public final LocalDateTime started;
     public final LocalDateTime finished;
+    public final ProfileMetaInfo metaInfo;
 
     public Profile(List<ContainerMetrics> metrics, InspectContainerResponse additional) throws SeMoDeException {
         validateMetrics(metrics);
@@ -40,6 +41,7 @@ public class Profile {
         } catch (DateTimeParseException e) {
             throw new SeMoDeException(e);
         }
+        metaInfo = new ProfileMetaInfo(this);
     }
 
     private List<ContainerMetrics> calculateDeltaMetrics() throws SeMoDeException {
@@ -81,8 +83,7 @@ public class Profile {
         Gson jsonParser = new GsonBuilder()
                 .setPrettyPrinting()
                 .create();
-        ProfileMetaInfo info = new ProfileMetaInfo(this);
-        Files.write(folder.resolve("meta.json"), jsonParser.toJson(info).getBytes());
+        Files.write(folder.resolve("meta.json"), jsonParser.toJson(metaInfo).getBytes());
     }
 
     private String getHeader() {

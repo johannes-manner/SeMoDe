@@ -42,9 +42,9 @@ public class CalibrationUtility extends CustomUtility {
     // runContainer
     private ContainerExecutor containerExecutor;
     public static final Path PROFILING_PATH = Paths.get("profiling");
-    private Path profilingOutputFolder;
     private Map<String, String> environmentVariables;
     private ResourceLimit limits;
+    private int numberOfProfiles;
 
     public CalibrationUtility(String name) {
         super(name);
@@ -66,9 +66,7 @@ public class CalibrationUtility extends CustomUtility {
                     new MappingMaster(this.localCalibrationFile, this.providerCalibrationFile).computeMapping(1337.0);
                     break;
                 case RUN_CONTAINER:
-                    containerExecutor.runContainer(environmentVariables, limits);
-                    containerExecutor.saveProfile(profilingOutputFolder);
-                    logger.info("Profile saved in " + profilingOutputFolder);
+                    containerExecutor.executeLocalProfiles(environmentVariables, limits, numberOfProfiles);
                     break;
             }
         } catch (SeMoDeException e) {
@@ -107,7 +105,7 @@ public class CalibrationUtility extends CustomUtility {
                 }
                 break;
             case RUN_CONTAINER:
-                validateArgumentSize(arguments, 6);
+                validateArgumentSize(arguments, 7);
                 String imageName = arguments.get(1);
                 String tag = "semode/" + imageName;
                 String dockerfile = PROFILING_PATH.resolve(imageName).resolve("Dockerfile").toString();
@@ -128,20 +126,18 @@ public class CalibrationUtility extends CustomUtility {
                     int simulatedMemory = Integer.parseInt(arguments.get(5));
                     double quota = new MappingMaster(localCalibrationFile, providerCalibrationFile).computeMapping(simulatedMemory);
                     limits = new ResourceLimit(quota, false, simulatedMemory);
+                    this.numberOfProfiles = Integer.parseInt(arguments.get(6));
                 } catch (NumberFormatException e) {
-                    throw new SeMoDeException("Simulated Memory must be an Integer.", e);
+                    throw new SeMoDeException("Simulated Memory and number of profiles must be Integers.", e);
                 }
-
-                String time = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                profilingOutputFolder = PROFILING_PATH.resolve("profiling_" + time);
                 break;
         }
     }
 
     private void printUsage() {
-        logger.info("Usage: Choose one of three subcommands. \"calibrate\", \"info\" or \"runContainer\".");
+        logger.info("Usage: Choose one of three subcommands. \"calibrate\", \"mapping\" or \"runContainer\".");
         logger.info("calibration calibration calibrate PLATFORM CALIBRATION_NAME");
-        logger.info("calibration info PROVIDER_CALIBRATION LOCAL_CALIBRATION ..(TBD)");
-        logger.info("calibration runContainer IMAGE_NAME ENV_FILE");
+        logger.info("calibration mapping LOCAL_CALIBRATION PROVIDER_CALIBRATION");
+        logger.info("calibration runContainer IMAGE_NAME ENV_FILE LOCAL_CALIBRATION PROVIDER_CALIBRATION SIMULATED_MEMORY NUMBER_OF_PROFILES");
     }
 }

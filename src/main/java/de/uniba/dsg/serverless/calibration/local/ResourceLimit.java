@@ -1,21 +1,11 @@
 package de.uniba.dsg.serverless.calibration.local;
 
-import com.google.gson.Gson;
-import de.uniba.dsg.serverless.model.SeMoDeException;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import de.uniba.dsg.serverless.calibration.MemoryUnit;
 
 public class ResourceLimit {
     public final double cpuLimit;
     public final long memoryLimit;
     public final boolean pinCPU;
-
-    public static final Path FOLDER = Paths.get("profiling", "src", "main", "resources");
 
     /**
      * Creates resource limits using MB as the unit.
@@ -44,18 +34,6 @@ public class ResourceLimit {
         return new ResourceLimit(0.0, false, 0L);
     }
 
-    // TODO enable reading resource config from file
-    public static ResourceLimit fromFile(String fileName) throws SeMoDeException {
-        Gson parser = new Gson();
-        try {
-            Reader reader = new BufferedReader(new FileReader(FOLDER.resolve(fileName).toString()));
-            return parser.fromJson(reader, ResourceLimit.class);
-        } catch (IOException e) {
-            throw new SeMoDeException("Resource limits could not be read. ", e);
-        }
-    }
-
-    // TODO any use for this?
     public long getMemoryLimitInMb() {
         return MemoryUnit.MB.fromBytes(this.memoryLimit);
     }
@@ -66,33 +44,3 @@ public class ResourceLimit {
     }
 }
 
-
-enum MemoryUnit {
-    B, KB, MB, GB;
-
-    long toBytes(long memory) {
-        switch (this) {
-            case GB:
-                memory *= 1024;
-            case MB:
-                memory *= 1024;
-            case KB:
-                memory *= 1024;
-            default:
-                return memory;
-        }
-    }
-
-    long fromBytes(long memory) {
-        switch (this) {
-            case GB:
-                memory /= 1024;
-            case MB:
-                memory /= 1024;
-            case KB:
-                memory /= 1024;
-            default:
-                return memory;
-        }
-    }
-}

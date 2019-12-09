@@ -11,6 +11,7 @@ public class ProfileMetaInfo {
     public final String imageId;
     public final InspectContainerResponse.ContainerState state;
     public final long durationMS;
+    public final long averageMemoryUsage;
 
     public ProfileMetaInfo(Profile profile) throws SeMoDeException {
         InspectContainerResponse additional = profile.additional;
@@ -19,5 +20,15 @@ public class ProfileMetaInfo {
         imageId = additional.getImageId();
         state = additional.getState();
         durationMS = ContainerMetrics.timeDifference(state.getStartedAt(), state.getFinishedAt());
+        averageMemoryUsage = getAverageMemoryUtilization(profile);
+    }
+
+
+    private long getAverageMemoryUtilization(Profile profile) throws SeMoDeException {
+        long memoryUsage = 0;
+        for (ContainerMetrics entry : profile.metrics) {
+            memoryUsage += entry.getMetric("memory_usage");
+        }
+        return memoryUsage / profile.metrics.size();
     }
 }
