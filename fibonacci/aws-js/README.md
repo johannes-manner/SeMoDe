@@ -2,13 +2,19 @@
 
 Prerequisites:
 
-- aws-cli
+- aws-cli, serverless framework
 
 
 ### Change the name of the service
 
 Open `serverless.yml` and change the value of `service`.
 
+### Install necessary node modules
+
+```shell
+npm install --save line-reader
+npm install uuid
+```
 
 ### Setting up your AWS credentials
 

@@ -2,6 +2,7 @@
 apply plugin: 'idea'
 apply plugin: 'eclipse'
 apply plugin: 'java'
+apply plugin: 'application'
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
@@ -70,3 +71,5 @@ jar {
   // see discussion: https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
   exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
 }
+
+mainClassName = "de.uniba.dsg.serverless.ArgumentProcessor"

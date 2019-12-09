@@ -6,6 +6,10 @@ SeMoDe is a prototype for troubleshooting Serverless Lambda functions implemente
 
 The tool itself is in an early stage and needs feedback and participation of the GitHub community. Feel free to contribute :)
 
+## Prerequisites
+
+Installing [Serverless Framework](https://serverless.com/). The Open-Source Edition is sufficient.
+
 ## Command Line
 
 ### Usage

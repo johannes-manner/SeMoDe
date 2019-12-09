@@ -19,12 +19,12 @@ service: fibonacci-js
 
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs12.x
   # paris
-  region: eu-west-3
+  region: eu-central-1
   timeout: 300
   deploymentBucket:
-    name: fibonacci-benchmark-js-setup5-paris
+    name: fibonacci-benchmark-js
 
 # you can overwrite defaults here
 #  stage: dev
