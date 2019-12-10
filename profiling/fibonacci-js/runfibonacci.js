@@ -1,6 +1,24 @@
 // This script creates a context mock and runs the fibonacci function locally.
 
-const context = require('aws-lambda-mock-context');
-const ctx = context();
-require('./fibonacci').handler({n:process.env.FIB_INPUT},ctx);
-ctx.Promise.then(() => {console.log("success");}).catch(err => {console.log(err);throw err;});
+
+var isNumeric = function(value) {
+    return /^\d+$/.test(value);
+};
+
+var fib = function(n) {
+    if (n <= 1) {
+        return 1;
+    } else {
+        return fib(n - 1) + fib(n - 2);
+    }
+};
+
+
+var n = process.env.FIB_INPUT;
+
+if (!n || !isNumeric(n)) {
+    return;
+}
+
+n = parseInt(n);
+var result = fib(n);
