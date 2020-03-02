@@ -1,9 +1,12 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
+import com.google.common.primitives.Doubles;
+import com.google.gson.GsonBuilder;
+import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.cli.PipelineSetupUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.BenchmarkConfig;
-import de.uniba.dsg.serverless.pipeline.model.BenchmarkSetup;
+import de.uniba.dsg.serverless.pipeline.model.PipelineSetup;
 import de.uniba.dsg.serverless.pipeline.model.ProviderConfig;
 import de.uniba.dsg.serverless.pipeline.utils.BenchmarkingCommandGenerator;
 import de.uniba.dsg.serverless.pipeline.utils.EndpointExtractor;
@@ -23,26 +26,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class BenchmarkSetupController {
+public class PipelineSetupController {
 
-    private static final Logger logger = LogManager.getLogger(BenchmarkSetupController.class.getName());
+    private static final Logger logger = LogManager.getLogger(PipelineSetupController.class.getName());
 
     private final ObjectMapper om;
-    private final BenchmarkSetup setup;
+    private final PipelineSetup setup;
 
-    private BenchmarkSetupController(final BenchmarkSetup setup) {
+    private PipelineSetupController(final PipelineSetup setup) {
         this.setup = setup;
         this.om = new ObjectMapper();
     }
 
-    public static BenchmarkSetupController init(final BenchmarkSetup setup) throws SeMoDeException {
-        final BenchmarkSetupController controller = new BenchmarkSetupController(setup);
+    public static PipelineSetupController init(final PipelineSetup setup) throws SeMoDeException {
+        final PipelineSetupController controller = new PipelineSetupController(setup);
         controller.createBenchmarkFolderStructure();
         return controller;
     }
 
-    public static BenchmarkSetupController load(final BenchmarkSetup setup) throws SeMoDeException {
-        final BenchmarkSetupController controller = new BenchmarkSetupController(setup);
+    public static PipelineSetupController load(final PipelineSetup setup) throws SeMoDeException {
+        final PipelineSetupController controller = new PipelineSetupController(setup);
         if (!Files.isDirectory(setup.pathToSetup)) {
             throw new SeMoDeException("Test setup does not exist.");
         }
@@ -56,10 +59,13 @@ public class BenchmarkSetupController {
         }
         try {
             Files.createDirectories(this.setup.pathToSetup);
+            // for benchmarking
             Files.createDirectories(this.setup.pathToDeployment);
             Files.createDirectories(this.setup.pathToEndpoints);
             Files.createDirectories(this.setup.pathToBenchmarkingCommands);
             Files.createDirectories(this.setup.pathToFetchingCommands);
+            // for calibration
+            Files.createDirectories(this.setup.pathToCalibration);
         } catch (final IOException e) {
             throw new SeMoDeException(e);
         }
@@ -79,7 +85,7 @@ public class BenchmarkSetupController {
                     this.setup.userProviders.put(p.getName(), p);
 
                     // auto save
-                    this.saveBenchmarkSetup();
+                    this.savePipelineSetup();
                 } catch (final IOException e) {
                     System.err.println("Incorrect json format: " + json);
                 } catch (final SeMoDeException e) {
@@ -108,21 +114,25 @@ public class BenchmarkSetupController {
                 "Please specify the property. Think about the correct JSON representation for the value. \n(empty to skip property)");
     }
 
-    private void saveBenchmarkSetup() throws SeMoDeException {
+    private void savePipelineSetup() throws SeMoDeException {
 
         try {
+            this.setup.updateUserConfig();
             this.om.writer().withDefaultPrettyPrinter().writeValue(Paths.get(this.setup.pathToConfig.toString()).toFile(),
-                    this.setup.assembleUserConfig());
+                    this.setup.userConfig);
         } catch (final IOException e) {
             throw new SeMoDeException("Configuration could not be saved.", e);
         }
 
     }
 
-    public void printBenchmarkSetupStatus() throws SeMoDeException {
-        System.out.println("Printing status of benchmark setup \"" + this.setup.name + "\"");
+    public void printPipelineSetupStatus() throws SeMoDeException {
+        System.out.println("Printing status of pipeline setup \"" + this.setup.name + "\"");
         System.out.println("Printing Properties:");
-        System.out.println(this.setup.assembleUserConfig());
+        this.setup.updateUserConfig();
+
+        System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(this.setup.userConfig));
+
     }
 
     public void prepareDeployment() throws SeMoDeException {
@@ -242,7 +252,7 @@ public class BenchmarkSetupController {
         this.setup.benchmarkConfig = config;
 
         // auto save to store the benchmark
-        this.saveBenchmarkSetup();
+        this.savePipelineSetup();
 
         final BenchmarkingCommandGenerator bcg = new BenchmarkingCommandGenerator(this.setup.pathToBenchmarkingCommands, this.setup.pathToEndpoints, this.setup.benchmarkConfig, this.setup.getSeMoDeJarLocation());
 
@@ -262,5 +272,46 @@ public class BenchmarkSetupController {
                 fcg.fetchCommands(provider, language);
             }
         }
+    }
+
+    public void generateCalibration() throws SeMoDeException {
+        String platform = "";
+        final List<String> validPlatforms = List.of(CalibrationPlatform.values()).stream().map(CalibrationPlatform::getText).collect(Collectors.toList());
+        while (!validPlatforms.contains(platform)) {
+            System.out.println("Insert a possible calibration platform. Options: " + validPlatforms);
+            platform = PipelineSetupUtility.scanner.nextLine();
+        }
+
+
+        if (platform.equals(CalibrationPlatform.LOCAL.getText())) {
+            System.out.println("Current value for 'localSteps' is " + this.setup.userConfig.getCalibrationConfig().getLocalSteps() +
+                    "\n If you want to change it, specify the value: ");
+            final String localSteps = PipelineSetupUtility.scanner.nextLine();
+            if (!"".equals(localSteps) && Doubles.tryParse(localSteps) != null) {
+                this.setup.userConfig.updateLocalSteps(Doubles.tryParse(localSteps));
+            }
+        } else if (platform.equals(CalibrationPlatform.AWS.getText())) {
+            System.out.println("Insert current target url or skip setting: ");
+            final String targetUrl = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert current apiKey or skip setting: ");
+            final String apiKey = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert current bucketName or skip setting: ");
+            final String bucketName = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert current memorySizes (JSON Array) or skip setting: ");
+            final String memorySizes = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert current number of executions or skip setting: ");
+            final String numberOfAWSExecutions = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert enabled property (true or false) or skip setting: ");
+            final String enabled = PipelineSetupUtility.scanner.nextLine();
+
+            this.setup.userConfig.updateAWSConfig(targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
+
+        }
+
+        // auto save to store the pipeline setup
+        this.savePipelineSetup();
+    }
+
+    public void startCalibration() {
     }
 }

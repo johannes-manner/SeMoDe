@@ -17,5 +17,6 @@
     2816,
     3008
   ],
-  "numberOfAWSExecutions": 0
+  "numberOfAWSExecutions": 0,
+  "enabled": true
 }

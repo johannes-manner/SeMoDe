@@ -1,8 +1,8 @@
 package de.uniba.dsg.serverless.cli;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.pipeline.controller.BenchmarkSetupController;
-import de.uniba.dsg.serverless.pipeline.model.BenchmarkSetup;
+import de.uniba.dsg.serverless.pipeline.controller.PipelineSetupController;
+import de.uniba.dsg.serverless.pipeline.model.PipelineSetup;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,7 +15,7 @@ public class PipelineSetupUtility extends CustomUtility {
     public static final Scanner scanner = new Scanner(System.in);
     private static final Logger logger = LogManager.getLogger(PipelineSetupUtility.class.getName());
 
-    private BenchmarkSetupController controller;
+    private PipelineSetupController controller;
 
     public PipelineSetupUtility(final String name) {
         super(name);
@@ -49,23 +49,31 @@ public class PipelineSetupUtility extends CustomUtility {
     private void printRunCommandUsage() {
         System.out.println();
         System.out.println("Please type in a command or \"exit\".");
-        System.out.println(" (status)     Get the current configuration");
-        System.out.println(" (config)     Alter/Specify the current configuration");
-        System.out.println(" (deploy)     Starts the deployment");
-        System.out.println(" (endpoints)  Generate endpoints for benchmarking");
-        System.out.println(" (commands)   Generate benchmarking commands in a bat-file");
-        System.out.println(" (fetch)      Fetch log data from various platforms");
-        System.out.println(" (undeploy)   Undeploying the current cloud functions");
-        System.out.println(" (exit)       Terminate the program");
+        System.out.println("Benchmarking Options:");
+        System.out.println(" (config)             Alter/Specify the current configuration");
+        System.out.println(" (deploy)             Starts the deployment");
+        System.out.println(" (endpoints)          Generate endpoints for benchmarking");
+        System.out.println(" (commands)           Generate benchmarking commands in a bat-file");
+        System.out.println(" (fetch)              Fetch log data from various platforms");
+        System.out.println(" (undeploy)           Undeploying the current cloud functions");
+        System.out.println(" (benchmark)          Starts the whole benchmarking pipeline");
+        System.out.println("Simulation Options:");
+        System.out.println(" (calibrate)          Perform a calibration (linpack)");
+        System.out.println(" (startCalibration)   Starts the configured calibration");
+        System.out.println(" (mapping)            Computes the mapping between two calibrations");
+        System.out.println(" (run)                Run container based on calibration");
+        System.out.println("Other Options:");
+        System.out.println(" (status)             Get the current configuration");
+        System.out.println(" (exit)               Terminate the program");
     }
 
     private void executeSetupCommand(final String name) throws SeMoDeException {
-        final BenchmarkSetup setup = new BenchmarkSetup(name);
+        final PipelineSetup setup = new PipelineSetup(name);
 
         if (setup.setupAlreadyExists()) {
-            this.controller = BenchmarkSetupController.load(setup);
+            this.controller = PipelineSetupController.load(setup);
         } else {
-            this.controller = BenchmarkSetupController.init(setup);
+            this.controller = PipelineSetupController.init(setup);
         }
 
         logger.info("Successfully loaded benchmark setup \"" + setup.name + "\"");
@@ -73,9 +81,8 @@ public class PipelineSetupUtility extends CustomUtility {
 
     private void executeRunCommand(final String command) throws SeMoDeException {
         switch (command) {
-            case "status":
-                this.controller.printBenchmarkSetupStatus();
-                break;
+
+            // benchmark options
             case "config":
                 this.controller.configureBenchmarkSetup();
                 break;
@@ -93,6 +100,26 @@ public class PipelineSetupUtility extends CustomUtility {
                 break;
             case "undeploy":
                 this.controller.undeploy();
+                break;
+            case "benchmark":
+                // TODO
+                break;
+            // calibration options
+            case "calibrate":
+                this.controller.generateCalibration();
+                break;
+            case "startCalibration":
+                this.controller.startCalibration();
+                break;
+            case "mappging":
+                // TODO
+                break;
+            case "run":
+                // TODO
+                break;
+            // other program options
+            case "status":
+                this.controller.printPipelineSetupStatus();
                 break;
             default:
                 throw new SeMoDeException(

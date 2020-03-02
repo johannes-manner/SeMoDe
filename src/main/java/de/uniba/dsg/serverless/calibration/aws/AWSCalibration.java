@@ -18,39 +18,39 @@ public class AWSCalibration extends Calibration {
 
     private static final Logger logger = LogManager.getLogger(AWSCalibration.class.getName());
 
-    public AWSCalibration(String name) throws SeMoDeException {
+    public AWSCalibration(final String name) throws SeMoDeException {
         super(name, CalibrationPlatform.AWS);
     }
 
-    public void performCalibration(AWSConfig config) throws SeMoDeException {
-        if (Files.exists(calibrationFile)) {
+    public void performCalibration(final AWSCalibrationConfig config) throws SeMoDeException {
+        if (Files.exists(this.calibrationFile)) {
             System.out.println("Provider calibration already performed.");
             return;
         }
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append(config.memorySizes.stream().map(String::valueOf).collect(Collectors.joining(",")));
         sb.append("\n");
 
-        AWSClient client = new AWSClient(config.targetUrl, config.apiKey, config.bucketName);
+        final AWSClient client = new AWSClient(config.targetUrl, config.apiKey, config.bucketName);
         for (int i = 0; i < config.numberOfAWSExecutions; i++) {
-            for (int memory : config.memorySizes) {
-                String fileName = name + "/" + memory + "_" + i;
+            for (final int memory : config.memorySizes) {
+                final String fileName = this.name + "/" + memory + "_" + i;
                 client.invokeBenchmarkFunctions(memory, fileName);
             }
-            List<Double> results = new ArrayList<>();
-            for (int memory : config.memorySizes) {
-                String fileName = name + "/" + memory + "_" + i;
+            final List<Double> results = new ArrayList<>();
+            for (final int memory : config.memorySizes) {
+                final String fileName = this.name + "/" + memory + "_" + i;
                 client.waitForBucketObject("linpack/" + fileName, 600);
-                Path log = calibrationLogs.resolve(fileName);
+                final Path log = this.calibrationLogs.resolve(fileName);
                 client.getFileFromBucket("linpack/" + fileName, log);
                 results.add(new LinpackParser(log).parseLinpack());
             }
-            sb.append(results.stream().map(DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
+            sb.append(results.stream().map(this.DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
             sb.append("\n");
         }
         try {
-            Files.write(calibrationFile, sb.toString().getBytes());
-        } catch (IOException e) {
+            Files.write(this.calibrationFile, sb.toString().getBytes());
+        } catch (final IOException e) {
             throw new SeMoDeException(e);
         }
     }

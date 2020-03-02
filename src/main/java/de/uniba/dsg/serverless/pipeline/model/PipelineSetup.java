@@ -13,17 +13,17 @@ import java.util.*;
 import java.util.function.Predicate;
 
 /**
- * Model class of a Benchmark Setup. A benchmark setup consists of multiple
- * benchmarks. The settings are defined in properties file manually or
+ * Model class of a Pipeline Setup. A pipeline setup consists of multiple
+ * benchmarks or calibrations. The settings are defined in properties file manually or
  * automatically. The format of the property file is as follows:
  * <p>
  * key=setting1,setting2,settingN
  * <p>
  * with keys being listed below.<br>
- * Resulting benchmarking setup contains all possible combinations of the
+ * Resulting pipeline setup contains all possible combinations of the
  * settings.
  */
-public class BenchmarkSetup {
+public class PipelineSetup {
 
     public static final String SETUP_LOCATION = "setups";
     public static final String SEPERATOR = ";";
@@ -31,31 +31,56 @@ public class BenchmarkSetup {
     private static final String SEMODE_JAR_NAME = "SeMoDe.jar";
 
     public final Config config;
+    public final UserConfig userConfig;
     public final Map<String, ProviderConfig> possibleProviders;
     public final Map<String, ProviderConfig> userProviders;
+    // name of the pipeline setup, also name for the root folder
     public final String name;
+    // global pipeline paths
     public final Path pathToSetup;
     public final Path pathToConfig;
     public final Path pathToSources;
+    // for benchmarking
     public final Path pathToDeployment;
     public final Path pathToEndpoints;
     public final Path pathToBenchmarkingCommands;
     public final Path pathToFetchingCommands;
+    // for calibration
+    public final Path pathToCalibration;
+
     public BenchmarkConfig benchmarkConfig;
 
-    public BenchmarkSetup(final String name) throws SeMoDeException {
+
+    public PipelineSetup(final String name) throws SeMoDeException {
         this.name = name;
-        this.pathToSetup = Paths.get(BenchmarkSetup.SETUP_LOCATION, name);
+        this.pathToSetup = Paths.get(PipelineSetup.SETUP_LOCATION, name);
         this.pathToConfig = this.pathToSetup.resolve("settings.json");
         this.pathToSources = this.pathToSetup.resolve("sources");
-        this.pathToDeployment = this.pathToSetup.resolve("deployments");
-        this.pathToEndpoints = this.pathToSetup.resolve("endpoints");
-        this.pathToBenchmarkingCommands = this.pathToSetup.resolve("benchmarkingCommands");
-        this.pathToFetchingCommands = this.pathToSetup.resolve("fetchingCommands");
+        this.pathToCalibration = this.pathToSetup.resolve("calibration");
+
+        final Path benchmarkPath = this.pathToSetup.resolve("benchmark");
+        this.pathToDeployment = benchmarkPath.resolve("deployments");
+        this.pathToEndpoints = benchmarkPath.resolve("endpoints");
+        this.pathToBenchmarkingCommands = benchmarkPath.resolve("benchmarkingCommands");
+        this.pathToFetchingCommands = benchmarkPath.resolve("fetchingCommands");
+
         this.benchmarkConfig = new BenchmarkConfig();
         this.userProviders = new HashMap<>();
         this.config = this.loadConfig(PIPELINE_JSON);
+        this.userConfig = this.initializeUserConfig();
         this.possibleProviders = this.config.getProviderConfigMap();
+    }
+
+    /**
+     * Initializes the user config with some default values which are helpful, e.g. the calibration options,
+     * if some parameters should be unchanged to the global config.
+     *
+     * @return
+     */
+    private UserConfig initializeUserConfig() {
+        final UserConfig userConfig = new UserConfig();
+        userConfig.setCalibrationConfig(new CalibrationConfig(this.config.getCalibrationConfig()));
+        return userConfig;
     }
 
     public boolean setupAlreadyExists() {
@@ -95,12 +120,13 @@ public class BenchmarkSetup {
         }
     }
 
-    public UserConfig assembleUserConfig() {
+    public void updateUserConfig() {
         final List<ProviderConfig> providerConfigs = new ArrayList<>();
         for (final ProviderConfig config : this.userProviders.values()) {
             providerConfigs.add(config);
         }
-        return new UserConfig(providerConfigs, this.benchmarkConfig);
+        this.userConfig.setBenchmarkConfig(this.benchmarkConfig);
+        this.userConfig.setProviderConfigs(providerConfigs);
     }
 
     /**
