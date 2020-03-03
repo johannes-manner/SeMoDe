@@ -1,7 +1,6 @@
 package de.uniba.dsg.serverless.cli;
 
 import com.google.common.collect.Maps;
-import de.uniba.dsg.serverless.calibration.Calibration;
 import de.uniba.dsg.serverless.calibration.CalibrationCommand;
 import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
@@ -59,6 +58,7 @@ public class CalibrationUtility extends CustomUtility {
                     }
                     break;
                 case MAPPING:
+                    // TODO remove hard-coded value here
                     new MappingMaster(this.localCalibrationFile, this.providerCalibrationFile).computeMapping(1337.0);
                     break;
                 case RUN_CONTAINER:
@@ -95,9 +95,6 @@ public class CalibrationUtility extends CustomUtility {
                 this.providerCalibrationFile = Paths.get(arguments.get(2));
                 if (!Files.exists(this.providerCalibrationFile) || !Files.exists(this.localCalibrationFile)) {
                     throw new SeMoDeException("Calibration file missing. Please check CLI arguments. Path: calibration/PLATFORM/CALIBRATION_FILE");
-                }
-                if (!this.localCalibrationFile.startsWith(Calibration.CALIBRATION_FILES) || !this.providerCalibrationFile.startsWith(Calibration.CALIBRATION_FILES)) {
-                    throw new SeMoDeException("Calibration file must be in calibration/");
                 }
                 break;
             case RUN_CONTAINER:

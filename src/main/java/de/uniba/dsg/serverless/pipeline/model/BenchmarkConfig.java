@@ -1,50 +1,54 @@
 package de.uniba.dsg.serverless.pipeline.model;
 
+/**
+ * Model class for benchmark execution config and json serialization.
+ * DO NOT change this class. Otherwise json serialization and deserialization does not work properly.
+ */
 public class BenchmarkConfig {
 
-	// corePoolSize for executor service
-	private String numberThreads;
-	private String benchmarkMode;
-	private String benchmarkParameters;
+    // corePoolSize for executor service
+    private String numberThreads;
+    private String benchmarkMode;
+    private String benchmarkParameters;
 
-	public BenchmarkConfig() {
-	}
+    public BenchmarkConfig() {
+    }
 
-	public BenchmarkConfig(String numberOfThreads, String benchmarkMode, String benchmarkParameters) {
-		super();
-		this.numberThreads = numberOfThreads;
-		this.benchmarkMode = benchmarkMode;
-		this.benchmarkParameters = benchmarkParameters;
-	}
+    public BenchmarkConfig(final String numberOfThreads, final String benchmarkMode, final String benchmarkParameters) {
+        super();
+        this.numberThreads = numberOfThreads;
+        this.benchmarkMode = benchmarkMode;
+        this.benchmarkParameters = benchmarkParameters;
+    }
 
-	public String getNumberThreads() {
-		return numberThreads;
-	}
+    public String getNumberThreads() {
+        return this.numberThreads;
+    }
 
-	public void setNumberThreads(String numberThreads) {
-		this.numberThreads = numberThreads;
-	}
+    public void setNumberThreads(final String numberThreads) {
+        this.numberThreads = numberThreads;
+    }
 
-	public String getBenchmarkMode() {
-		return benchmarkMode;
-	}
+    public String getBenchmarkMode() {
+        return this.benchmarkMode;
+    }
 
-	public void setBenchmarkMode(String benchmarkMode) {
-		this.benchmarkMode = benchmarkMode;
-	}
+    public void setBenchmarkMode(final String benchmarkMode) {
+        this.benchmarkMode = benchmarkMode;
+    }
 
-	public String getBenchmarkParameters() {
-		return benchmarkParameters;
-	}
+    public String getBenchmarkParameters() {
+        return this.benchmarkParameters;
+    }
 
-	public void setBenchmarkParameters(String benchmarkParameters) {
-		this.benchmarkParameters = benchmarkParameters;
-	}
+    public void setBenchmarkParameters(final String benchmarkParameters) {
+        this.benchmarkParameters = benchmarkParameters;
+    }
 
-	@Override
-	public String toString() {
-		return "BenchmarkConfig [numberThreads=" + numberThreads + ", benchmarkMode=" + benchmarkMode
-				+ ", benchmarkParameters=" + benchmarkParameters + "]";
-	}
+    @Override
+    public String toString() {
+        return "BenchmarkConfig [numberThreads=" + this.numberThreads + ", benchmarkMode=" + this.benchmarkMode
+                + ", benchmarkParameters=" + this.benchmarkParameters + "]";
+    }
 
 }

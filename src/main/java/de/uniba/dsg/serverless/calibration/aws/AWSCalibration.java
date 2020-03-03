@@ -18,8 +18,14 @@ public class AWSCalibration extends Calibration {
 
     private static final Logger logger = LogManager.getLogger(AWSCalibration.class.getName());
 
+    // used for CLI feature
     public AWSCalibration(final String name) throws SeMoDeException {
         super(name, CalibrationPlatform.AWS);
+    }
+
+    // used within pipeline
+    public AWSCalibration(final String name, final Path calibrationFolder) throws SeMoDeException {
+        super(name, CalibrationPlatform.AWS, calibrationFolder);
     }
 
     public void performCalibration(final AWSCalibrationConfig config) throws SeMoDeException {

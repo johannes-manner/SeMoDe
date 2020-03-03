@@ -102,7 +102,7 @@ public class PipelineSetupUtility extends CustomUtility {
                 this.controller.undeploy();
                 break;
             case "benchmark":
-                // TODO
+                // TODO automate as much as possible
                 break;
             // calibration options
             case "calibrate":

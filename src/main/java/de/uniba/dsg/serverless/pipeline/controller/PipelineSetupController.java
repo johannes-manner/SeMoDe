@@ -2,6 +2,8 @@ package de.uniba.dsg.serverless.pipeline.controller;
 
 import com.google.gson.GsonBuilder;
 import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
+import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
+import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.cli.PipelineSetupUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.BenchmarkConfig;
@@ -40,6 +42,7 @@ public class PipelineSetupController {
     public static PipelineSetupController init(final PipelineSetup setup) throws SeMoDeException {
         final PipelineSetupController controller = new PipelineSetupController(setup);
         controller.createBenchmarkFolderStructure();
+        setup.initializeUserConfig();
         return controller;
     }
 
@@ -71,6 +74,7 @@ public class PipelineSetupController {
     }
 
     public void configureBenchmarkSetup() {
+        // TODO make input similar to calibration
         String provider;
         do {
             System.out.println("Insert a valid provider: " + this.setup.possibleProviders.keySet().toString());
@@ -282,15 +286,14 @@ public class PipelineSetupController {
             platform = PipelineSetupUtility.scanner.nextLine();
         }
 
-
+        final UserConfigHandler userConfigHandler = new UserConfigHandler(this.setup.userConfig);
         if (platform.equals(CalibrationPlatform.LOCAL.getText())) {
-            System.out.println("Current value for 'localSteps' is " + this.setup.userConfig.getCalibrationConfig().getLocalSteps() +
-                    "\nInsert localSteps property (true or false) or skip setting: ");
+            System.out.println("Insert localSteps property or skip setting: ");
             final String localSteps = PipelineSetupUtility.scanner.nextLine();
             System.out.println("Insert enabled property (true or false) or skip setting: ");
             final String enabled = PipelineSetupUtility.scanner.nextLine();
 
-            this.setup.userConfig.updateLocalConfig(localSteps, enabled);
+            userConfigHandler.updateLocalConfig(localSteps, enabled);
 
         } else if (platform.equals(CalibrationPlatform.AWS.getText())) {
             System.out.println("Insert current target url or skip setting: ");
@@ -306,14 +309,24 @@ public class PipelineSetupController {
             System.out.println("Insert enabled property (true or false) or skip setting: ");
             final String enabled = PipelineSetupUtility.scanner.nextLine();
 
-            this.setup.userConfig.updateAWSConfig(targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
+            userConfigHandler.updateAWSConfig(targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
 
         }
         // auto save to store the pipeline setup
         this.savePipelineSetup();
     }
 
-    public void startCalibration() {
-        // TODO
+    /**
+     * Starts the calibration within the running program via the pipeline.
+     *
+     * @throws SeMoDeException
+     */
+    public void startCalibration() throws SeMoDeException {
+        final UserConfigHandler userConfigHandler = new UserConfigHandler(this.setup.userConfig);
+        if (userConfigHandler.isLocalEnabled()) {
+            new LocalCalibration(this.setup.name, this.setup.pathToCalibration, userConfigHandler.getLocalSteps()).performCalibration();
+        } else if (userConfigHandler.isAWSEnabled()) {
+            new AWSCalibration(this.setup.name, this.setup.pathToCalibration).performCalibration(userConfigHandler.getAWSConfig());
+        }
     }
 }

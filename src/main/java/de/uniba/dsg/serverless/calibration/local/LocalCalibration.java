@@ -1,8 +1,8 @@
 package de.uniba.dsg.serverless.calibration.local;
 
-import de.uniba.dsg.serverless.calibration.LinpackParser;
 import de.uniba.dsg.serverless.calibration.Calibration;
 import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
+import de.uniba.dsg.serverless.calibration.LinpackParser;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,49 +20,60 @@ import java.util.stream.IntStream;
 public class LocalCalibration extends Calibration {
 
     private static final Logger logger = LogManager.getLogger(LocalCalibration.class.getName());
-
-    private final Path temporaryLog;
-
     private static final String CONTAINER_RESULT_FOLDER = "/usr/src/linpack/output/"; // specified by linpack benchmark container
     private static final String LINPACK_DOCKERFILE = "linpack/local/Dockerfile";
     private static final String LINPACK_IMAGE = "semode/linpack";
+    private final Path temporaryLog;
+    // steps for the cpu quota configuration
+    private final double steps;
 
-    public LocalCalibration(String name) throws SeMoDeException {
+    // used for CLI feature
+    public LocalCalibration(final String name) throws SeMoDeException {
         super(name, CalibrationPlatform.LOCAL);
-        temporaryLog = calibrationLogs.resolve("output").resolve("out.txt");
+        this.temporaryLog = this.calibrationLogs.resolve("output").resolve("out.txt");
+        // TODO change CLI feature here - for now - default value
+        this.steps = 0.1;
+    }
+
+    // used within pipeline
+    public LocalCalibration(final String name, final Path calibrationFolder, final double steps) throws SeMoDeException {
+        super(name, CalibrationPlatform.LOCAL, calibrationFolder);
+        this.temporaryLog = this.calibrationLogs.resolve("output").resolve("out.txt");
+        this.steps = steps;
     }
 
     public void performCalibration() throws SeMoDeException {
-        if (Files.exists(calibrationFile)) {
+        if (Files.exists(this.calibrationFile)) {
             logger.info("Calibration has already been performed. inspect it using \"calibrate info\"");
             return;
         }
-        DockerContainer linpackContainer = new DockerContainer(LINPACK_DOCKERFILE, LINPACK_IMAGE);
+        final DockerContainer linpackContainer = new DockerContainer(LINPACK_DOCKERFILE, LINPACK_IMAGE);
         linpackContainer.buildContainer();
-        List<Double> results = new ArrayList<>();
-        int physicalCores = getPhysicalCores();
+        final List<Double> results = new ArrayList<>();
+        final int physicalCores = this.getPhysicalCores();
         logger.info("Number of cores: " + physicalCores);
         // TODO fix me, make this part also configurable!!
-        List<Double> quotas = IntStream
-                .range(1, 1 + physicalCores * 10)
-                .mapToDouble(v -> 0.1 * v)
+        final List<Double> quotas = IntStream
+                // 1.1 results from 1 + avoid rounding errors (0.1)
+                .range(1, (int) (1.1 + ((double) physicalCores * 1.0 / this.steps)))
+                .mapToDouble(v -> this.steps * v)
                 .boxed()
                 .collect(Collectors.toList());
-        for (double quota : quotas) {
+        for (final double quota : quotas) {
             logger.info("running calibration using quota " + quota);
-            results.add(executeBenchmark(linpackContainer, quota));
+            results.add(this.executeBenchmark(linpackContainer, quota));
         }
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(quotas.stream().map(DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
+        final StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(quotas.stream().map(this.DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
         stringBuilder.append("\n");
         stringBuilder.append(results.stream().map(String::valueOf).collect(Collectors.joining(",")));
         stringBuilder.append("\n");
         try {
-            Files.write(calibrationFile, stringBuilder.toString().getBytes());
-            // TODO Discuss with Martin - logs are maybe relevant for later usage
+            Files.write(this.calibrationFile, stringBuilder.toString().getBytes());
+            // logs are maybe relevant for later usage - not deleted at this point, but maybe in future releases
 //            Files.delete(temporaryLog.getParent());
-        } catch (IOException e) {
-            throw new SeMoDeException("Could not write local calibration to " + calibrationFile.toString(), e);
+        } catch (final IOException e) {
+            throw new SeMoDeException("Could not write local calibration to " + this.calibrationFile.toString(), e);
         }
     }
 
@@ -70,22 +81,22 @@ public class LocalCalibration extends Calibration {
      * Executes runs a docker container executing the benchmark with specified resource limit.
      *
      * @param linpackContainer container
-     * @param cpuLimit            todo change
+     * @param cpuLimit         todo change
      * @return average performance of linpack in GFLOPS
      * @throws SeMoDeException
      */
-    private double executeBenchmark(DockerContainer linpackContainer, double cpuLimit) throws SeMoDeException {
+    private double executeBenchmark(final DockerContainer linpackContainer, final double cpuLimit) throws SeMoDeException {
         linpackContainer.startContainer(new ResourceLimit(cpuLimit, false, 0));
-        int statusCode = linpackContainer.awaitTermination();
+        final int statusCode = linpackContainer.awaitTermination();
         if (statusCode != 0) {
             throw new SeMoDeException("Benchmark failed. (status code = " + statusCode + ")");
         }
-        linpackContainer.getFilesFromContainer(CONTAINER_RESULT_FOLDER, calibrationLogs);
+        linpackContainer.getFilesFromContainer(CONTAINER_RESULT_FOLDER, this.calibrationLogs);
         try {
-            Path logFile = calibrationLogs.resolve("linpack_" + DOUBLE_FORMAT.format(cpuLimit) + ".log");
-            Files.move(temporaryLog, logFile);
+            final Path logFile = this.calibrationLogs.resolve("linpack_" + this.DOUBLE_FORMAT.format(cpuLimit) + ".log");
+            Files.move(this.temporaryLog, logFile);
             return new LinpackParser(logFile).parseLinpack();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new SeMoDeException(e);
         }
     }
@@ -98,14 +109,14 @@ public class LocalCalibration extends Calibration {
      * @see <a href="https://stackoverflow.com/questions/4759570/finding-number-of-cores-in-java">https://stackoverflow.com/questions/4759570/finding-number-of-cores-in-java</a>
      */
     private int getPhysicalCores() throws SeMoDeException {
-        String command = "lscpu";
-        Process process;
+        final String command = "lscpu";
+        final Process process;
         try {
             process = Runtime.getRuntime().exec(command);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new SeMoDeException(e);
         }
-        try (BufferedReader reader = new BufferedReader(
+        try (final BufferedReader reader = new BufferedReader(
                 new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -113,7 +124,7 @@ public class LocalCalibration extends Calibration {
                     return Integer.parseInt(line.split("\\s+")[line.split("\\s+").length - 1]);
                 }
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new SeMoDeException(e);
         }
         throw new SeMoDeException("lscpu could not determin the number of cores.");

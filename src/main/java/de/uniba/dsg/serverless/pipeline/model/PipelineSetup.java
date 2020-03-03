@@ -31,7 +31,6 @@ public class PipelineSetup {
     private static final String SEMODE_JAR_NAME = "SeMoDe.jar";
 
     public final Config config;
-    public final UserConfig userConfig;
     public final Map<String, ProviderConfig> possibleProviders;
     public final Map<String, ProviderConfig> userProviders;
     // name of the pipeline setup, also name for the root folder
@@ -47,7 +46,7 @@ public class PipelineSetup {
     public final Path pathToFetchingCommands;
     // for calibration
     public final Path pathToCalibration;
-
+    public UserConfig userConfig;
     public BenchmarkConfig benchmarkConfig;
 
 
@@ -66,8 +65,8 @@ public class PipelineSetup {
 
         this.benchmarkConfig = new BenchmarkConfig();
         this.userProviders = new HashMap<>();
-        this.config = this.loadConfig(PIPELINE_JSON);
-        this.userConfig = this.initializeUserConfig();
+        this.config = this.loadGlobalConfig(PIPELINE_JSON);
+        this.userConfig = new UserConfig();
         this.possibleProviders = this.config.getProviderConfigMap();
     }
 
@@ -77,17 +76,15 @@ public class PipelineSetup {
      *
      * @return
      */
-    private UserConfig initializeUserConfig() {
-        final UserConfig userConfig = new UserConfig();
-        userConfig.setCalibrationConfig(new CalibrationConfig(this.config.getCalibrationConfig()));
-        return userConfig;
+    public void initializeUserConfig() {
+        this.userConfig.setCalibrationConfig(new CalibrationConfig(this.config.getCalibrationConfig()));
     }
 
     public boolean setupAlreadyExists() {
         return Files.exists(this.pathToSetup);
     }
 
-    private Config loadConfig(final String path) throws SeMoDeException {
+    private Config loadGlobalConfig(final String path) throws SeMoDeException {
         final ObjectMapper om = new ObjectMapper();
         try {
             return om.readValue(Resources.toString(Resources.getResource(path), StandardCharsets.UTF_8), Config.class);
@@ -97,7 +94,7 @@ public class PipelineSetup {
     }
 
     /**
-     * Load the user config files.
+     * Load the user config from file.
      *
      * @return
      * @throws SeMoDeException
@@ -111,10 +108,12 @@ public class PipelineSetup {
                 map.put(provider.getName(), provider);
             }
 
-            // initialize all user config variables
+            // TODO get rid of these userProviders and benchmarkConfig stuff, use UserConfigHandler instead
+            // initialize all user config , with the values in the settings.json
             this.userProviders.putAll(map);
             this.benchmarkConfig = config.getBenchmarkConfig();
 
+            this.userConfig = config;
         } catch (final IOException e) {
             throw new SeMoDeException("Error while parsing the " + path + " file. Check the config.");
         }

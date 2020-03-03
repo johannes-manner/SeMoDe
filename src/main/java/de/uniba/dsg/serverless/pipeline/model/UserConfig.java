@@ -1,10 +1,11 @@
 package de.uniba.dsg.serverless.pipeline.model;
 
-import de.uniba.dsg.serverless.model.SeMoDeException;
-
-import java.io.IOException;
 import java.util.List;
 
+/**
+ * Model class for user config and json serialization.
+ * DO NOT change this class. Otherwise json serialization and deserialization does not work properly.
+ */
 public class UserConfig {
 
     private List<ProviderConfig> providerConfigs;
@@ -12,13 +13,6 @@ public class UserConfig {
     private CalibrationConfig calibrationConfig;
 
     public UserConfig() {
-    }
-
-    public UserConfig(final List<ProviderConfig> providerConfigs, final BenchmarkConfig benchmarkConfig, final CalibrationConfig calibrationConfig) {
-        super();
-        this.providerConfigs = providerConfigs;
-        this.benchmarkConfig = benchmarkConfig;
-        this.calibrationConfig = calibrationConfig;
     }
 
     public List<ProviderConfig> getProviderConfigs() {
@@ -45,18 +39,6 @@ public class UserConfig {
         this.calibrationConfig = calibrationConfig;
     }
 
-    public void updateAWSConfig(final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled) throws SeMoDeException {
-        try {
-            this.calibrationConfig.updateAWSConfig(targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
-        } catch (final IOException e) {
-            throw new SeMoDeException("Error during memory Size parsing");
-        }
-    }
-
-    public void updateLocalConfig(final String localSteps, final String enabled) {
-        this.calibrationConfig.updateLocalConfig(localSteps, enabled);
-    }
-
     @Override
     public String toString() {
         return "{" +
@@ -65,4 +47,6 @@ public class UserConfig {
                 ", calibrationConfig=" + this.calibrationConfig +
                 '}';
     }
+
+
 }

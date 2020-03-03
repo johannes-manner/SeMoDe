@@ -3,8 +3,10 @@ package de.uniba.dsg.serverless.pipeline.model;
 import com.google.common.primitives.Doubles;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibrationConfig;
 
-import java.io.IOException;
-
+/**
+ * Model class for calibration config and json serialization.
+ * DO NOT change this class. Otherwise json serialization and deserialization does not work properly.
+ */
 public class CalibrationConfig {
 
     // local parameter
@@ -49,10 +51,6 @@ public class CalibrationConfig {
 
     public void setLocalEnabled(final boolean localEnabled) {
         this.localEnabled = localEnabled;
-    }
-
-    public void updateAWSConfig(final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled) throws IOException {
-        this.awsConfig.update(targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
     }
 
     public void updateLocalConfig(final String steps, final String enabled) {
