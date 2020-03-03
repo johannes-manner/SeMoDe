@@ -1,6 +1,5 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
-import com.google.gson.GsonBuilder;
 import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
@@ -23,8 +22,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PipelineSetupController {
@@ -33,26 +32,31 @@ public class PipelineSetupController {
 
     private final ObjectMapper om;
     private final PipelineSetup setup;
+    // wrapper/handler to access the user config
+    private final UserConfigHandler userConfigHandler;
 
-    private PipelineSetupController(final PipelineSetup setup) {
+    public PipelineSetupController(final PipelineSetup setup) {
         this.setup = setup;
         this.om = new ObjectMapper();
+        this.userConfigHandler = new UserConfigHandler();
     }
 
-    public static PipelineSetupController init(final PipelineSetup setup) throws SeMoDeException {
-        final PipelineSetupController controller = new PipelineSetupController(setup);
-        controller.createBenchmarkFolderStructure();
-        setup.initializeUserConfig();
-        return controller;
+    /**
+     * Initializes the user config with some default values which are helpful, e.g. the calibration options,
+     * if some parameters should be unchanged to the global config.
+     *
+     * @return
+     */
+    public void init() throws SeMoDeException {
+        this.createBenchmarkFolderStructure();
+        this.userConfigHandler.initializeCalibrationFromGlobal(this.setup.config);
     }
 
-    public static PipelineSetupController load(final PipelineSetup setup) throws SeMoDeException {
-        final PipelineSetupController controller = new PipelineSetupController(setup);
-        if (!Files.isDirectory(setup.pathToSetup)) {
+    public void load() throws SeMoDeException {
+        if (!Files.isDirectory(this.setup.pathToSetup)) {
             throw new SeMoDeException("Test setup does not exist.");
         }
-        setup.loadUserConfig(setup.pathToConfig.toString());
-        return controller;
+        this.userConfigHandler.loadUserConfig(this.setup.pathToConfig.toString());
     }
 
     private void createBenchmarkFolderStructure() throws SeMoDeException {
@@ -74,23 +78,26 @@ public class PipelineSetupController {
     }
 
     public void configureBenchmarkSetup() {
-        // TODO make input similar to calibration
         String provider;
+        final Map<String, ProviderConfig> validProviders = this.setup.config.getProviderConfigMap();
         do {
-            System.out.println("Insert a valid provider: " + this.setup.possibleProviders.keySet().toString());
+            System.out.println("Insert a valid provider: " + validProviders.keySet().toString());
             provider = PipelineSetupUtility.scanner.nextLine();
-            if (this.setup.possibleProviders.containsKey(provider)) {
-                final List<String> providerJson = this.readProviderProperties(provider);
-                final String json = "{" + providerJson.stream().collect(Collectors.joining(",")) + "}";
+            if (validProviders.containsKey(provider)) {
                 try {
-                    final ProviderConfig p = this.om.readValue(json, ProviderConfig.class);
-                    p.validate(this.setup.possibleProviders);
-                    this.setup.userProviders.put(p.getName(), p);
+                    System.out.println("Insert memory sizes (JSON Array) or skip setting: ");
+                    final String memorySize = PipelineSetupUtility.scanner.nextLine();
+                    System.out.println("Insert languages (JSON Array), e.g. [\"java\"] or skip setting: ");
+                    final String language = PipelineSetupUtility.scanner.nextLine();
+                    System.out.println("Insert deployment sizes (JSON Array) or skip setting: ");
+                    final String deploymentSize = PipelineSetupUtility.scanner.nextLine();
+
+                    this.userConfigHandler.addOrChangeProviderConfig(this.setup.config.getProviderConfigMap(), provider, memorySize, language, deploymentSize);
 
                     // auto save
                     this.savePipelineSetup();
                 } catch (final IOException e) {
-                    System.err.println("Incorrect json format: " + json);
+                    System.err.println("Incorrect json format - inserted values!");
                 } catch (final SeMoDeException e) {
                     System.err.println("Incorrect property value: " + e.getMessage());
                 }
@@ -99,56 +106,30 @@ public class PipelineSetupController {
 
     }
 
-    private List<String> readProviderProperties(final String provider) {
-
-        final List<String> providerProperties = new ArrayList<>();
-        for (final String key : ProviderConfig.jsonProviderProperties()) {
-            this.printPropertyPrompt(key);
-            final String line = PipelineSetupUtility.scanner.nextLine();
-            providerProperties.add("\"" + key + "\": " + line);
-            logger.info("Successfully stored property " + key);
-        }
-        return providerProperties;
-    }
-
-    private void printPropertyPrompt(final String key) {
-        System.out.println("Configure property \"" + key + "\"");
-        System.out.println(
-                "Please specify the property. Think about the correct JSON representation for the value. \n(empty to skip property)");
-    }
-
     private void savePipelineSetup() throws SeMoDeException {
-
-        try {
-            this.setup.updateUserConfig();
-            this.om.writer().withDefaultPrettyPrinter().writeValue(Paths.get(this.setup.pathToConfig.toString()).toFile(),
-                    this.setup.userConfig);
-        } catch (final IOException e) {
-            throw new SeMoDeException("Configuration could not be saved.", e);
-        }
-
+        this.userConfigHandler.saveUserConfigToFile(this.setup.pathToConfig);
     }
 
     public void printPipelineSetupStatus() throws SeMoDeException {
         System.out.println("Printing status of pipeline setup \"" + this.setup.name + "\"");
         System.out.println("Printing Properties:");
-        this.setup.updateUserConfig();
 
-        System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(this.setup.userConfig));
+        System.out.println(this.userConfigHandler.getPrintableString());
 
     }
 
     public void prepareDeployment() throws SeMoDeException {
-
+        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
+        // TODO make source copying etc. configurable, document function implementation
         System.out.println("copying sources...");
-        for (final String provider : this.setup.userProviders.keySet()) {
-            for (final String language : this.setup.userProviders.get(provider).getLanguage()) {
+        for (final String provider : userProviders.keySet()) {
+            for (final String language : userProviders.get(provider).getLanguage()) {
 
                 // copies the sources from the fibonacci folder into the specific setup config
                 this.copySource(provider, language);
 
                 // change parameters in createDeployments bashscripts
-                this.changeDeploymentParameters(this.setup.userProviders.get(provider), language);
+                this.changeDeploymentParameters(userProviders.get(provider), language);
 
             }
         }
@@ -170,8 +151,9 @@ public class PipelineSetupController {
     }
 
     private void executeBashCommand(final String command, final String fileSuffix) throws SeMoDeException {
-        for (final String provider : this.setup.userProviders.keySet()) {
-            for (final String language : this.setup.userProviders.get(provider).getLanguage()) {
+        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
+        for (final String provider : userProviders.keySet()) {
+            for (final String language : userProviders.get(provider).getLanguage()) {
                 final ProcessBuilder processBuilder = new ProcessBuilder(SeMoDePropertyManager.getInstance().getProperty(SeMoDeProperty.BASH_LOCATION), "-c", command);
                 final String providerLanguage = provider + "-" + language;
                 final Path sourceLocation = Paths.get(this.setup.pathToSetup.toString(), "sources", providerLanguage);
@@ -235,8 +217,9 @@ public class PipelineSetupController {
 
     public void generateEndpoints() throws SeMoDeException {
         final EndpointExtractor endpointExtractor = new EndpointExtractor(this.setup.config.getLanguageConfigMap(), this.setup.pathToDeployment, this.setup.pathToEndpoints);
-        for (final String provider : this.setup.userProviders.keySet()) {
-            for (final String language : this.setup.userProviders.get(provider).getLanguage()) {
+        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
+        for (final String provider : userProviders.keySet()) {
+            for (final String language : userProviders.get(provider).getLanguage()) {
                 endpointExtractor.extractEndpoints(language, provider);
             }
         }
@@ -253,15 +236,16 @@ public class PipelineSetupController {
         System.out.println("Copy a file called 'params.json' in the 'benchmarkingCommands' folder");
 
         final BenchmarkConfig config = new BenchmarkConfig(numberOfThreads, benchmarkingMode, benchmarkingParameters);
-        this.setup.benchmarkConfig = config;
+        this.userConfigHandler.updateBenchmarkConfig(config);
 
         // auto save to store the benchmark
         this.savePipelineSetup();
 
-        final BenchmarkingCommandGenerator bcg = new BenchmarkingCommandGenerator(this.setup.pathToBenchmarkingCommands, this.setup.pathToEndpoints, this.setup.benchmarkConfig, this.setup.getSeMoDeJarLocation());
+        final BenchmarkingCommandGenerator bcg = new BenchmarkingCommandGenerator(this.setup.pathToBenchmarkingCommands, this.setup.pathToEndpoints, config, this.setup.getSeMoDeJarLocation());
 
-        for (final String provider : this.setup.userProviders.keySet()) {
-            for (final String language : this.setup.userProviders.get(provider).getLanguage()) {
+        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
+        for (final String provider : userProviders.keySet()) {
+            for (final String language : userProviders.get(provider).getLanguage()) {
                 bcg.generateCommands(language, provider);
             }
         }
@@ -270,9 +254,9 @@ public class PipelineSetupController {
     public void fetchPerformanceData() throws SeMoDeException {
 
         final FetchingCommandGenerator fcg = new FetchingCommandGenerator(this.setup.pathToBenchmarkingCommands, this.setup.pathToFetchingCommands, this.setup.pathToEndpoints, this.setup.config.getLanguageConfigMap(), this.setup.getSeMoDeJarLocation());
-
-        for (final String provider : this.setup.userProviders.keySet()) {
-            for (final String language : this.setup.userProviders.get(provider).getLanguage()) {
+        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
+        for (final String provider : userProviders.keySet()) {
+            for (final String language : userProviders.get(provider).getLanguage()) {
                 fcg.fetchCommands(provider, language);
             }
         }
@@ -286,14 +270,13 @@ public class PipelineSetupController {
             platform = PipelineSetupUtility.scanner.nextLine();
         }
 
-        final UserConfigHandler userConfigHandler = new UserConfigHandler(this.setup.userConfig);
         if (platform.equals(CalibrationPlatform.LOCAL.getText())) {
             System.out.println("Insert localSteps property or skip setting: ");
             final String localSteps = PipelineSetupUtility.scanner.nextLine();
             System.out.println("Insert enabled property (true or false) or skip setting: ");
             final String enabled = PipelineSetupUtility.scanner.nextLine();
 
-            userConfigHandler.updateLocalConfig(localSteps, enabled);
+            this.userConfigHandler.updateLocalConfig(localSteps, enabled);
 
         } else if (platform.equals(CalibrationPlatform.AWS.getText())) {
             System.out.println("Insert current target url or skip setting: ");
@@ -309,7 +292,7 @@ public class PipelineSetupController {
             System.out.println("Insert enabled property (true or false) or skip setting: ");
             final String enabled = PipelineSetupUtility.scanner.nextLine();
 
-            userConfigHandler.updateAWSConfig(targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
+            this.userConfigHandler.updateAWSConfig(targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
 
         }
         // auto save to store the pipeline setup
@@ -322,11 +305,10 @@ public class PipelineSetupController {
      * @throws SeMoDeException
      */
     public void startCalibration() throws SeMoDeException {
-        final UserConfigHandler userConfigHandler = new UserConfigHandler(this.setup.userConfig);
-        if (userConfigHandler.isLocalEnabled()) {
-            new LocalCalibration(this.setup.name, this.setup.pathToCalibration, userConfigHandler.getLocalSteps()).performCalibration();
-        } else if (userConfigHandler.isAWSEnabled()) {
-            new AWSCalibration(this.setup.name, this.setup.pathToCalibration).performCalibration(userConfigHandler.getAWSConfig());
+        if (this.userConfigHandler.isLocalEnabled()) {
+            new LocalCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getLocalSteps()).performCalibration();
+        } else if (this.userConfigHandler.isAWSEnabled()) {
+            new AWSCalibration(this.setup.name, this.setup.pathToCalibration).performCalibration(this.userConfigHandler.getAWSConfig());
         }
     }
 }

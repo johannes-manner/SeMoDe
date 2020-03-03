@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
@@ -31,8 +31,6 @@ public class PipelineSetup {
     private static final String SEMODE_JAR_NAME = "SeMoDe.jar";
 
     public final Config config;
-    public final Map<String, ProviderConfig> possibleProviders;
-    public final Map<String, ProviderConfig> userProviders;
     // name of the pipeline setup, also name for the root folder
     public final String name;
     // global pipeline paths
@@ -46,9 +44,6 @@ public class PipelineSetup {
     public final Path pathToFetchingCommands;
     // for calibration
     public final Path pathToCalibration;
-    public UserConfig userConfig;
-    public BenchmarkConfig benchmarkConfig;
-
 
     public PipelineSetup(final String name) throws SeMoDeException {
         this.name = name;
@@ -63,22 +58,9 @@ public class PipelineSetup {
         this.pathToBenchmarkingCommands = benchmarkPath.resolve("benchmarkingCommands");
         this.pathToFetchingCommands = benchmarkPath.resolve("fetchingCommands");
 
-        this.benchmarkConfig = new BenchmarkConfig();
-        this.userProviders = new HashMap<>();
         this.config = this.loadGlobalConfig(PIPELINE_JSON);
-        this.userConfig = new UserConfig();
-        this.possibleProviders = this.config.getProviderConfigMap();
     }
 
-    /**
-     * Initializes the user config with some default values which are helpful, e.g. the calibration options,
-     * if some parameters should be unchanged to the global config.
-     *
-     * @return
-     */
-    public void initializeUserConfig() {
-        this.userConfig.setCalibrationConfig(new CalibrationConfig(this.config.getCalibrationConfig()));
-    }
 
     public boolean setupAlreadyExists() {
         return Files.exists(this.pathToSetup);
@@ -91,41 +73,6 @@ public class PipelineSetup {
         } catch (final IOException e) {
             throw new SeMoDeException("Error while parsing the " + path + " file. Check the config.");
         }
-    }
-
-    /**
-     * Load the user config from file.
-     *
-     * @return
-     * @throws SeMoDeException
-     */
-    public void loadUserConfig(final String path) throws SeMoDeException {
-        final ObjectMapper om = new ObjectMapper();
-        try {
-            final UserConfig config = om.readValue(Paths.get(path).toFile(), UserConfig.class);
-            final Map<String, ProviderConfig> map = new HashMap<>();
-            for (final ProviderConfig provider : config.getProviderConfigs()) {
-                map.put(provider.getName(), provider);
-            }
-
-            // TODO get rid of these userProviders and benchmarkConfig stuff, use UserConfigHandler instead
-            // initialize all user config , with the values in the settings.json
-            this.userProviders.putAll(map);
-            this.benchmarkConfig = config.getBenchmarkConfig();
-
-            this.userConfig = config;
-        } catch (final IOException e) {
-            throw new SeMoDeException("Error while parsing the " + path + " file. Check the config.");
-        }
-    }
-
-    public void updateUserConfig() {
-        final List<ProviderConfig> providerConfigs = new ArrayList<>();
-        for (final ProviderConfig config : this.userProviders.values()) {
-            providerConfigs.add(config);
-        }
-        this.userConfig.setBenchmarkConfig(this.benchmarkConfig);
-        this.userConfig.setProviderConfigs(providerConfigs);
     }
 
     /**

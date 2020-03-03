@@ -28,7 +28,7 @@ public class PipelineSetupUtility extends CustomUtility {
             return;
         }
         try {
-            this.executeSetupCommand(args.get(0));
+            this.loadOrInitSetup(args.get(0));
         } catch (final SeMoDeException e) {
             logger.fatal(e);
             return;
@@ -67,13 +67,13 @@ public class PipelineSetupUtility extends CustomUtility {
         System.out.println(" (exit)               Terminate the program");
     }
 
-    private void executeSetupCommand(final String name) throws SeMoDeException {
+    private void loadOrInitSetup(final String name) throws SeMoDeException {
         final PipelineSetup setup = new PipelineSetup(name);
-
+        this.controller = new PipelineSetupController(setup);
         if (setup.setupAlreadyExists()) {
-            this.controller = PipelineSetupController.load(setup);
+            this.controller.load();
         } else {
-            this.controller = PipelineSetupController.init(setup);
+            this.controller.init();
         }
 
         logger.info("Successfully loaded benchmark setup \"" + setup.name + "\"");

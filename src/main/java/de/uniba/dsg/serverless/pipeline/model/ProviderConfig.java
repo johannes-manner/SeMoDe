@@ -1,14 +1,15 @@
 package de.uniba.dsg.serverless.pipeline.model;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 
-import java.util.Arrays;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Model class for provider config and json serialization.
- * If you change the attribute list, also change the {@link ProviderConfig#jsonProviderProperties()} array.
  * DO NOT change this class. Otherwise json serialization and deserialization does not work properly.
  */
 public class ProviderConfig {
@@ -19,10 +20,6 @@ public class ProviderConfig {
     private List<Integer> deploymentSize;
 
     public ProviderConfig() {
-    }
-
-    public static List<String> jsonProviderProperties() {
-        return Arrays.asList("name", "memorySize", "language", "deploymentSize");
     }
 
     public String getName() {
@@ -63,7 +60,7 @@ public class ProviderConfig {
                 + ", deploymentSize=" + this.deploymentSize + "]";
     }
 
-    public void validate(final Map<String, ProviderConfig> validConfigs) throws SeMoDeException {
+    private void validate(final Map<String, ProviderConfig> validConfigs) throws SeMoDeException {
 
         if (!validConfigs.containsKey(this.getName())) {
             throw new SeMoDeException("The provider name is not included in the valid configurations :" + this.getName());
@@ -83,5 +80,32 @@ public class ProviderConfig {
                 throw new SeMoDeException("The memorySize property is not valid for the given provider config: " + memorySize);
             }
         }
+    }
+
+    public void validateAndCreate(final Map<String, ProviderConfig> providerConfigMap, final String provider, final String memorySize, final String language, final String deploymentSize) throws SeMoDeException, IOException {
+        // update
+        if (!"".equals(this.name)) this.name = provider;
+        if (!"".equals(memorySize))
+            this.memorySize = (List<Integer>) new ObjectMapper().readValue(memorySize, ArrayList.class);
+        if (!"".equals(language))
+            this.language = (List<String>) new ObjectMapper().readValue(language, ArrayList.class);
+        if (!"".equals(deploymentSize))
+            this.deploymentSize = (List<Integer>) new ObjectMapper().readValue(deploymentSize, ArrayList.class);
+
+        // validate
+        this.validate(providerConfigMap);
+    }
+
+    public void validateAndUpdate(final Map<String, ProviderConfig> providerConfigMap, final String memorySize, final String language, final String deploymentSize) throws SeMoDeException, IOException {
+        // update
+        if (!"".equals(memorySize))
+            this.memorySize = (List<Integer>) new ObjectMapper().readValue(memorySize, ArrayList.class);
+        if (!"".equals(language))
+            this.language = (List<String>) new ObjectMapper().readValue(language, ArrayList.class);
+        if (!"".equals(deploymentSize))
+            this.deploymentSize = (List<Integer>) new ObjectMapper().readValue(deploymentSize, ArrayList.class);
+
+        // validate
+        this.validate(providerConfigMap);
     }
 }
