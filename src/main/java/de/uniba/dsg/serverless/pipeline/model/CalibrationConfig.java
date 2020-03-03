@@ -1,6 +1,9 @@
 package de.uniba.dsg.serverless.pipeline.model;
 
+import com.google.common.primitives.Doubles;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibrationConfig;
+
+import java.io.IOException;
 
 public class CalibrationConfig {
 
@@ -46,6 +49,20 @@ public class CalibrationConfig {
 
     public void setLocalEnabled(final boolean localEnabled) {
         this.localEnabled = localEnabled;
+    }
+
+    public void updateAWSConfig(final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled) throws IOException {
+        this.awsConfig.update(targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
+    }
+
+    public void updateLocalConfig(final String steps, final String enabled) {
+        if (!"".equals(steps) && Doubles.tryParse(steps) != null) {
+            this.localSteps = Doubles.tryParse(steps);
+        }
+        if (!"".equals(enabled)) {
+            // returns only true, if enabled is "true", otherwise false (also for incorrect inputs or null)
+            this.localEnabled = Boolean.parseBoolean(enabled);
+        }
     }
 
     @Override

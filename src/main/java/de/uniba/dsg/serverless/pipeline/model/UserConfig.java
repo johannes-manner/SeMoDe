@@ -45,6 +45,18 @@ public class UserConfig {
         this.calibrationConfig = calibrationConfig;
     }
 
+    public void updateAWSConfig(final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled) throws SeMoDeException {
+        try {
+            this.calibrationConfig.updateAWSConfig(targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
+        } catch (final IOException e) {
+            throw new SeMoDeException("Error during memory Size parsing");
+        }
+    }
+
+    public void updateLocalConfig(final String localSteps, final String enabled) {
+        this.calibrationConfig.updateLocalConfig(localSteps, enabled);
+    }
+
     @Override
     public String toString() {
         return "{" +
@@ -52,17 +64,5 @@ public class UserConfig {
                 ", benchmarkConfig=" + this.benchmarkConfig +
                 ", calibrationConfig=" + this.calibrationConfig +
                 '}';
-    }
-
-    public void updateLocalSteps(final Double localSteps) {
-        this.getCalibrationConfig().setLocalSteps(localSteps);
-    }
-
-    public void updateAWSConfig(final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled) throws SeMoDeException {
-        try {
-            this.getCalibrationConfig().getAwsConfig().update(targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
-        } catch (final IOException e) {
-            throw new SeMoDeException("Error during memory Size parsing");
-        }
     }
 }

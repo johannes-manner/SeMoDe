@@ -1,6 +1,5 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
-import com.google.common.primitives.Doubles;
 import com.google.gson.GsonBuilder;
 import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.cli.PipelineSetupUtility;
@@ -206,6 +205,7 @@ public class PipelineSetupController {
 
     private void copySource(final String provider, final String language) throws SeMoDeException {
         final String sourceFolderName = provider + "-" + language;
+        // TODO enable other functions / folders than fibonacci
         final File source = new File(Paths.get("fibonacci", sourceFolderName).toString());
         final File target = new File(this.setup.pathToSources.resolve(sourceFolderName).toString());
         try {
@@ -239,7 +239,7 @@ public class PipelineSetupController {
     }
 
     public void generateBenchmarkingCommands() throws SeMoDeException {
-
+        // TODO make update of values (input parameters) more robust
         System.out.println("Insert number of threads");
         final String numberOfThreads = PipelineSetupUtility.scanner.nextLine();
         System.out.println("Insert a supported benchmarking mode");
@@ -285,11 +285,13 @@ public class PipelineSetupController {
 
         if (platform.equals(CalibrationPlatform.LOCAL.getText())) {
             System.out.println("Current value for 'localSteps' is " + this.setup.userConfig.getCalibrationConfig().getLocalSteps() +
-                    "\n If you want to change it, specify the value: ");
+                    "\nInsert localSteps property (true or false) or skip setting: ");
             final String localSteps = PipelineSetupUtility.scanner.nextLine();
-            if (!"".equals(localSteps) && Doubles.tryParse(localSteps) != null) {
-                this.setup.userConfig.updateLocalSteps(Doubles.tryParse(localSteps));
-            }
+            System.out.println("Insert enabled property (true or false) or skip setting: ");
+            final String enabled = PipelineSetupUtility.scanner.nextLine();
+
+            this.setup.userConfig.updateLocalConfig(localSteps, enabled);
+
         } else if (platform.equals(CalibrationPlatform.AWS.getText())) {
             System.out.println("Insert current target url or skip setting: ");
             final String targetUrl = PipelineSetupUtility.scanner.nextLine();
@@ -307,11 +309,11 @@ public class PipelineSetupController {
             this.setup.userConfig.updateAWSConfig(targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
 
         }
-
         // auto save to store the pipeline setup
         this.savePipelineSetup();
     }
 
     public void startCalibration() {
+        // TODO
     }
 }
