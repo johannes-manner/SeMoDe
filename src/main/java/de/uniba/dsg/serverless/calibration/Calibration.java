@@ -13,6 +13,7 @@ public class Calibration {
     protected final String name;
     protected final Path calibrationFile;
     protected final Path calibrationLogs;
+    protected final Path calibrationFolder;
     protected final DecimalFormat DOUBLE_FORMAT = new DecimalFormat("#.###");
 
     /**
@@ -23,10 +24,10 @@ public class Calibration {
      * @throws SeMoDeException
      */
     public Calibration(final String name, final CalibrationPlatform platform) throws SeMoDeException {
-        final Path calibrationFolder = Paths.get("calibration");
+        this.calibrationFolder = Paths.get("calibration");
         this.name = name;
-        this.calibrationFile = calibrationFolder.resolve(platform.getText()).resolve(name + ".csv");
-        this.calibrationLogs = calibrationFolder.resolve(platform.getText()).resolve(name + "_logs");
+        this.calibrationFile = this.calibrationFolder.resolve(platform.getText()).resolve(name + ".csv");
+        this.calibrationLogs = this.calibrationFolder.resolve(platform.getText()).resolve(name + "_logs");
         this.createDirectories(this.calibrationFile.getParent());
     }
 
@@ -40,6 +41,7 @@ public class Calibration {
      */
     public Calibration(final String name, final CalibrationPlatform platform, final Path calibrationFolder) throws SeMoDeException {
         this.name = name;
+        this.calibrationFolder = calibrationFolder;
         this.calibrationFile = calibrationFolder.resolve(platform.getText()).resolve(name + ".csv");
         this.calibrationLogs = calibrationFolder.resolve(platform.getText()).resolve(name + "_logs");
     }

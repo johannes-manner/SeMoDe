@@ -1,7 +1,7 @@
 package de.uniba.dsg.serverless.pipeline.model;
 
-import com.google.common.primitives.Doubles;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibrationConfig;
+import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 
 /**
  * Model class for calibration config and json serialization.
@@ -10,8 +10,7 @@ import de.uniba.dsg.serverless.calibration.aws.AWSCalibrationConfig;
 public class CalibrationConfig {
 
     // local parameter
-    private double localSteps;
-    private boolean localEnabled;
+    private LocalCalibrationConfig localConfig;
     // aws parameter
     private AWSCalibrationConfig awsConfig;
 
@@ -25,16 +24,16 @@ public class CalibrationConfig {
      * @param calibrationConfig
      */
     public CalibrationConfig(final CalibrationConfig calibrationConfig) {
-        this.localSteps = calibrationConfig.localSteps;
+        this.localConfig = new LocalCalibrationConfig(calibrationConfig.localConfig);
         this.awsConfig = new AWSCalibrationConfig(calibrationConfig.awsConfig);
     }
 
-    public double getLocalSteps() {
-        return this.localSteps;
+    public LocalCalibrationConfig getLocalConfig() {
+        return this.localConfig;
     }
 
-    public void setLocalSteps(final double localSteps) {
-        this.localSteps = localSteps;
+    public void setLocalConfig(final LocalCalibrationConfig localConfig) {
+        this.localConfig = localConfig;
     }
 
     public AWSCalibrationConfig getAwsConfig() {
@@ -45,29 +44,10 @@ public class CalibrationConfig {
         this.awsConfig = awsConfig;
     }
 
-    public boolean isLocalEnabled() {
-        return this.localEnabled;
-    }
-
-    public void setLocalEnabled(final boolean localEnabled) {
-        this.localEnabled = localEnabled;
-    }
-
-    public void updateLocalConfig(final String steps, final String enabled) {
-        if (!"".equals(steps) && Doubles.tryParse(steps) != null) {
-            this.localSteps = Doubles.tryParse(steps);
-        }
-        if (!"".equals(enabled)) {
-            // returns only true, if enabled is "true", otherwise false (also for incorrect inputs or null)
-            this.localEnabled = Boolean.parseBoolean(enabled);
-        }
-    }
-
     @Override
     public String toString() {
         return "CalibrationConfig{" +
-                "localSteps=" + this.localSteps +
-                ", localEnabled=" + this.localEnabled +
+                "localCalibrationConfig=" + this.localConfig +
                 ", awsConfig=" + this.awsConfig +
                 '}';
     }

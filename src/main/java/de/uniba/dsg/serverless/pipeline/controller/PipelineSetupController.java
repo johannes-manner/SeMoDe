@@ -273,10 +273,12 @@ public class PipelineSetupController {
         if (platform.equals(CalibrationPlatform.LOCAL.getText())) {
             System.out.println("Insert localSteps property or skip setting: ");
             final String localSteps = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert numberOfLocalCalibrations property or skip setting: ");
+            final String numberOfLocalCalibrations = PipelineSetupUtility.scanner.nextLine();
             System.out.println("Insert enabled property (true or false) or skip setting: ");
             final String enabled = PipelineSetupUtility.scanner.nextLine();
 
-            this.userConfigHandler.updateLocalConfig(localSteps, enabled);
+            this.userConfigHandler.updateLocalConfig(localSteps, numberOfLocalCalibrations, enabled);
 
         } else if (platform.equals(CalibrationPlatform.AWS.getText())) {
             System.out.println("Insert current target url or skip setting: ");
@@ -306,7 +308,7 @@ public class PipelineSetupController {
      */
     public void startCalibration() throws SeMoDeException {
         if (this.userConfigHandler.isLocalEnabled()) {
-            new LocalCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getLocalSteps()).performCalibration();
+            new LocalCalibration(this.setup.name, this.setup.pathToCalibration).performCalibration(this.userConfigHandler.getLocalConfig());
         } else if (this.userConfigHandler.isAWSEnabled()) {
             new AWSCalibration(this.setup.name, this.setup.pathToCalibration).performCalibration(this.userConfigHandler.getAWSConfig());
         }

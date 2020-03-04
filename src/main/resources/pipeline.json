@@ -167,8 +167,11 @@
     }
   ],
   "calibrationConfig": {
-    "localSteps": 0.1,
-    "localEnabled": true,
+    "localConfig": {
+      "localSteps": 0.1,
+      "numberOfLocalCalibrations": 1,
+      "localEnabled": true
+    },
     "awsConfig": {
       "targetUrl": "< replace me >",
       "apiKey": "< replace me >",

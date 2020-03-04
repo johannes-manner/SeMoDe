@@ -6,6 +6,7 @@ import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibrationConfig;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
+import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.calibration.local.ResourceLimit;
 import de.uniba.dsg.serverless.calibration.mapping.MappingMaster;
 import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
@@ -52,7 +53,8 @@ public class CalibrationUtility extends CustomUtility {
             switch (this.subcommand) {
                 case PERFORM_CALIBRATION:
                     if (this.platform == CalibrationPlatform.LOCAL) {
-                        new LocalCalibration(this.calibrationName).performCalibration();
+                        // TODO make this configurable for CLI usage + document it
+                        new LocalCalibration(this.calibrationName).performCalibration(new LocalCalibrationConfig(0.1, 1, true));
                     } else if (this.platform == CalibrationPlatform.AWS) {
                         new AWSCalibration(this.calibrationName).performCalibration(this.awsConfig);
                     }

@@ -13,7 +13,9 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -24,57 +26,86 @@ public class LocalCalibration extends Calibration {
     private static final String LINPACK_DOCKERFILE = "linpack/local/Dockerfile";
     private static final String LINPACK_IMAGE = "semode/linpack";
     private final Path temporaryLog;
-    // steps for the cpu quota configuration
-    private final double steps;
 
     // used for CLI feature
     public LocalCalibration(final String name) throws SeMoDeException {
         super(name, CalibrationPlatform.LOCAL);
         this.temporaryLog = this.calibrationLogs.resolve("output").resolve("out.txt");
         // TODO change CLI feature here - for now - default value
-        this.steps = 0.1;
+        // this.steps = 0.1;
     }
 
     // used within pipeline
-    public LocalCalibration(final String name, final Path calibrationFolder, final double steps) throws SeMoDeException {
+    public LocalCalibration(final String name, final Path calibrationFolder) throws SeMoDeException {
         super(name, CalibrationPlatform.LOCAL, calibrationFolder);
         this.temporaryLog = this.calibrationLogs.resolve("output").resolve("out.txt");
-        this.steps = steps;
     }
 
-    public void performCalibration() throws SeMoDeException {
+    public void performCalibration(final LocalCalibrationConfig config) throws SeMoDeException {
         if (Files.exists(this.calibrationFile)) {
             logger.info("Calibration has already been performed. inspect it using \"calibrate info\"");
             return;
         }
+
+        // prepare calibration - build container and compute quotas based on steps
         final DockerContainer linpackContainer = new DockerContainer(LINPACK_DOCKERFILE, LINPACK_IMAGE);
         linpackContainer.buildContainer();
-        final List<Double> results = new ArrayList<>();
         final int physicalCores = this.getPhysicalCores();
         logger.info("Number of cores: " + physicalCores);
-        // TODO fix me, make this part also configurable!!
         final List<Double> quotas = IntStream
                 // 1.1 results from 1 + avoid rounding errors (0.1)
-                .range(1, (int) (1.1 + ((double) physicalCores * 1.0 / this.steps)))
-                .mapToDouble(v -> this.steps * v)
+                .range(1, (int) (1.1 + ((double) physicalCores * 1.0 / config.getLocalSteps())))
+                .mapToDouble(v -> config.getLocalSteps() * v)
                 .boxed()
                 .collect(Collectors.toList());
+
+        // perform subcalibration - execute number of Calibrations N times
+        final Map<Integer, List<Double>> subResults = new HashMap<>();
+        for (int i = 0; i < config.getNumberOfLocalCalibrations(); i++) {
+            subResults.put(i, this.performCalibration(i, quotas, linpackContainer));
+        }
+
+        // merge results in this.calibrationFile
+        final StringBuilder stringBuilder = new StringBuilder();
+        // leave first column for index of the run (for easier inspection of sub calibrations)
+        stringBuilder.append(",");
+        stringBuilder.append(quotas.stream().map(this.DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
+        stringBuilder.append("\n");
+        for (final Integer i : subResults.keySet()) {
+            stringBuilder.append("" + i + ",");
+            stringBuilder.append(subResults.get(i).stream().map(String::valueOf).collect(Collectors.joining(",")));
+            stringBuilder.append("\n");
+        }
+        try {
+            Files.write(this.calibrationFile, stringBuilder.toString().getBytes());
+        } catch (final IOException e) {
+            throw new SeMoDeException("Could not write local calibration summary to " + this.calibrationFile.toString(), e);
+        }
+    }
+
+    private List<Double> performCalibration(final int i, final List<Double> quotas, final DockerContainer linpackContainer) throws SeMoDeException {
+
+        // Create a single sub calibration for each run
+        final LocalCalibration subCalibration = new LocalCalibration(this.name + i, this.calibrationFolder);
+
+        final List<Double> results = new ArrayList<>();
         for (final double quota : quotas) {
-            logger.info("running calibration using quota " + quota);
-            results.add(this.executeBenchmark(linpackContainer, quota));
+            logger.info("Run: " + i + " running calibration using quota " + quota);
+            results.add(subCalibration.executeBenchmark(linpackContainer, quota));
         }
         final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(quotas.stream().map(this.DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
+        stringBuilder.append(quotas.stream().map(subCalibration.DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
         stringBuilder.append("\n");
         stringBuilder.append(results.stream().map(String::valueOf).collect(Collectors.joining(",")));
         stringBuilder.append("\n");
         try {
-            Files.write(this.calibrationFile, stringBuilder.toString().getBytes());
+            Files.write(subCalibration.calibrationFile, stringBuilder.toString().getBytes());
             // logs are maybe relevant for later usage - not deleted at this point, but maybe in future releases
 //            Files.delete(temporaryLog.getParent());
         } catch (final IOException e) {
-            throw new SeMoDeException("Could not write local calibration to " + this.calibrationFile.toString(), e);
+            throw new SeMoDeException("Could not write local calibration to " + subCalibration.calibrationFile.toString(), e);
         }
+        return results;
     }
 
     /**

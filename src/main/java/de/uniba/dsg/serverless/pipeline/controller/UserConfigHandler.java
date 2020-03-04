@@ -3,6 +3,7 @@ package de.uniba.dsg.serverless.pipeline.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.GsonBuilder;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibrationConfig;
+import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.*;
 
@@ -32,16 +33,20 @@ public class UserConfigHandler {
         }
     }
 
-    public void updateLocalConfig(final String localSteps, final String enabled) {
-        this.userConfig.getCalibrationConfig().updateLocalConfig(localSteps, enabled);
+    public void updateLocalConfig(final String localSteps, final String numberOfLocalCalibrations, final String enabled) {
+        this.userConfig.getCalibrationConfig().getLocalConfig().update(localSteps, numberOfLocalCalibrations, enabled);
     }
 
     public AWSCalibrationConfig getAWSConfig() {
         return this.userConfig.getCalibrationConfig().getAwsConfig();
     }
 
+    public LocalCalibrationConfig getLocalConfig() {
+        return this.userConfig.getCalibrationConfig().getLocalConfig();
+    }
+
     public boolean isLocalEnabled() {
-        return this.userConfig.getCalibrationConfig().isLocalEnabled();
+        return this.userConfig.getCalibrationConfig().getLocalConfig().isLocalEnabled();
     }
 
     public boolean isAWSEnabled() {
@@ -49,7 +54,7 @@ public class UserConfigHandler {
     }
 
     public double getLocalSteps() {
-        return this.userConfig.getCalibrationConfig().getLocalSteps();
+        return this.userConfig.getCalibrationConfig().getLocalConfig().getLocalSteps();
     }
 
     /**
