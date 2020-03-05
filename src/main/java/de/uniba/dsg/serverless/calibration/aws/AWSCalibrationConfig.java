@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.calibration.aws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.primitives.Ints;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
@@ -25,6 +26,16 @@ public class AWSCalibrationConfig {
             .create();
     // AWS specific information
     @Expose
+    public String region;
+    @Expose
+    public String runtime;
+    @Expose
+    public String awsArnLambdaRole;
+    @Expose
+    public String functionHandler;
+    @Expose
+    public int timeout;
+    @Expose
     public String targetUrl;
     @Expose
     public String apiKey;
@@ -42,6 +53,11 @@ public class AWSCalibrationConfig {
     }
 
     public AWSCalibrationConfig(final AWSCalibrationConfig config) {
+        this.region = config.region;
+        this.runtime = config.runtime;
+        this.awsArnLambdaRole = config.awsArnLambdaRole;
+        this.functionHandler = config.functionHandler;
+        this.timeout = config.timeout;
         this.targetUrl = config.targetUrl;
         this.apiKey = config.apiKey;
         this.bucketName = config.bucketName;
@@ -68,7 +84,12 @@ public class AWSCalibrationConfig {
         return experiment;
     }
 
-    public void update(final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled) throws IOException {
+    public void update(final String region, final String runtime, final String awsArnLambdaRole, final String functionHandler, final String timeout, final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled) throws IOException {
+        if (!"".equals(region)) this.region = region;
+        if (!"".equals(runtime)) this.runtime = runtime;
+        if (!"".equals(awsArnLambdaRole)) this.awsArnLambdaRole = awsArnLambdaRole;
+        if (!"".equals(functionHandler)) this.functionHandler = functionHandler;
+        if (!"".equals(timeout) && Ints.tryParse(timeout) != null) this.timeout = Ints.tryParse(timeout);
         if (!"".equals(targetUrl)) this.targetUrl = targetUrl;
         if (!"".equals(apiKey)) this.apiKey = apiKey;
         if (!"".equals(bucketName)) this.bucketName = bucketName;
@@ -82,7 +103,12 @@ public class AWSCalibrationConfig {
     @Override
     public String toString() {
         return "AWSCalibrationConfig{" +
-                "targetUrl='" + this.targetUrl + '\'' +
+                "region='" + this.region + '\'' +
+                ", runtime='" + this.runtime + '\'' +
+                ", awsArnLambdaRole='" + this.awsArnLambdaRole + '\'' +
+                ", functionHandler='" + this.functionHandler + '\'' +
+                ", timeout=" + this.timeout +
+                ", targetUrl='" + this.targetUrl + '\'' +
                 ", apiKey='" + this.apiKey + '\'' +
                 ", bucketName='" + this.bucketName + '\'' +
                 ", memorySizes=" + this.memorySizes +

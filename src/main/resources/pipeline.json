@@ -173,6 +173,11 @@
       "localEnabled": true
     },
     "awsConfig": {
+      "region": "eu-west-1",
+      "runtime": "nodejs12.x",
+      "awsArnLambdaRole": "tbd",
+      "functionHandler": "index.handler",
+      "timeout": 300,
       "targetUrl": "< replace me >",
       "apiKey": "< replace me >",
       "bucketName": "< replace me >",

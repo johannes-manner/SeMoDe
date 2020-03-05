@@ -281,6 +281,16 @@ public class PipelineSetupController {
             this.userConfigHandler.updateLocalConfig(localSteps, numberOfLocalCalibrations, enabled);
 
         } else if (platform.equals(CalibrationPlatform.AWS.getText())) {
+            System.out.println("Insert current region or skip setting: ");
+            final String region = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert runtime for calibration or skip setting: ");
+            final String runtime = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert function execution role (AWS IAM ARN) or skip setting: ");
+            final String awsArnRole = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert function handler here or skip setting: ");
+            final String functionHandler = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert timeout for function handler or skip setting: ");
+            final String timeout = PipelineSetupUtility.scanner.nextLine();
             System.out.println("Insert current target url or skip setting: ");
             final String targetUrl = PipelineSetupUtility.scanner.nextLine();
             System.out.println("Insert current apiKey or skip setting: ");
@@ -294,7 +304,7 @@ public class PipelineSetupController {
             System.out.println("Insert enabled property (true or false) or skip setting: ");
             final String enabled = PipelineSetupUtility.scanner.nextLine();
 
-            this.userConfigHandler.updateAWSConfig(targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
+            this.userConfigHandler.updateAWSConfig(region, runtime, awsArnRole, functionHandler, timeout, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
 
         }
         // auto save to store the pipeline setup
@@ -310,7 +320,7 @@ public class PipelineSetupController {
         if (this.userConfigHandler.isLocalEnabled()) {
             new LocalCalibration(this.setup.name, this.setup.pathToCalibration).performCalibration(this.userConfigHandler.getLocalConfig());
         } else if (this.userConfigHandler.isAWSEnabled()) {
-            new AWSCalibration(this.setup.name, this.setup.pathToCalibration).performCalibration(this.userConfigHandler.getAWSConfig());
+            new AWSCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getAWSConfig()).performCalibration();
         }
     }
 }

@@ -56,7 +56,7 @@ public class CalibrationUtility extends CustomUtility {
                         // TODO make this configurable for CLI usage + document it
                         new LocalCalibration(this.calibrationName).performCalibration(new LocalCalibrationConfig(0.1, 1, true));
                     } else if (this.platform == CalibrationPlatform.AWS) {
-                        new AWSCalibration(this.calibrationName).performCalibration(this.awsConfig);
+                        new AWSCalibration(this.calibrationName, this.awsConfig).performCalibration();
                     }
                     break;
                 case MAPPING:
@@ -89,6 +89,7 @@ public class CalibrationUtility extends CustomUtility {
                 if (this.calibrationName.isEmpty() || this.calibrationName.contains("/") || this.calibrationName.contains(".")) {
                     throw new SeMoDeException("Illegal filename " + this.calibrationName);
                 }
+                // TODO change cli feature here
                 this.awsConfig = AWSCalibrationConfig.fromFile("aws_calibration.json");
                 break;
             case MAPPING:

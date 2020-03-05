@@ -1,5 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,7 +16,16 @@ public class UserConfig {
     public UserConfig() {
     }
 
+    /**
+     * providerConfigs is not initialized with a default value.
+     * Throws a NullPointerException when loading a wrong setup.
+     *
+     * @return
+     */
     public List<ProviderConfig> getProviderConfigs() {
+        if (this.providerConfigs == null) {
+            this.providerConfigs = new ArrayList<>();
+        }
         return this.providerConfigs;
     }
 
@@ -23,7 +33,16 @@ public class UserConfig {
         this.providerConfigs = providerConfigs;
     }
 
+    /**
+     * benchmarkConfig is not initialized with a default value.
+     * Throws a NullPointerException when loading a wrong setup.
+     *
+     * @return
+     */
     public BenchmarkConfig getBenchmarkConfig() {
+        if (this.benchmarkConfig == null) {
+            return new BenchmarkConfig();
+        }
         return this.benchmarkConfig;
     }
 

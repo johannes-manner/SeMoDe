@@ -25,9 +25,9 @@ public class UserConfigHandler {
         this.userConfig = new UserConfig();
     }
 
-    public void updateAWSConfig(final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled) throws SeMoDeException {
+    public void updateAWSConfig(final String region, final String runtime, final String awsArnRole, final String functionHandler, final String timeout, final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled) throws SeMoDeException {
         try {
-            this.userConfig.getCalibrationConfig().getAwsConfig().update(targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
+            this.userConfig.getCalibrationConfig().getAwsConfig().update(region, runtime, awsArnRole, functionHandler, timeout, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
         } catch (final IOException e) {
             throw new SeMoDeException("Error during memory Size parsing");
         }
@@ -66,13 +66,7 @@ public class UserConfigHandler {
     public void loadUserConfig(final String path) throws SeMoDeException {
         final ObjectMapper om = new ObjectMapper();
         try {
-            final UserConfig config = om.readValue(Paths.get(path).toFile(), UserConfig.class);
-            final Map<String, ProviderConfig> map = new HashMap<>();
-            for (final ProviderConfig provider : config.getProviderConfigs()) {
-                map.put(provider.getName(), provider);
-            }
-
-            this.userConfig = config;
+            this.userConfig = om.readValue(Paths.get(path).toFile(), UserConfig.class);
         } catch (final IOException e) {
             throw new SeMoDeException("Error while parsing the " + path + " file. Check the config.");
         }
