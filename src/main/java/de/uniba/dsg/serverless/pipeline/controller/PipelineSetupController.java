@@ -291,6 +291,8 @@ public class PipelineSetupController {
             final String functionHandler = PipelineSetupUtility.scanner.nextLine();
             System.out.println("Insert timeout for function handler or skip setting: ");
             final String timeout = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert true or false, if you want to deploy linpack or skip setting: ");
+            final String deployLinpack = PipelineSetupUtility.scanner.nextLine();
             System.out.println("Insert current target url or skip setting: ");
             final String targetUrl = PipelineSetupUtility.scanner.nextLine();
             System.out.println("Insert current apiKey or skip setting: ");
@@ -304,7 +306,7 @@ public class PipelineSetupController {
             System.out.println("Insert enabled property (true or false) or skip setting: ");
             final String enabled = PipelineSetupUtility.scanner.nextLine();
 
-            this.userConfigHandler.updateAWSConfig(region, runtime, awsArnRole, functionHandler, timeout, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
+            this.userConfigHandler.updateAWSConfig(region, runtime, awsArnRole, functionHandler, timeout, deployLinpack, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
 
         }
         // auto save to store the pipeline setup

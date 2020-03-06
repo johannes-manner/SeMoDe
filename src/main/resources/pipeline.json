@@ -178,6 +178,7 @@
       "awsArnLambdaRole": "tbd",
       "functionHandler": "index.handler",
       "timeout": 300,
+      "deployLinpack": false,
       "targetUrl": "< replace me >",
       "apiKey": "< replace me >",
       "bucketName": "< replace me >",

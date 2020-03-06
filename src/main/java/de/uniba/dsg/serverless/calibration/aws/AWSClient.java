@@ -3,6 +3,9 @@ package de.uniba.dsg.serverless.calibration.aws;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.apigateway.AmazonApiGateway;
 import com.amazonaws.services.apigateway.AmazonApiGatewayClientBuilder;
+import com.amazonaws.services.apigateway.model.*;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
 import com.amazonaws.services.lambda.model.CreateFunctionRequest;
@@ -14,6 +17,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.google.common.util.concurrent.Uninterruptibles;
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.glassfish.jersey.client.ClientConfig;
@@ -37,6 +41,7 @@ public class AWSClient {
     private final AmazonS3 amazonS3Client;
     private final AmazonApiGateway amazonApiGatewayClient;
     private final AWSLambda amazonLambdaClient;
+    private final AmazonIdentityManagement iamClient;
 
     /**
      * Creates an AWSClient
@@ -48,6 +53,7 @@ public class AWSClient {
             this.amazonS3Client = AmazonS3ClientBuilder.standard().withRegion(region).build();
             this.amazonApiGatewayClient = AmazonApiGatewayClientBuilder.standard().withRegion(region).build();
             this.amazonLambdaClient = AWSLambdaClientBuilder.standard().withRegion(region).build();
+            this.iamClient = AmazonIdentityManagementClientBuilder.standard().withRegion(region).build();
         } catch (final AmazonServiceException e) {
             throw new SeMoDeException("AWS could not be accessed.", e);
         }
@@ -122,7 +128,6 @@ public class AWSClient {
         }
     }
 
-
     public void deployLambdaFunction(final String functionName, final String runtime, final String awsArnRole, final String functionHandler, final int timeout, final int memorySize, final Path sourceZipPath) throws SeMoDeException {
         final CreateFunctionRequest createFunctionRequest;
         try {
@@ -141,8 +146,149 @@ public class AWSClient {
             throw new SeMoDeException("Can't read zip file " + sourceZipPath, e);
         }
         final CreateFunctionResult result = this.amazonLambdaClient.createFunction(createFunctionRequest);
-        if (result.getSdkHttpMetadata().getHttpStatusCode() != 201) {
+        if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
             throw new SeMoDeException("Can't deploy lambda function. Inspect it: " + createFunctionRequest.toString());
+        }
+    }
+
+    /**
+     * Creates a AWS Gateway Rest API with an x-api-key for authorization.
+     *
+     * @param name of the api gateway
+     * @return the id of the newly created API
+     */
+    public String createRestAPI(final String name) throws SeMoDeException {
+        final CreateRestApiRequest createRestApiRequest = new CreateRestApiRequest()
+                .withName(name)
+                .withApiKeySource("HEADER")
+                .withVersion("1.0");
+        final CreateRestApiResult createRestAPIResult = this.amazonApiGatewayClient.createRestApi(createRestApiRequest);
+        if (createRestAPIResult.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
+            throw new SeMoDeException("Can't create Rest API " + name);
+        }
+        return createRestAPIResult.getId();
+    }
+
+    /**
+     * Returns the parent resource ('/') of the ApiGateway RestAPI.
+     *
+     * @param restApiId
+     * @return
+     */
+    public String getParentResource(final String restApiId) throws SeMoDeException {
+        final GetResourcesRequest getResourcesRequest = new GetResourcesRequest()
+                .withRestApiId(restApiId);
+        final GetResourcesResult result = this.amazonApiGatewayClient.getResources(getResourcesRequest);
+        if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_OK) {
+            throw new SeMoDeException("Can't get resources for rest api " + restApiId);
+        }
+        for (final Resource resource : result.getItems()) {
+            // root resource has no parent
+            if (resource.getParentId() == null) {
+                return resource.getId();
+            }
+        }
+
+        throw new SeMoDeException("There was an error by retrieving the root resource from the api " + restApiId);
+    }
+
+    /**
+     * Creates the AWS Gateway Resource.
+     *
+     * @param restApiId
+     * @param parentResourceId
+     * @param resourcePath
+     * @return
+     */
+    public String createRestResource(final String restApiId, final String parentResourceId, final String resourcePath) throws SeMoDeException {
+        final CreateResourceRequest createResourceRequest = new CreateResourceRequest()
+                .withRestApiId(restApiId)
+                .withParentId(parentResourceId)
+                .withPathPart(resourcePath);
+        final CreateResourceResult result = this.amazonApiGatewayClient.createResource(createResourceRequest);
+        if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
+            throw new SeMoDeException("Can't create rest resource " + resourcePath + " for api " + restApiId + " and parent " + parentResourceId);
+        }
+
+        return result.getId();
+    }
+
+    /**
+     * Creates the method and corresponding method response.
+     * ANY method is configured at this point for simplicity reasons.
+     *
+     * @param restApiId
+     * @param resourceId
+     * @throws SeMoDeException
+     */
+    public void putMethodAndMethodResponse(final String restApiId, final String resourceId) throws SeMoDeException {
+        this.putMethod(restApiId, resourceId);
+        this.putMethodResponse(restApiId, resourceId);
+    }
+
+    private void putMethod(final String restApiId, final String resourceId) throws SeMoDeException {
+        final PutMethodRequest putMethodRequest = new PutMethodRequest()
+                .withRestApiId(restApiId)
+                .withResourceId(resourceId)
+                // TODO remove hard coded values
+                .withHttpMethod("ANY")
+                .withAuthorizationType("NONE")
+                .withApiKeyRequired(true);
+        final PutMethodResult result = this.amazonApiGatewayClient.putMethod(putMethodRequest);
+        if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
+            throw new SeMoDeException("Can't create method for api " + restApiId + " and resource " + resourceId);
+        }
+    }
+
+    private void putMethodResponse(final String restApiId, final String resourceId) throws SeMoDeException {
+        final PutMethodResponseRequest putMethodResponseRequest = new PutMethodResponseRequest()
+                .withRestApiId(restApiId)
+                .withResourceId(resourceId)
+                // TODO remove hard coded values
+                .withHttpMethod("ANY")
+                // TODO remove hard coded values
+                .withStatusCode("200");
+        final PutMethodResponseResult result = this.amazonApiGatewayClient.putMethodResponse(putMethodResponseRequest);
+        if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
+            throw new SeMoDeException("Can't create method response for api " + restApiId + " and resource " + resourceId);
+        }
+    }
+
+    public void putIntegrationAndIntegrationResponse(final String restApiId, final String resourceId, final String functionName, final String region) throws SeMoDeException {
+        this.putIntegration(restApiId, resourceId, functionName, region);
+        this.putIntegrationResponse(restApiId, resourceId);
+    }
+
+    private void putIntegration(final String restApiId, final String resourceId, final String functionName, final String region) throws SeMoDeException {
+        final PutIntegrationRequest putIntegrationRequest = new PutIntegrationRequest()
+                .withRestApiId(restApiId)
+                .withResourceId(resourceId)
+                .withHttpMethod("ANY")
+                .withType("AWS_PROXY")
+                .withIntegrationHttpMethod("POST")
+                .withUri("arn:aws:apigateway:" + region + ":lambda:path/2015-03-31/functions/arn:aws:lambda:" + region + ":"
+                        + this.iamClient.getUser().getUser().getUserId()
+                        + ":function:" + functionName + "/invocations")
+                .withPassthroughBehavior("WHEN_NO_MATCH");
+
+        final PutIntegrationResult result = this.amazonApiGatewayClient.putIntegration(putIntegrationRequest);
+        if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
+            throw new SeMoDeException("Can't create integration for api " + restApiId + " and resource " + resourceId
+                    + " with uri " + putIntegrationRequest.getUri());
+        }
+    }
+
+    private void putIntegrationResponse(final String restApiId, final String resourceId) throws SeMoDeException {
+        final PutIntegrationResponseRequest putIntegrationResponseRequest = new PutIntegrationResponseRequest()
+                .withRestApiId(restApiId)
+                .withResourceId(resourceId)
+                .withHttpMethod("ANY")
+                .withStatusCode("200")
+                .withSelectionPattern(".*");
+
+        final PutIntegrationResponseResult result = this.amazonApiGatewayClient.putIntegrationResponse(putIntegrationResponseRequest);
+        if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
+            throw new SeMoDeException("Can't create integration response for api " + restApiId + " and resource " + resourceId);
         }
     }
 }

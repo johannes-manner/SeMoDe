@@ -25,9 +25,9 @@ public class UserConfigHandler {
         this.userConfig = new UserConfig();
     }
 
-    public void updateAWSConfig(final String region, final String runtime, final String awsArnRole, final String functionHandler, final String timeout, final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled) throws SeMoDeException {
+    public void updateAWSConfig(final String region, final String runtime, final String awsArnRole, final String functionHandler, final String timeout, final String deployLinpack, final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled) throws SeMoDeException {
         try {
-            this.userConfig.getCalibrationConfig().getAwsConfig().update(region, runtime, awsArnRole, functionHandler, timeout, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
+            this.userConfig.getCalibrationConfig().getAwsConfig().update(region, runtime, awsArnRole, functionHandler, timeout, deployLinpack, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
         } catch (final IOException e) {
             throw new SeMoDeException("Error during memory Size parsing");
         }

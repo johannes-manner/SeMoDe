@@ -36,6 +36,8 @@ public class AWSCalibrationConfig {
     @Expose
     public int timeout;
     @Expose
+    public boolean deployLinpack;
+    @Expose
     public String targetUrl;
     @Expose
     public String apiKey;
@@ -58,6 +60,7 @@ public class AWSCalibrationConfig {
         this.awsArnLambdaRole = config.awsArnLambdaRole;
         this.functionHandler = config.functionHandler;
         this.timeout = config.timeout;
+        this.deployLinpack = config.deployLinpack;
         this.targetUrl = config.targetUrl;
         this.apiKey = config.apiKey;
         this.bucketName = config.bucketName;
@@ -84,13 +87,14 @@ public class AWSCalibrationConfig {
         return experiment;
     }
 
-    public void update(final String region, final String runtime, final String awsArnLambdaRole, final String functionHandler, final String timeout, final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled) throws IOException {
+    public void update(final String region, final String runtime, final String awsArnLambdaRole, final String functionHandler, final String timeout, final String deployLinpack, final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled) throws IOException {
         if (!"".equals(region)) this.region = region;
         if (!"".equals(runtime)) this.runtime = runtime;
         if (!"".equals(awsArnLambdaRole)) this.awsArnLambdaRole = awsArnLambdaRole;
         if (!"".equals(functionHandler)) this.functionHandler = functionHandler;
         if (!"".equals(timeout) && Ints.tryParse(timeout) != null) this.timeout = Ints.tryParse(timeout);
-        if (!"".equals(targetUrl)) this.targetUrl = targetUrl;
+        if (!"".equals(deployLinpack)) this.deployLinpack = Boolean.parseBoolean(deployLinpack);
+        if (!"".equals(targetUrl)) this.targetUrl = this.targetUrl;
         if (!"".equals(apiKey)) this.apiKey = apiKey;
         if (!"".equals(bucketName)) this.bucketName = bucketName;
         if (!"".equals(memorySizes))
@@ -108,6 +112,7 @@ public class AWSCalibrationConfig {
                 ", awsArnLambdaRole='" + this.awsArnLambdaRole + '\'' +
                 ", functionHandler='" + this.functionHandler + '\'' +
                 ", timeout=" + this.timeout +
+                ", deployLinpack=" + this.deployLinpack +
                 ", targetUrl='" + this.targetUrl + '\'' +
                 ", apiKey='" + this.apiKey + '\'' +
                 ", bucketName='" + this.bucketName + '\'' +

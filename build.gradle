@@ -16,6 +16,7 @@ dependencies {
     compile group: 'com.google.guava', name: 'guava', version: '28.1-jre'
 
     // aws
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-iam', version: '1.11.737'
     compile group: 'com.amazonaws', name: 'aws-java-sdk-cloudwatch', version: '1.11.737'
     compile group: 'com.amazonaws', name: 'aws-java-sdk-logs', version: '1.11.737'
     compile group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.0'
