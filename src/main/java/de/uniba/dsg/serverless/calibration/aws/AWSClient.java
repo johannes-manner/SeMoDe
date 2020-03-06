@@ -291,4 +291,62 @@ public class AWSClient {
             throw new SeMoDeException("Can't create integration response for api " + restApiId + " and resource " + resourceId);
         }
     }
+
+    public String createStage(final String restApiId, final String stageName) throws SeMoDeException {
+        final CreateDeploymentRequest createDeploymentRequest = new CreateDeploymentRequest()
+                .withRestApiId(restApiId)
+                .withStageName(stageName);
+
+        final CreateDeploymentResult result = this.amazonApiGatewayClient.createDeployment(createDeploymentRequest);
+        if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
+            throw new SeMoDeException("Can't create stage " + stageName + " for api " + restApiId);
+        }
+
+        return result.getId();
+    }
+
+    public void createApiKeyUsagePlanAndUsagePlanKey(final String keyName, final String restApiId, final String stageName, final String usagePlanName) throws SeMoDeException {
+        final String apiKey = this.createApiKey(keyName, restApiId, stageName);
+        final String usagePlanId = this.createUsagePlan(usagePlanName, restApiId, stageName);
+        this.createUsagePlanKey(usagePlanId, apiKey);
+    }
+
+    private String createApiKey(final String keyName, final String restApiId, final String stageName) throws SeMoDeException {
+        final CreateApiKeyRequest createApiKeyRequest = new CreateApiKeyRequest()
+                .withName(keyName)
+                .withEnabled(true)
+                .withStageKeys(new StageKey().withRestApiId(restApiId).withStageName(stageName));
+
+        final CreateApiKeyResult result = this.amazonApiGatewayClient.createApiKey(createApiKeyRequest);
+        if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
+            throw new SeMoDeException("Can't create api key " + keyName + " for api " + restApiId + " and stage " + stageName);
+        }
+
+        return result.getId();
+    }
+
+    private String createUsagePlan(final String usagePlanName, final String restApiId, final String stageName) throws SeMoDeException {
+        final CreateUsagePlanRequest createUsagePlanRequest = new CreateUsagePlanRequest()
+                .withName(usagePlanName)
+                .withApiStages(new ApiStage().withApiId(restApiId).withStage(stageName));
+
+        final CreateUsagePlanResult result = this.amazonApiGatewayClient.createUsagePlan(createUsagePlanRequest);
+        if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
+            throw new SeMoDeException("Can't create usage plan " + usagePlanName + " for api " + restApiId + " and stage " + stageName);
+        }
+
+        return result.getId();
+    }
+
+    private void createUsagePlanKey(final String usagePlanId, final String apiKey) throws SeMoDeException {
+        final CreateUsagePlanKeyRequest createUsagePlanKeyRequest = new CreateUsagePlanKeyRequest()
+                .withUsagePlanId(usagePlanId)
+                .withKeyType("API_KEY")
+                .withKeyId(apiKey);
+
+        final CreateUsagePlanKeyResult result = this.amazonApiGatewayClient.createUsagePlanKey(createUsagePlanKeyRequest);
+        if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
+            throw new SeMoDeException("Can't associate usage plan and key for usage plan " + usagePlanId + " and api key " + apiKey);
+        }
+    }
 }
