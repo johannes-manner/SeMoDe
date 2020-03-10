@@ -15,6 +15,8 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.google.common.util.concurrent.Uninterruptibles;
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -307,24 +309,14 @@ public class AWSClient {
         return result.getId();
     }
 
-    /**
-     * Creates an api key and a corresponding usage plan.
-     * Returns the value of the api key (x-api-key).
-     *
-     * @param keyName
-     * @param restApiId
-     * @param stageName
-     * @param usagePlanName
-     * @throws SeMoDeException
-     */
-    public String createApiKeyUsagePlanAndUsagePlanKey(final String keyName, final String restApiId, final String stageName, final String usagePlanName) throws SeMoDeException {
-        final CreateApiKeyResult apiKeyResult = this.createApiKey(keyName, restApiId, stageName);
+
+    public String createUsagePlanAndUsagePlanKey(final String usagePlanName, final String restApiId, final String stageName, final String apiKeyId) throws SeMoDeException {
         final String usagePlanId = this.createUsagePlan(usagePlanName, restApiId, stageName);
-        this.createUsagePlanKey(usagePlanId, apiKeyResult.getId());
-        return apiKeyResult.getValue();
+        this.createUsagePlanKey(usagePlanId, apiKeyId);
+        return usagePlanId;
     }
 
-    private CreateApiKeyResult createApiKey(final String keyName, final String restApiId, final String stageName) throws SeMoDeException {
+    public Pair<String, String> createApiKey(final String keyName, final String restApiId, final String stageName) throws SeMoDeException {
         final CreateApiKeyRequest createApiKeyRequest = new CreateApiKeyRequest()
                 .withName(keyName)
                 .withEnabled(true)
@@ -335,7 +327,7 @@ public class AWSClient {
             throw new SeMoDeException("Can't create api key " + keyName + " for api " + restApiId + " and stage " + stageName);
         }
 
-        return result;
+        return new ImmutablePair<String, String>(result.getId(), result.getValue());
     }
 
     private String createUsagePlan(final String usagePlanName, final String restApiId, final String stageName) throws SeMoDeException {
@@ -405,11 +397,11 @@ public class AWSClient {
 
         try {
             final DeleteFunctionResult result = this.amazonLambdaClient.deleteFunction(deleteFunctionRequest);
-            System.out.println("AWS Lambda function " + functionName + " deleted");
-            // TODO remove
-            System.out.println(result.getSdkHttpMetadata().getHttpStatusCode());
-        } catch (final Exception e) {
-            e.printStackTrace();
+            if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_NO_CONTENT) {
+                System.out.println("AWS Lambda function " + functionName + " deleted");
+            }
+        } catch (final ResourceNotFoundException e) {
+            System.err.println("AWS Lambda function " + functionName + " deleted or not present!");
         }
     }
 
@@ -419,11 +411,11 @@ public class AWSClient {
 
         try {
             final DeleteApiKeyResult result = this.amazonApiGatewayClient.deleteApiKey(deleteApiKeyRequest);
-            System.out.println("Amazon Api Gateway key " + apiKeyId + " deleted");
-            // TODO remove
-            System.out.println(result.getSdkHttpMetadata().getHttpStatusCode());
-        } catch (final Exception e) {
-            e.printStackTrace();
+            if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_ACCEPTED) {
+                System.out.println("Amazon Api Gateway key " + apiKeyId + " deleted");
+            }
+        } catch (final NotFoundException e) {
+            System.err.println("Amazon Api Gateway key " + apiKeyId + " deleted or not present!");
         }
     }
 
@@ -433,11 +425,11 @@ public class AWSClient {
 
         try {
             final DeleteRestApiResult result = this.amazonApiGatewayClient.deleteRestApi(deleteRestApiRequest);
-            System.out.println("Amazon Api Gateway rest api " + restApiId + " deleted");
-            // TODO remove
-            System.out.println(result.getSdkHttpMetadata().getHttpStatusCode());
-        } catch (final Exception e) {
-            e.printStackTrace();
+            if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_ACCEPTED) {
+                System.out.println("Amazon Api Gateway rest api " + restApiId + " deleted");
+            }
+        } catch (final NotFoundException e) {
+            System.err.println("Amazon Api Gateway rest api " + restApiId + "deleted or not present!");
         }
     }
 
@@ -447,11 +439,11 @@ public class AWSClient {
 
         try {
             final DeleteUsagePlanResult result = this.amazonApiGatewayClient.deleteUsagePlan(deleteUsagePlanRequest);
-            System.out.println("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted");
-            // TODO remove
-            System.out.println(result.getSdkHttpMetadata().getHttpStatusCode());
-        } catch (final Exception e) {
-            e.printStackTrace();
+            if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_ACCEPTED) {
+                System.out.println("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted");
+            }
+        } catch (final NotFoundException e) {
+            System.err.println("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted or not present!");
         }
     }
 }

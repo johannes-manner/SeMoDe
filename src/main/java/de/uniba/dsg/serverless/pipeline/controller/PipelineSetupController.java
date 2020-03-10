@@ -97,9 +97,6 @@ public class PipelineSetupController {
                     final String deploymentSize = PipelineSetupUtility.scanner.nextLine();
 
                     this.userConfigHandler.addOrChangeProviderConfig(this.setup.config.getProviderConfigMap(), provider, memorySize, language, deploymentSize);
-
-                    // auto save
-                    this.savePipelineSetup();
                 } catch (final IOException e) {
                     System.err.println("Incorrect json format - inserted values!");
                 } catch (final SeMoDeException e) {
@@ -110,7 +107,7 @@ public class PipelineSetupController {
 
     }
 
-    private void savePipelineSetup() throws SeMoDeException {
+    public void savePipelineSetup() throws SeMoDeException {
         this.userConfigHandler.saveUserConfigToFile(this.setup.pathToConfig);
     }
 
@@ -242,9 +239,6 @@ public class PipelineSetupController {
         final BenchmarkConfig config = new BenchmarkConfig(numberOfThreads, benchmarkingMode, benchmarkingParameters);
         this.userConfigHandler.updateBenchmarkConfig(config);
 
-        // auto save to store the benchmark
-        this.savePipelineSetup();
-
         final BenchmarkingCommandGenerator bcg = new BenchmarkingCommandGenerator(this.setup.pathToBenchmarkingCommands, this.setup.pathToEndpoints, config, this.setup.getSeMoDeJarLocation());
 
         final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
@@ -313,8 +307,6 @@ public class PipelineSetupController {
             this.userConfigHandler.updateAWSConfig(region, runtime, awsArnRole, functionHandler, timeout, deployLinpack, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
 
         }
-        // auto save to store the pipeline setup
-        this.savePipelineSetup();
     }
 
     /**

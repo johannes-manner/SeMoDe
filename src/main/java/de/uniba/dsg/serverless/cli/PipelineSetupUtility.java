@@ -110,7 +110,13 @@ public class PipelineSetupUtility extends CustomUtility {
                 this.controller.generateCalibration();
                 break;
             case "startCalibration":
-                this.controller.startCalibration();
+                try {
+                    this.controller.startCalibration();
+                } catch (final SeMoDeException e) {
+                    // store current pipeline data before exiting
+                    this.controller.savePipelineSetup();
+                    throw e;
+                }
                 break;
             case "stopCalibration":
                 this.controller.stopCalibration();
@@ -130,5 +136,8 @@ public class PipelineSetupUtility extends CustomUtility {
                         "The command " + command + " is not available. Check your spelling or open an Issue on github.",
                         new NotImplementedException(""));
         }
+
+        // save after each operation
+        this.controller.savePipelineSetup();
     }
 }

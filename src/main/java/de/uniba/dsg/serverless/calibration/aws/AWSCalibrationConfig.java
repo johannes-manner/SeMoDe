@@ -69,7 +69,7 @@ public class AWSCalibrationConfig {
         this.memorySizes = List.copyOf(config.memorySizes);
         this.numberOfAWSExecutions = config.numberOfAWSExecutions;
         this.enabled = config.enabled;
-        // deploymentInternals are not copied from another config (they are unique for the specific deployment)
+        this.deploymentInternals = new DeploymentInternals(config.deploymentInternals);
     }
 
     /**
@@ -142,6 +142,12 @@ class DeploymentInternals {
 
     private DeploymentInternals() {
 
+    }
+
+    public DeploymentInternals(final DeploymentInternals other) {
+        this.restApiId = other.restApiId;
+        this.apiKeyId = other.apiKeyId;
+        this.usagePlanId = other.usagePlanId;
     }
 
     @Override

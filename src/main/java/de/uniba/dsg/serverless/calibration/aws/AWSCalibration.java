@@ -7,6 +7,7 @@ import de.uniba.dsg.serverless.calibration.LinpackParser;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.util.SeMoDeProperty;
 import de.uniba.dsg.serverless.util.SeMoDePropertyManager;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -60,26 +61,33 @@ public class AWSCalibration implements CalibrationMethods {
         }
 
         // deploy linpack if user specified it
-        if (this.config.deployLinpack) {
-            // Create a single rest api for all function endpoints
-            final String restApiId = this.client.createRestAPI(this.calibration.name);
+        try {
+            if (this.config.deployLinpack) {
+                // Create a single rest api for all function endpoints
+                final String restApiId = this.client.createRestAPI(this.calibration.name);
+                this.config.deploymentInternals.restApiId = restApiId;
 
-            for (final Integer memorySize : this.config.memorySizes) {
-                // platform name is used for the name of the aws lambda function
-                // and the path attribute for the aws api gateway
-                final String platformName = this.platformPrefix + memorySize;
-                this.deployLinpack(platformName, memorySize);
-                this.deployHttpMethodInRestApi(platformName, restApiId);
+                for (final Integer memorySize : this.config.memorySizes) {
+                    // platform name is used for the name of the aws lambda function
+                    // and the path attribute for the aws api gateway
+                    final String platformName = this.platformPrefix + memorySize;
+                    this.deployLinpack(platformName, memorySize);
+                    this.deployHttpMethodInRestApi(platformName, restApiId);
+                }
+                // set up rest api and stage
+                this.enableRestApiUsage(restApiId);
+
+                // update lambda permission due to the enabled rest api
+                for (final Integer memorySize : this.config.memorySizes) {
+                    this.updateLambdaPermission(this.platformPrefix + memorySize, restApiId, this.config.region);
+                }
+
+                System.out.println("Deployment successfully completed!");
             }
-            // set up rest api and stage
-            this.enableRestApiUsage(restApiId);
-
-            // update lambda permission due to the enabled rest api
-            for (final Integer memorySize : this.config.memorySizes) {
-                this.updateLambdaPermission(this.platformPrefix + memorySize, restApiId, this.config.region);
-            }
-
-            System.out.println("Deployment successfully completed!");
+        } catch (final SeMoDeException e) {
+            //Error during deployment - remove all deployed resources
+            this.removeAllDeployedResources();
+            throw e;
         }
 
         // execute linpack calibration
@@ -110,12 +118,15 @@ public class AWSCalibration implements CalibrationMethods {
     private void enableRestApiUsage(final String restApiId) throws SeMoDeException {
         final String stageName = this.calibration.name + "_stage";
         final String deploymentId = this.client.createStage(restApiId, stageName);
-        final String xApiKey = this.client.createApiKeyUsagePlanAndUsagePlanKey(this.calibration.name + "_key", restApiId, stageName, this.calibration.name + "_plan");
+        final Pair<String, String> keyPair = this.client.createApiKey(this.calibration.name + "_key", restApiId, stageName);
+        final String usagePlanId = this.client.createUsagePlanAndUsagePlanKey(this.calibration.name + "_plan", restApiId, stageName, keyPair.getKey());
         System.out.println("API Gateway deployment successfully completed!");
 
         // store x-api-key and targetUrl in pipeline configuration
         this.config.targetUrl = "https://" + restApiId + ".execute-api." + this.config.region + ".amazonaws.com/" + this.calibration.name + "_stage";
-        this.config.apiKey = xApiKey;
+        this.config.deploymentInternals.apiKeyId = keyPair.getKey();
+        this.config.apiKey = keyPair.getValue();
+        this.config.deploymentInternals.usagePlanId = usagePlanId;
     }
 
     /**

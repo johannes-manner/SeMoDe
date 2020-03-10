@@ -33,7 +33,7 @@ exports.handler = (event, context) => {
     const additionalInfo = flops + " " + start + " " + end + " " + diff;
     const body = [btime, model, stdout].join("\n");
     s3.putObject({
-      Bucket: 'calibration-linpack',
+      Bucket: 'calibration-linpack-west',
       Key: filePath,
       Body: body
     }, callback(additionalInfo));
