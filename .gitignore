@@ -2,7 +2,7 @@
 # Created by https://www.gitignore.io/api/git,java,gradle,eclipse
 
 ### Eclipse ###
-
+.idea
 .metadata
 bin/
 tmp/
@@ -14,6 +14,10 @@ local.properties
 .settings/
 .loadpath
 .recommenders
+
+# Dependency directories
+node_modules/
+jspm_packages/
 
 # External tool builders
 .externalToolBuilders/
@@ -112,7 +116,10 @@ setups/
 benchmarkSetting/
 simulation/*.csv
 paper/
+/calibration/
 *.csv
+src/main/resources/aws_calibration.json
+/profiling/profiles/
 
 
 # User-specific stuff

@@ -29,7 +29,10 @@ public class UtilityFactory {
 			new SeMoDeUtility("awsSeMoDe"),		
 			
 			// simulation
-			new SimulationUtility("loadSimulation")
+			new SimulationUtility("loadSimulation"),
+
+			// calibration
+			new CalibrationUtility("calibration")
 	);
 
 	public static Optional<CustomUtility> getUtilityClass(String name) {

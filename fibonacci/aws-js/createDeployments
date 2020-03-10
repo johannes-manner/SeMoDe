@@ -25,12 +25,14 @@ function createDeploymentSizes() {
 		if [ "${size}" = "initial" ]; then
 			cp "fibonacci.js" "${PACKAGES_DIR}/fibonacci.js"
 			cp "serverless-package.yml" "${PACKAGES_DIR}/serverless.yml"
+			cp -r "node_modules" "${PACKAGES_DIR}/node_modules"
 			cd "${PACKAGES_DIR}/"
 		else
 			java -jar "../$1" "deploymentSize" "fibonacci.js" "${size}" "///"
 		fi
 		createDir "${size}"
 		cp "fibonacci.js" "${size}/fibonacci-js-${size}.js"
+		cp -r "node_modules" "${size}/node_modules"
 		cp "serverless.yml" "${size}/serverless.yml"
 		cd "${size}"
 		serverless package --package out

@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "locally": "node runfibonacci.js"
+  },
+  "dependencies": {
+    "uuid": "^3.3.3"
+  },
+  "devDependencies": {
+    "aws-lambda-mock-context": "^3.2.1"
+  }
+}

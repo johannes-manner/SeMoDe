@@ -1,117 +1,242 @@
 {
-"providerConfigs": [
-	{
-	"name": "aws",
-	"memorySize": [
-		128,
-		192,
-		256,
-		320,
-		384,
-		448,
-		512,
-		576,
-		640,
-		704,
-		768,
-		832,
-		896,
-		960,
-		1024,
-		1088,
-		1152,
-		1216,
-		1280,
-		1344,
-		1408,
-		1472,
-		1536,
-		1600,
-		1664,
-		1728,
-		1792,
-		1856,
-		1920,
-		1984,
-		2048,
-		2112,
-		2176,
-		2240,
-		2304,
-		2368,
-		2432,
-		2496,
-		2560,
-		2624,
-		2688,
-		2752,
-		2816,
-		2880,
-		2944,
-		3008
-	],
-	"language": [
-		"java",
-		"js"
-	]
-},
-		{
-			"name": "azure",
-			"memorySize": [
-			],
-			"language": [
-				"java", "js"
-			]
-		},
-		{
-			"name": "ibm",
-			"memorySize": [
-				128,192,256,320,384,448,512
-			],
-			"language": [
-				"js"
-			]
-		},
-		{
-			"name": "google",
-			"memorySize": [
-				128,192,256,320,384,448,512,576,640,704,768,832,896,960,1024,1088,1152,1216,1280,1344,1408,1472,1536,1600,1664,1728,1792,1856,1920,1984,2048,2112,2176,2240,2304,2368,2432,2496,2560,2624,2688,2752,2816,2880,2944,3008
-			],
-			"language": [
-				"js"
-			]
-		}
-	],
-	"languageConfigs" : [
-		{
-		"identifier": "aws-java",
-		"logType": "serverless",
-		"fetcherType": "aws"
-		},
-		{
-		"identifier": "aws-js",
-		"logType": "serverless",
-		"fetcherType": "aws"
-		},
-		{
-		"identifier": "azure-java",
-		"logType": "maven",
-		"fetcherType": "azure_maven"
-		},
-		{
-		"identifier": "azure-js",
-		"logType": "kudu",
-		"fetcherType": "azure_serverless"
-		},
-		{
-		"identifier": "google-js",
-		"logType": "serverless",
-		"fetcherType": "google"
-		},
-		{
-		"identifier": "ibm-js",
-		"logType": "post",
-		"fetcherType": "ibm"
-		}
-	]
+  "providerConfigs": [
+    {
+      "name": "aws",
+      "memorySize": [
+        128,
+        192,
+        256,
+        320,
+        384,
+        448,
+        512,
+        576,
+        640,
+        704,
+        768,
+        832,
+        896,
+        960,
+        1024,
+        1088,
+        1152,
+        1216,
+        1280,
+        1344,
+        1408,
+        1472,
+        1536,
+        1600,
+        1664,
+        1728,
+        1792,
+        1856,
+        1920,
+        1984,
+        2048,
+        2112,
+        2176,
+        2240,
+        2304,
+        2368,
+        2432,
+        2496,
+        2560,
+        2624,
+        2688,
+        2752,
+        2816,
+        2880,
+        2944,
+        3008
+      ],
+      "language": [
+        "java",
+        "js"
+      ]
+    },
+    {
+      "name": "azure",
+      "memorySize": [
+      ],
+      "language": [
+        "java",
+        "js"
+      ]
+    },
+    {
+      "name": "ibm",
+      "memorySize": [
+        128,
+        192,
+        256,
+        320,
+        384,
+        448,
+        512
+      ],
+      "language": [
+        "js"
+      ]
+    },
+    {
+      "name": "google",
+      "memorySize": [
+        128,
+        192,
+        256,
+        320,
+        384,
+        448,
+        512,
+        576,
+        640,
+        704,
+        768,
+        832,
+        896,
+        960,
+        1024,
+        1088,
+        1152,
+        1216,
+        1280,
+        1344,
+        1408,
+        1472,
+        1536,
+        1600,
+        1664,
+        1728,
+        1792,
+        1856,
+        1920,
+        1984,
+        2048,
+        2112,
+        2176,
+        2240,
+        2304,
+        2368,
+        2432,
+        2496,
+        2560,
+        2624,
+        2688,
+        2752,
+        2816,
+        2880,
+        2944,
+        3008
+      ],
+      "language": [
+        "js"
+      ]
+    }
+  ],
+  "languageConfigs": [
+    {
+      "identifier": "aws-java",
+      "logType": "serverless",
+      "fetcherType": "aws"
+    },
+    {
+      "identifier": "aws-js",
+      "logType": "serverless",
+      "fetcherType": "aws"
+    },
+    {
+      "identifier": "azure-java",
+      "logType": "maven",
+      "fetcherType": "azure_maven"
+    },
+    {
+      "identifier": "azure-js",
+      "logType": "kudu",
+      "fetcherType": "azure_serverless"
+    },
+    {
+      "identifier": "google-js",
+      "logType": "serverless",
+      "fetcherType": "google"
+    },
+    {
+      "identifier": "ibm-js",
+      "logType": "post",
+      "fetcherType": "ibm"
+    }
+  ],
+  "calibrationConfig": {
+    "localConfig": {
+      "localSteps": 0.1,
+      "numberOfLocalCalibrations": 1,
+      "localEnabled": false
+    },
+    "awsConfig": {
+      "region": "eu-west-1",
+      "runtime": "nodejs12.x",
+      "awsArnLambdaRole": "tbd",
+      "functionHandler": "index.handler",
+      "timeout": 300,
+      "deployLinpack": false,
+      "targetUrl": "< replace me >",
+      "apiKey": "< replace me >",
+      "bucketName": "< replace me >",
+      "memorySizes": [
+        128,
+        192,
+        256,
+        320,
+        384,
+        448,
+        512,
+        576,
+        640,
+        704,
+        768,
+        832,
+        896,
+        960,
+        1024,
+        1088,
+        1152,
+        1216,
+        1280,
+        1344,
+        1408,
+        1472,
+        1536,
+        1600,
+        1664,
+        1728,
+        1792,
+        1856,
+        1920,
+        1984,
+        2048,
+        2112,
+        2176,
+        2240,
+        2304,
+        2368,
+        2432,
+        2496,
+        2560,
+        2624,
+        2688,
+        2752,
+        2816,
+        2880,
+        2944,
+        3008
+      ],
+      "numberOfAWSExecutions": 0,
+      "enabled": true,
+      "deploymentInternals": {
+        "restApiId": "no user input recommended",
+        "apiKeyId": "no user input recommended",
+        "usagePlanId": "no user input recommended"
+      }
+    }
+  }
 }

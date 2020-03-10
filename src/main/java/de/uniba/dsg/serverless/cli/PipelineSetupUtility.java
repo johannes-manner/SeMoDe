@@ -1,108 +1,143 @@
 package de.uniba.dsg.serverless.cli;
 
-import java.util.List;
-import java.util.Scanner;
-
+import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.controller.PipelineSetupController;
+import de.uniba.dsg.serverless.pipeline.model.PipelineSetup;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.pipeline.controller.BenchmarkSetupController;
-import de.uniba.dsg.serverless.pipeline.model.BenchmarkSetup;
+import java.util.List;
+import java.util.Scanner;
 
 public class PipelineSetupUtility extends CustomUtility {
 
-	public static final Scanner scanner = new Scanner(System.in);
-	private static final Logger logger = LogManager.getLogger(PipelineSetupUtility.class.getName());
+    public static final Scanner scanner = new Scanner(System.in);
+    private static final Logger logger = LogManager.getLogger(PipelineSetupUtility.class.getName());
 
-	private BenchmarkSetupController controller;
+    private PipelineSetupController controller;
 
-	public PipelineSetupUtility(String name) {
-		super(name);
-	}
+    public PipelineSetupUtility(final String name) {
+        super(name);
+    }
 
-	@Override
-	public void start(List<String> args) {
-		if (args.size() < 2) {
-			logger.fatal("Wrong parameter size: " + "\nUSAGE: COMMAND SETUP_NAME");
-			return;
-		}
-		try {
-			executeSetupCommand(args.get(0), args.get(1));
-		} catch (SeMoDeException e) {
-			logger.fatal(e);
-			return;
-		}
-		printRunCommandUsage();
-		String command = scanner.nextLine();
-		while (!"exit".equals(command)) {
-			try {
-				executeRunCommand(command);
-			} catch (SeMoDeException e) {
-				logger.fatal(e);
-			}
-			printRunCommandUsage();
-			command = scanner.nextLine();
-		}
-	}
+    @Override
+    public void start(final List<String> args) {
+        if (args.size() < 1) {
+            logger.fatal("Wrong parameter size: " + "\nUSAGE: SETUP_NAME");
+            return;
+        }
+        try {
+            this.loadOrInitSetup(args.get(0));
+        } catch (final SeMoDeException e) {
+            logger.fatal(e);
+            return;
+        }
+        this.printRunCommandUsage();
+        String command = scanner.nextLine();
+        while (!"exit".equals(command)) {
+            try {
+                this.executeRunCommand(command);
+            } catch (final SeMoDeException e) {
+                logger.fatal(e);
+            }
+            this.printRunCommandUsage();
+            command = scanner.nextLine();
+        }
+    }
 
-	private void printRunCommandUsage() {
-		System.out.println();
-		System.out.println("Please type in a command or \"exit\".");
-		System.out.println(" (status)     Get the current configuration");
-		System.out.println(" (config)     Alter/Specify the current configuration");
-		System.out.println(" (deploy)     Starts the deployment");
-		System.out.println(" (endpoints)  Generate endpoints for benchmarking");
-		System.out.println(" (commands)   Generate benchmarking commands in a bat-file");
-		System.out.println(" (fetch)      Fetch log data from various platforms");
-		System.out.println(" (undeploy)   Undeploying the current cloud functions");
-		System.out.println(" (exit)       Terminate the program");
-	}
+    private void printRunCommandUsage() {
+        System.out.println();
+        System.out.println("Please type in a command or \"exit\".");
+        System.out.println("Benchmarking Options:");
+        System.out.println(" (config)             Alter/Specify the current configuration");
+        System.out.println(" (deploy)             Starts the deployment");
+        System.out.println(" (endpoints)          Generate endpoints for benchmarking");
+        System.out.println(" (commands)           Generate benchmarking commands in a bat-file");
+        System.out.println(" (fetch)              Fetch log data from various platforms");
+        System.out.println(" (undeploy)           Undeploying the current cloud functions");
+        System.out.println(" (benchmark)          Starts the whole benchmarking pipeline");
+        System.out.println("Simulation Options:");
+        System.out.println(" (calibrate)          Perform a calibration (linpack)");
+        System.out.println(" (startCalibration)   Starts the deployment (optional) and the configured calibration");
+        System.out.println(" (stopCalibration)    Undeploys the calibration");
+        System.out.println(" (mapping)            Computes the mapping between two calibrations");
+        System.out.println(" (run)                Run container based on calibration");
+        System.out.println("Other Options:");
+        System.out.println(" (status)             Get the current configuration");
+        System.out.println(" (exit)               Terminate the program");
+    }
 
-	private void executeSetupCommand(String command, String name) throws SeMoDeException {
-		BenchmarkSetup setup = new BenchmarkSetup(name);
-		switch (command) {
-		case "init":
-			controller = BenchmarkSetupController.init(setup);
-			break;
-		case "load":
-			controller = BenchmarkSetupController.load(setup);
-			break;
-		default:
-			throw new SeMoDeException("The command " + command + " is not available. "
-					+ "Check your spelling or open an Issue on github.");
-		}
-		logger.info("Successfully loaded benchmark setup \"" + setup.name + "\"");
-	}
+    private void loadOrInitSetup(final String name) throws SeMoDeException {
+        final PipelineSetup setup = new PipelineSetup(name);
+        this.controller = new PipelineSetupController(setup);
+        if (setup.setupAlreadyExists()) {
+            this.controller.load();
+        } else {
+            this.controller.init();
+        }
 
-	private void executeRunCommand(String command) throws SeMoDeException {
-		switch (command) {
-		case "status":
-			controller.printBenchmarkSetupStatus();
-			break;
-		case "config":
-			controller.configureBenchmarkSetup();
-			break;
-		case "deploy":
-			controller.prepareDeployment();
-			break;
-		case "endpoints":
-			controller.generateEndpoints();
-			break;
-		case "commands":
-			controller.generateBenchmarkingCommands();
-			break;
-		case "fetch":
-			controller.fetchPerformanceData();
-			break;
-		case "undeploy":
-			controller.undeploy();
-			break;
-		default:
-			throw new SeMoDeException(
-					"The command " + command + " is not available. Check your spelling or open an Issue on github.",
-					new NotImplementedException(""));
-		}
-	}
+        logger.info("Successfully loaded benchmark setup \"" + setup.name + "\"");
+    }
+
+    private void executeRunCommand(final String command) throws SeMoDeException {
+        switch (command) {
+
+            // benchmark options
+            case "config":
+                this.controller.configureBenchmarkSetup();
+                break;
+            case "deploy":
+                this.controller.prepareDeployment();
+                break;
+            case "endpoints":
+                this.controller.generateEndpoints();
+                break;
+            case "commands":
+                this.controller.generateBenchmarkingCommands();
+                break;
+            case "fetch":
+                this.controller.fetchPerformanceData();
+                break;
+            case "undeploy":
+                this.controller.undeploy();
+                break;
+            case "benchmark":
+                // TODO automate as much as possible
+                break;
+            // calibration options
+            case "calibrate":
+                this.controller.generateCalibration();
+                break;
+            case "startCalibration":
+                try {
+                    this.controller.startCalibration();
+                } catch (final SeMoDeException e) {
+                    // store current pipeline data before exiting
+                    this.controller.savePipelineSetup();
+                    throw e;
+                }
+                break;
+            case "stopCalibration":
+                this.controller.stopCalibration();
+                break;
+            case "mappging":
+                // TODO
+                break;
+            case "run":
+                // TODO
+                break;
+            // other program options
+            case "status":
+                this.controller.printPipelineSetupStatus();
+                break;
+            default:
+                throw new SeMoDeException(
+                        "The command " + command + " is not available. Check your spelling or open an Issue on github.",
+                        new NotImplementedException(""));
+        }
+
+        // save after each operation
+        this.controller.savePipelineSetup();
+    }
 }

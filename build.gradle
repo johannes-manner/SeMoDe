@@ -1,7 +1,7 @@
-
 apply plugin: 'idea'
 apply plugin: 'eclipse'
 apply plugin: 'java'
+apply plugin: 'application'
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
@@ -12,53 +12,66 @@ repositories {
 
 dependencies {
     testImplementation 'junit:junit:4.12'
-    
+
     compile group: 'com.google.guava', name: 'guava', version: '28.1-jre'
-    
+
     // aws
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-cloudwatch', version: '1.11.625'
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-logs', version: '1.11.625'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-iam', version: '1.11.737'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-cloudwatch', version: '1.11.737'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-logs', version: '1.11.737'
     compile group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.0'
-    
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-lambda', version: '1.11.737'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.737'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-api-gateway', version: '1.11.737'
+
     // azure - signature problems - see jar section
     compile group: 'com.microsoft.azure', name: 'azure-core', version: '0.9.8'
     compile group: 'com.microsoft.azure', name: 'azure-storage', version: '8.4.0'
-    
+
     // google
     compile 'com.google.cloud:google-cloud-logging:1.89.0'
-    
+
     // see https://www.slf4j.org/codes.html#StaticLoggerBinder get rid of an error during logger initialization
     compile group: 'org.slf4j', name: 'slf4j-nop', version: '1.7.21'
-    
+
+    // https://mvnrepository.com/artifact/com.github.docker-java/docker-java
+    compile group: 'com.github.docker-java', name: 'docker-java', version: '3.1.2'
+
     // jersey client
     compile group: 'org.glassfish.jersey.core', name: 'jersey-client', version: '2.29'
     compile group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.29'
     compile group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '2.29'
-    
+
     // log4j2
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.0'
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.0'
-    
+
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
-	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
-	
-	// https://mvnrepository.com/artifact/commons-io/commons-io
-	compile group: 'commons-io', name: 'commons-io', version: '2.6'
-	
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
+
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-math3
+    // for computing regression
+    compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
+    compile group: 'org.apache.commons', name: 'commons-csv', version: '1.6'
+
+    // https://mvnrepository.com/artifact/commons-io/commons-io
+    compile group: 'commons-io', name: 'commons-io', version: '2.6'
 }
 
 jar {
-  duplicatesStrategy = 'exclude'
-  manifest {
-    attributes(
-      'Main-Class': 'de.uniba.dsg.serverless.ArgumentProcessor'
-    )
-  }
-  from {
-    configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-  }
-  
-  // azure lib causes a java.lang.SecurityException: Invalid signature file digest for Manifest main attributes
-  // see discussion: https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
-  exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+    duplicatesStrategy = 'exclude'
+    manifest {
+        attributes(
+                'Main-Class': 'de.uniba.dsg.serverless.ArgumentProcessor'
+        )
+    }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    // azure lib causes a java.lang.SecurityException: Invalid signature file digest for Manifest main attributes
+    // see discussion: https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
 }
+
+mainClassName = "de.uniba.dsg.serverless.ArgumentProcessor"
