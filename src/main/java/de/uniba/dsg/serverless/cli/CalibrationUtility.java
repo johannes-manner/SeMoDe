@@ -54,7 +54,7 @@ public class CalibrationUtility extends CustomUtility {
                 case PERFORM_CALIBRATION:
                     if (this.platform == CalibrationPlatform.LOCAL) {
                         // TODO make this configurable for CLI usage + document it
-                        new LocalCalibration(this.calibrationName).performCalibration(new LocalCalibrationConfig(0.1, 1, true));
+                        new LocalCalibration(this.calibrationName, new LocalCalibrationConfig(0.1, 1, true)).performCalibration();
                     } else if (this.platform == CalibrationPlatform.AWS) {
                         new AWSCalibration(this.calibrationName, this.awsConfig).performCalibration();
                     }

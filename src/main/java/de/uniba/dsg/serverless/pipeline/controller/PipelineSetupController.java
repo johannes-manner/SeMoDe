@@ -1,5 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
+import de.uniba.dsg.serverless.calibration.CalibrationMethods;
 import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
@@ -35,6 +36,8 @@ public class PipelineSetupController {
     // wrapper/handler to access the user config
     private final UserConfigHandler userConfigHandler;
 
+    private CalibrationMethods calibration;
+
     public PipelineSetupController(final PipelineSetup setup) {
         this.setup = setup;
         this.om = new ObjectMapper();
@@ -50,6 +53,7 @@ public class PipelineSetupController {
     public void init() throws SeMoDeException {
         this.createBenchmarkFolderStructure();
         this.userConfigHandler.initializeCalibrationFromGlobal(this.setup.config);
+        this.savePipelineSetup();
     }
 
     public void load() throws SeMoDeException {
@@ -320,9 +324,21 @@ public class PipelineSetupController {
      */
     public void startCalibration() throws SeMoDeException {
         if (this.userConfigHandler.isLocalEnabled()) {
-            new LocalCalibration(this.setup.name, this.setup.pathToCalibration).performCalibration(this.userConfigHandler.getLocalConfig());
+            this.calibration = new LocalCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getLocalConfig());
+            this.calibration.performCalibration();
         } else if (this.userConfigHandler.isAWSEnabled()) {
-            new AWSCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getAWSConfig()).performCalibration();
+            this.calibration = new AWSCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getAWSConfig());
+            this.calibration.performCalibration();
+        }
+    }
+
+    public void stopCalibration() throws SeMoDeException {
+        if (this.userConfigHandler.isLocalEnabled()) {
+            this.calibration = new LocalCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getLocalConfig());
+            this.calibration.stopCalibration();
+        } else if (this.userConfigHandler.isAWSEnabled()) {
+            this.calibration = new AWSCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getAWSConfig());
+            this.calibration.stopCalibration();
         }
     }
 }

@@ -170,7 +170,7 @@
     "localConfig": {
       "localSteps": 0.1,
       "numberOfLocalCalibrations": 1,
-      "localEnabled": true
+      "localEnabled": false
     },
     "awsConfig": {
       "region": "eu-west-1",
@@ -231,7 +231,12 @@
         3008
       ],
       "numberOfAWSExecutions": 0,
-      "enabled": true
+      "enabled": true,
+      "deploymentInternals": {
+        "restApiId": "no user input recommended",
+        "apiKeyId": "no user input recommended",
+        "usagePlanId": "no user input recommended"
+      }
     }
   }
 }

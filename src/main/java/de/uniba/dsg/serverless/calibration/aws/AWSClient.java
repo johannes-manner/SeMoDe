@@ -8,9 +8,7 @@ import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
-import com.amazonaws.services.lambda.model.CreateFunctionRequest;
-import com.amazonaws.services.lambda.model.CreateFunctionResult;
-import com.amazonaws.services.lambda.model.FunctionCode;
+import com.amazonaws.services.lambda.model.*;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
@@ -145,9 +143,13 @@ public class AWSClient {
         } catch (final IOException e) {
             throw new SeMoDeException("Can't read zip file " + sourceZipPath, e);
         }
-        final CreateFunctionResult result = this.amazonLambdaClient.createFunction(createFunctionRequest);
-        if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
-            throw new SeMoDeException("Can't deploy lambda function. Inspect it: " + createFunctionRequest.toString());
+        try {
+            final CreateFunctionResult result = this.amazonLambdaClient.createFunction(createFunctionRequest);
+            if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
+                throw new SeMoDeException("Can't deploy lambda function. Inspect it: " + createFunctionRequest.toString());
+            }
+        } catch (final ResourceConflictException e) {
+            System.err.println("Lambda function already exists! Check if you need an update!");
         }
     }
 
@@ -305,13 +307,24 @@ public class AWSClient {
         return result.getId();
     }
 
-    public void createApiKeyUsagePlanAndUsagePlanKey(final String keyName, final String restApiId, final String stageName, final String usagePlanName) throws SeMoDeException {
-        final String apiKey = this.createApiKey(keyName, restApiId, stageName);
+    /**
+     * Creates an api key and a corresponding usage plan.
+     * Returns the value of the api key (x-api-key).
+     *
+     * @param keyName
+     * @param restApiId
+     * @param stageName
+     * @param usagePlanName
+     * @throws SeMoDeException
+     */
+    public String createApiKeyUsagePlanAndUsagePlanKey(final String keyName, final String restApiId, final String stageName, final String usagePlanName) throws SeMoDeException {
+        final CreateApiKeyResult apiKeyResult = this.createApiKey(keyName, restApiId, stageName);
         final String usagePlanId = this.createUsagePlan(usagePlanName, restApiId, stageName);
-        this.createUsagePlanKey(usagePlanId, apiKey);
+        this.createUsagePlanKey(usagePlanId, apiKeyResult.getId());
+        return apiKeyResult.getValue();
     }
 
-    private String createApiKey(final String keyName, final String restApiId, final String stageName) throws SeMoDeException {
+    private CreateApiKeyResult createApiKey(final String keyName, final String restApiId, final String stageName) throws SeMoDeException {
         final CreateApiKeyRequest createApiKeyRequest = new CreateApiKeyRequest()
                 .withName(keyName)
                 .withEnabled(true)
@@ -322,7 +335,7 @@ public class AWSClient {
             throw new SeMoDeException("Can't create api key " + keyName + " for api " + restApiId + " and stage " + stageName);
         }
 
-        return result.getId();
+        return result;
     }
 
     private String createUsagePlan(final String usagePlanName, final String restApiId, final String stageName) throws SeMoDeException {
@@ -347,6 +360,98 @@ public class AWSClient {
         final CreateUsagePlanKeyResult result = this.amazonApiGatewayClient.createUsagePlanKey(createUsagePlanKeyRequest);
         if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
             throw new SeMoDeException("Can't associate usage plan and key for usage plan " + usagePlanId + " and api key " + apiKey);
+        }
+    }
+
+    public void updateLambdaPermission(final String functionName, final String restApiId, final String region) throws SeMoDeException {
+        final AddPermissionRequest addPermissionRequest = new AddPermissionRequest()
+                .withFunctionName(functionName)
+                .withStatementId("default")
+                .withAction("lambda:InvokeFunction")
+                .withPrincipal("apigateway.amazonaws.com")
+                .withSourceArn("arn:aws:execute-api:" + region + ":" + this.iamClient.getUser().getUser().getUserId()
+                        + ":" + restApiId + "/*/*/" + functionName);
+
+        try {
+            final AddPermissionResult result = this.amazonLambdaClient.addPermission(addPermissionRequest);
+            // TODO include check for status code
+            System.out.println("update lambda permission: " + result.getSdkHttpMetadata().getHttpStatusCode());
+            if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
+                System.err.println("Lambda function already exists! Permission update was not possible! Probably already there!");
+            }
+        } catch (final ResourceConflictException e) {
+            System.err.println("Lambda function permission already exists! Check if you need an update!");
+        }
+
+    }
+
+    // TODO delete
+    public void updateApiDeployment(final String restApiId, final String deploymentId) {
+        final UpdateDeploymentRequest updateDeploymentRequest = new UpdateDeploymentRequest()
+                .withRestApiId(restApiId)
+                .withDeploymentId(deploymentId);
+
+        System.out.println(deploymentId);
+
+        final UpdateDeploymentResult result = this.amazonApiGatewayClient.updateDeployment(updateDeploymentRequest);
+
+        // TODO include check for status code
+        System.out.println("update deployment: " + result.getSdkHttpMetadata().getHttpStatusCode());
+    }
+
+    public void deleteLambdaFunction(final String functionName) {
+        final DeleteFunctionRequest deleteFunctionRequest = new DeleteFunctionRequest()
+                .withFunctionName(functionName);
+
+        try {
+            final DeleteFunctionResult result = this.amazonLambdaClient.deleteFunction(deleteFunctionRequest);
+            System.out.println("AWS Lambda function " + functionName + " deleted");
+            // TODO remove
+            System.out.println(result.getSdkHttpMetadata().getHttpStatusCode());
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteApiKey(final String apiKeyId) {
+        final DeleteApiKeyRequest deleteApiKeyRequest = new DeleteApiKeyRequest()
+                .withApiKey(apiKeyId);
+
+        try {
+            final DeleteApiKeyResult result = this.amazonApiGatewayClient.deleteApiKey(deleteApiKeyRequest);
+            System.out.println("Amazon Api Gateway key " + apiKeyId + " deleted");
+            // TODO remove
+            System.out.println(result.getSdkHttpMetadata().getHttpStatusCode());
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteRestApi(final String restApiId) {
+        final DeleteRestApiRequest deleteRestApiRequest = new DeleteRestApiRequest()
+                .withRestApiId(restApiId);
+
+        try {
+            final DeleteRestApiResult result = this.amazonApiGatewayClient.deleteRestApi(deleteRestApiRequest);
+            System.out.println("Amazon Api Gateway rest api " + restApiId + " deleted");
+            // TODO remove
+            System.out.println(result.getSdkHttpMetadata().getHttpStatusCode());
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteUsagePlan(final String usagePlanId) {
+        final DeleteUsagePlanRequest deleteUsagePlanRequest = new DeleteUsagePlanRequest()
+                .withUsagePlanId(usagePlanId);
+
+        try {
+            final DeleteUsagePlanResult result = this.amazonApiGatewayClient.deleteUsagePlan(deleteUsagePlanRequest);
+            System.out.println("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted");
+            // TODO remove
+            System.out.println(result.getSdkHttpMetadata().getHttpStatusCode());
+        } catch (final Exception e) {
+            e.printStackTrace();
         }
     }
 }

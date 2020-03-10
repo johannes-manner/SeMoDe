@@ -49,6 +49,8 @@ public class AWSCalibrationConfig {
     public int numberOfAWSExecutions;
     @Expose
     public boolean enabled;
+    @Expose
+    public DeploymentInternals deploymentInternals;
 
     private AWSCalibrationConfig() {
         // hide default Constructor
@@ -67,6 +69,7 @@ public class AWSCalibrationConfig {
         this.memorySizes = List.copyOf(config.memorySizes);
         this.numberOfAWSExecutions = config.numberOfAWSExecutions;
         this.enabled = config.enabled;
+        // deploymentInternals are not copied from another config (they are unique for the specific deployment)
     }
 
     /**
@@ -119,6 +122,34 @@ public class AWSCalibrationConfig {
                 ", memorySizes=" + this.memorySizes +
                 ", numberOfAWSExecutions=" + this.numberOfAWSExecutions +
                 ", enabled=" + this.enabled +
+                ", deploymentInternals=" + this.deploymentInternals +
+                '}';
+    }
+}
+
+/**
+ * Simple POJO class to store the internals during the deployment of the resources on the aws platform.
+ * The data is needed for a later removal of the resources via function calls.
+ */
+class DeploymentInternals {
+
+    @Expose
+    public String restApiId;
+    @Expose
+    public String apiKeyId;
+    @Expose
+    public String usagePlanId;
+
+    private DeploymentInternals() {
+
+    }
+
+    @Override
+    public String toString() {
+        return "DeploymentInternals{" +
+                "restApiId='" + this.restApiId + '\'' +
+                ", apiKeyId='" + this.apiKeyId + '\'' +
+                ", usagePlanId='" + this.usagePlanId + '\'' +
                 '}';
     }
 }

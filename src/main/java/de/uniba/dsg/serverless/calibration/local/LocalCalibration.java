@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.calibration.local;
 
 import de.uniba.dsg.serverless.calibration.Calibration;
+import de.uniba.dsg.serverless.calibration.CalibrationMethods;
 import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.calibration.LinpackParser;
 import de.uniba.dsg.serverless.model.SeMoDeException;
@@ -19,30 +20,36 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class LocalCalibration extends Calibration {
+public class LocalCalibration implements CalibrationMethods {
 
     private static final Logger logger = LogManager.getLogger(LocalCalibration.class.getName());
     private static final String CONTAINER_RESULT_FOLDER = "/usr/src/linpack/output/"; // specified by linpack benchmark container
     private static final String LINPACK_DOCKERFILE = "linpack/local/Dockerfile";
     private static final String LINPACK_IMAGE = "semode/linpack";
+    // composite
+    private final Calibration calibration;
     private final Path temporaryLog;
+    private final LocalCalibrationConfig config;
 
     // used for CLI feature
-    public LocalCalibration(final String name) throws SeMoDeException {
-        super(name, CalibrationPlatform.LOCAL);
-        this.temporaryLog = this.calibrationLogs.resolve("output").resolve("out.txt");
+    public LocalCalibration(final String name, final LocalCalibrationConfig config) throws SeMoDeException {
+        this.calibration = new Calibration(name, CalibrationPlatform.LOCAL);
+        this.temporaryLog = this.calibration.calibrationLogs.resolve("output").resolve("out.txt");
         // TODO change CLI feature here - for now - default value
         // this.steps = 0.1;
+        this.config = config;
     }
 
     // used within pipeline
-    public LocalCalibration(final String name, final Path calibrationFolder) throws SeMoDeException {
-        super(name, CalibrationPlatform.LOCAL, calibrationFolder);
-        this.temporaryLog = this.calibrationLogs.resolve("output").resolve("out.txt");
+    public LocalCalibration(final String name, final Path calibrationFolder, final LocalCalibrationConfig config) throws SeMoDeException {
+        this.calibration = new Calibration(name, CalibrationPlatform.LOCAL, calibrationFolder);
+        this.temporaryLog = this.calibration.calibrationLogs.resolve("output").resolve("out.txt");
+        this.config = config;
     }
 
-    public void performCalibration(final LocalCalibrationConfig config) throws SeMoDeException {
-        if (Files.exists(this.calibrationFile)) {
+    @Override
+    public void performCalibration() throws SeMoDeException {
+        if (Files.exists(this.calibration.calibrationFile)) {
             logger.info("Calibration has already been performed. inspect it using \"calibrate info\"");
             return;
         }
@@ -54,14 +61,14 @@ public class LocalCalibration extends Calibration {
         logger.info("Number of cores: " + physicalCores);
         final List<Double> quotas = IntStream
                 // 1.1 results from 1 + avoid rounding errors (0.1)
-                .range(1, (int) (1.1 + ((double) physicalCores * 1.0 / config.getLocalSteps())))
-                .mapToDouble(v -> config.getLocalSteps() * v)
+                .range(1, (int) (1.1 + ((double) physicalCores * 1.0 / this.config.getLocalSteps())))
+                .mapToDouble(v -> this.config.getLocalSteps() * v)
                 .boxed()
                 .collect(Collectors.toList());
 
         // perform subcalibration - execute number of Calibrations N times
         final Map<Integer, List<Double>> subResults = new HashMap<>();
-        for (int i = 0; i < config.getNumberOfLocalCalibrations(); i++) {
+        for (int i = 0; i < this.config.getNumberOfLocalCalibrations(); i++) {
             subResults.put(i, this.performCalibration(i, quotas, linpackContainer));
         }
 
@@ -69,7 +76,7 @@ public class LocalCalibration extends Calibration {
         final StringBuilder stringBuilder = new StringBuilder();
         // leave first column for index of the run (for easier inspection of sub calibrations)
         stringBuilder.append(",");
-        stringBuilder.append(quotas.stream().map(this.DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
+        stringBuilder.append(quotas.stream().map(this.calibration.DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
         stringBuilder.append("\n");
         for (final Integer i : subResults.keySet()) {
             stringBuilder.append("" + i + ",");
@@ -77,16 +84,21 @@ public class LocalCalibration extends Calibration {
             stringBuilder.append("\n");
         }
         try {
-            Files.write(this.calibrationFile, stringBuilder.toString().getBytes());
+            Files.write(this.calibration.calibrationFile, stringBuilder.toString().getBytes());
         } catch (final IOException e) {
-            throw new SeMoDeException("Could not write local calibration summary to " + this.calibrationFile.toString(), e);
+            throw new SeMoDeException("Could not write local calibration summary to " + this.calibration.calibrationFile.toString(), e);
         }
+    }
+
+    @Override
+    public void stopCalibration() {
+        System.err.println("Not able to stop the local calibration!");
     }
 
     private List<Double> performCalibration(final int i, final List<Double> quotas, final DockerContainer linpackContainer) throws SeMoDeException {
 
         // Create a single sub calibration for each run
-        final LocalCalibration subCalibration = new LocalCalibration(this.name + i, this.calibrationFolder);
+        final LocalCalibration subCalibration = new LocalCalibration(this.calibration.name + i, this.calibration.calibrationFolder, this.config);
 
         final List<Double> results = new ArrayList<>();
         for (final double quota : quotas) {
@@ -94,16 +106,16 @@ public class LocalCalibration extends Calibration {
             results.add(subCalibration.executeBenchmark(linpackContainer, quota));
         }
         final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(quotas.stream().map(subCalibration.DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
+        stringBuilder.append(quotas.stream().map(this.calibration.DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
         stringBuilder.append("\n");
         stringBuilder.append(results.stream().map(String::valueOf).collect(Collectors.joining(",")));
         stringBuilder.append("\n");
         try {
-            Files.write(subCalibration.calibrationFile, stringBuilder.toString().getBytes());
+            Files.write(subCalibration.calibration.calibrationFile, stringBuilder.toString().getBytes());
             // logs are maybe relevant for later usage - not deleted at this point, but maybe in future releases
 //            Files.delete(temporaryLog.getParent());
         } catch (final IOException e) {
-            throw new SeMoDeException("Could not write local calibration to " + subCalibration.calibrationFile.toString(), e);
+            throw new SeMoDeException("Could not write local calibration to " + subCalibration.calibration.calibrationFile.toString(), e);
         }
         return results;
     }
@@ -122,9 +134,9 @@ public class LocalCalibration extends Calibration {
         if (statusCode != 0) {
             throw new SeMoDeException("Benchmark failed. (status code = " + statusCode + ")");
         }
-        linpackContainer.getFilesFromContainer(CONTAINER_RESULT_FOLDER, this.calibrationLogs);
+        linpackContainer.getFilesFromContainer(CONTAINER_RESULT_FOLDER, this.calibration.calibrationLogs);
         try {
-            final Path logFile = this.calibrationLogs.resolve("linpack_" + this.DOUBLE_FORMAT.format(cpuLimit) + ".log");
+            final Path logFile = this.calibration.calibrationLogs.resolve("linpack_" + this.calibration.DOUBLE_FORMAT.format(cpuLimit) + ".log");
             Files.move(this.temporaryLog, logFile);
             return new LinpackParser(logFile).parseLinpack();
         } catch (final IOException e) {

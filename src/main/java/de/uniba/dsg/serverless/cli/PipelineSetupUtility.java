@@ -59,7 +59,8 @@ public class PipelineSetupUtility extends CustomUtility {
         System.out.println(" (benchmark)          Starts the whole benchmarking pipeline");
         System.out.println("Simulation Options:");
         System.out.println(" (calibrate)          Perform a calibration (linpack)");
-        System.out.println(" (startCalibration)   Starts the configured calibration");
+        System.out.println(" (startCalibration)   Starts the deployment (optional) and the configured calibration");
+        System.out.println(" (stopCalibration)    Undeploys the calibration");
         System.out.println(" (mapping)            Computes the mapping between two calibrations");
         System.out.println(" (run)                Run container based on calibration");
         System.out.println("Other Options:");
@@ -110,6 +111,9 @@ public class PipelineSetupUtility extends CustomUtility {
                 break;
             case "startCalibration":
                 this.controller.startCalibration();
+                break;
+            case "stopCalibration":
+                this.controller.stopCalibration();
                 break;
             case "mappging":
                 // TODO

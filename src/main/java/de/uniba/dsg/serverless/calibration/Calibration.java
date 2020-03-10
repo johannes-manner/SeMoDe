@@ -10,11 +10,11 @@ import java.text.DecimalFormat;
 
 public class Calibration {
 
-    protected final String name;
-    protected final Path calibrationFile;
-    protected final Path calibrationLogs;
-    protected final Path calibrationFolder;
-    protected final DecimalFormat DOUBLE_FORMAT = new DecimalFormat("#.###");
+    public final String name;
+    public final Path calibrationFile;
+    public final Path calibrationLogs;
+    public final Path calibrationFolder;
+    public final DecimalFormat DOUBLE_FORMAT = new DecimalFormat("#.###");
 
     /**
      * Constructor used for the CLI feature only (files are available under SeMoDe/calibration
