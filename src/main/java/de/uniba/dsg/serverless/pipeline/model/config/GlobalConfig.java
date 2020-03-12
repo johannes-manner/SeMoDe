@@ -4,13 +4,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Config {
+public class GlobalConfig {
 
     private List<ProviderConfig> providerConfigs;
     private List<LanguageConfig> languageConfigs;
     private CalibrationConfig calibrationConfig;
 
-    public Config() {
+    public GlobalConfig() {
     }
 
     public List<ProviderConfig> getProviderConfigs() {

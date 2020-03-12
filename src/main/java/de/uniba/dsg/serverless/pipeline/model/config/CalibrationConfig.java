@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
 
 /**
  * Model class for calibration config and json serialization.
@@ -11,7 +12,7 @@ public class CalibrationConfig {
     // local parameter
     private LocalCalibrationConfig localConfig;
     // aws parameter
-    private AWSCalibrationConfig awsConfig;
+    private AWSCalibrationConfig awsCalibrationConfig;
 
     public CalibrationConfig() {
     }
@@ -24,7 +25,7 @@ public class CalibrationConfig {
      */
     public CalibrationConfig(final CalibrationConfig calibrationConfig) {
         this.localConfig = new LocalCalibrationConfig(calibrationConfig.localConfig);
-        this.awsConfig = new AWSCalibrationConfig(calibrationConfig.awsConfig);
+        this.awsCalibrationConfig = new AWSCalibrationConfig(calibrationConfig.awsCalibrationConfig);
     }
 
     public LocalCalibrationConfig getLocalConfig() {
@@ -35,19 +36,19 @@ public class CalibrationConfig {
         this.localConfig = localConfig;
     }
 
-    public AWSCalibrationConfig getAwsConfig() {
-        return this.awsConfig;
+    public AWSCalibrationConfig getAwsCalibrationConfig() {
+        return this.awsCalibrationConfig;
     }
 
-    public void setAwsConfig(final AWSCalibrationConfig awsConfig) {
-        this.awsConfig = awsConfig;
+    public void setAwsCalibrationConfig(final AWSCalibrationConfig awsCalibrationConfig) {
+        this.awsCalibrationConfig = awsCalibrationConfig;
     }
 
     @Override
     public String toString() {
         return "CalibrationConfig{" +
                 "localCalibrationConfig=" + this.localConfig +
-                ", awsConfig=" + this.awsConfig +
+                ", awsConfig=" + this.awsCalibrationConfig +
                 '}';
     }
 }

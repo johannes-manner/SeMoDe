@@ -52,7 +52,7 @@ public class PipelineSetupController {
      */
     public void init() throws SeMoDeException {
         this.createBenchmarkFolderStructure();
-        this.userConfigHandler.initializeCalibrationFromGlobal(this.setup.config);
+        this.userConfigHandler.initializeCalibrationFromGlobal(this.setup.globalConfig);
         this.savePipelineSetup();
     }
 
@@ -82,28 +82,31 @@ public class PipelineSetupController {
     }
 
     public void configureBenchmarkSetup() {
-        String provider;
-        final Map<String, ProviderConfig> validProviders = this.setup.config.getProviderConfigMap();
-        do {
+        String provider = "";
+        final Map<String, ProviderConfig> validProviders = this.setup.globalConfig.getProviderConfigMap();
+        while (!validProviders.containsKey(provider)) {
             System.out.println("Insert a valid provider: " + validProviders.keySet().toString());
             provider = PipelineSetupUtility.scanner.nextLine();
-            if (validProviders.containsKey(provider)) {
-                try {
-                    System.out.println("Insert memory sizes (JSON Array) or skip setting: ");
-                    final String memorySize = PipelineSetupUtility.scanner.nextLine();
-                    System.out.println("Insert languages (JSON Array), e.g. [\"java\"] or skip setting: ");
-                    final String language = PipelineSetupUtility.scanner.nextLine();
-                    System.out.println("Insert deployment sizes (JSON Array) or skip setting: ");
-                    final String deploymentSize = PipelineSetupUtility.scanner.nextLine();
+        }
 
-                    this.userConfigHandler.addOrChangeProviderConfig(this.setup.config.getProviderConfigMap(), provider, memorySize, language, deploymentSize);
-                } catch (final IOException e) {
-                    System.err.println("Incorrect json format - inserted values!");
-                } catch (final SeMoDeException e) {
-                    System.err.println("Incorrect property value: " + e.getMessage());
-                }
+        // TODO change all providers to native sdks
+        if (validProviders.containsKey(provider)) {
+            try {
+                System.out.println("Insert memory sizes (JSON Array) or skip setting: ");
+                final String memorySize = PipelineSetupUtility.scanner.nextLine();
+                System.out.println("Insert languages (JSON Array), e.g. [\"java\"] or skip setting: ");
+                final String language = PipelineSetupUtility.scanner.nextLine();
+                System.out.println("Insert deployment sizes (JSON Array) or skip setting: ");
+                final String deploymentSize = PipelineSetupUtility.scanner.nextLine();
+
+                this.userConfigHandler.addOrChangeProviderConfig(this.setup.globalConfig.getProviderConfigMap(), provider, memorySize, language, deploymentSize);
+            } catch (final IOException e) {
+                System.err.println("Incorrect json format - inserted values!");
+            } catch (final SeMoDeException e) {
+                System.err.println("Incorrect property value: " + e.getMessage());
             }
-        } while (!"".equals(provider));
+        }
+
 
     }
 
@@ -217,7 +220,7 @@ public class PipelineSetupController {
     }
 
     public void generateEndpoints() throws SeMoDeException {
-        final EndpointExtractor endpointExtractor = new EndpointExtractor(this.setup.config.getLanguageConfigMap(), this.setup.pathToDeployment, this.setup.pathToEndpoints);
+        final EndpointExtractor endpointExtractor = new EndpointExtractor(this.setup.globalConfig.getLanguageConfigMap(), this.setup.pathToDeployment, this.setup.pathToEndpoints);
         final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
         for (final String provider : userProviders.keySet()) {
             for (final String language : userProviders.get(provider).getLanguage()) {
@@ -251,7 +254,7 @@ public class PipelineSetupController {
 
     public void fetchPerformanceData() throws SeMoDeException {
 
-        final FetchingCommandGenerator fcg = new FetchingCommandGenerator(this.setup.pathToBenchmarkingCommands, this.setup.pathToFetchingCommands, this.setup.pathToEndpoints, this.setup.config.getLanguageConfigMap(), this.setup.getSeMoDeJarLocation());
+        final FetchingCommandGenerator fcg = new FetchingCommandGenerator(this.setup.pathToBenchmarkingCommands, this.setup.pathToFetchingCommands, this.setup.pathToEndpoints, this.setup.globalConfig.getLanguageConfigMap(), this.setup.getSeMoDeJarLocation());
         final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
         for (final String provider : userProviders.keySet()) {
             for (final String language : userProviders.get(provider).getLanguage()) {
@@ -279,6 +282,17 @@ public class PipelineSetupController {
             this.userConfigHandler.updateLocalConfig(localSteps, numberOfLocalCalibrations, enabled);
 
         } else if (platform.equals(SupportedPlatform.AWS.getText())) {
+            System.out.println("Insert calibration info:");
+            System.out.println("Insert true or false, if you want to deploy linpack or skip setting: ");
+            final String deployLinpack = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert current bucketName or skip setting: ");
+            final String bucketName = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert current number of executions or skip setting: ");
+            final String numberOfAWSExecutions = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert enabled property (true or false) or skip setting: ");
+            final String enabled = PipelineSetupUtility.scanner.nextLine();
+
+            System.out.println("Insert calibration function info:");
             System.out.println("Insert current region or skip setting: ");
             final String region = PipelineSetupUtility.scanner.nextLine();
             System.out.println("Insert runtime for calibration or skip setting: ");
@@ -289,22 +303,18 @@ public class PipelineSetupController {
             final String functionHandler = PipelineSetupUtility.scanner.nextLine();
             System.out.println("Insert timeout for function handler or skip setting: ");
             final String timeout = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert true or false, if you want to deploy linpack or skip setting: ");
-            final String deployLinpack = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert current memorySizes (JSON Array) or skip setting: ");
+            final String memorySizes = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert path to function source code (directory) or skip setting: ");
+            final String pathToSource = PipelineSetupUtility.scanner.nextLine();
+
+            System.out.println("Insert additional info, otherwise these fields are automatically configured during deployment!");
             System.out.println("Insert current target url or skip setting: ");
             final String targetUrl = PipelineSetupUtility.scanner.nextLine();
             System.out.println("Insert current apiKey or skip setting: ");
             final String apiKey = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert current bucketName or skip setting: ");
-            final String bucketName = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert current memorySizes (JSON Array) or skip setting: ");
-            final String memorySizes = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert current number of executions or skip setting: ");
-            final String numberOfAWSExecutions = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert enabled property (true or false) or skip setting: ");
-            final String enabled = PipelineSetupUtility.scanner.nextLine();
 
-            this.userConfigHandler.updateAWSConfig(region, runtime, awsArnRole, functionHandler, timeout, deployLinpack, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
+            this.userConfigHandler.updateAWSConfig(region, runtime, awsArnRole, functionHandler, timeout, deployLinpack, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled, pathToSource);
 
         }
     }

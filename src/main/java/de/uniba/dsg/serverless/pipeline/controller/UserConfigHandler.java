@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.config.*;
+import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -24,9 +25,9 @@ public class UserConfigHandler {
         this.userConfig = new UserConfig();
     }
 
-    public void updateAWSConfig(final String region, final String runtime, final String awsArnRole, final String functionHandler, final String timeout, final String deployLinpack, final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled) throws SeMoDeException {
+    public void updateAWSConfig(final String region, final String runtime, final String awsArnRole, final String functionHandler, final String timeout, final String deployLinpack, final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled, final String pathToSource) throws SeMoDeException {
         try {
-            this.userConfig.getCalibrationConfig().getAwsConfig().update(region, runtime, awsArnRole, functionHandler, timeout, deployLinpack, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
+            this.userConfig.getCalibrationConfig().getAwsCalibrationConfig().update(region, runtime, awsArnRole, functionHandler, timeout, deployLinpack, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled, pathToSource);
         } catch (final IOException e) {
             throw new SeMoDeException("Error during memory Size parsing");
         }
@@ -37,7 +38,7 @@ public class UserConfigHandler {
     }
 
     public AWSCalibrationConfig getAWSConfig() {
-        return this.userConfig.getCalibrationConfig().getAwsConfig();
+        return this.userConfig.getCalibrationConfig().getAwsCalibrationConfig();
     }
 
     public LocalCalibrationConfig getLocalConfig() {
@@ -49,7 +50,7 @@ public class UserConfigHandler {
     }
 
     public boolean isAWSEnabled() {
-        return this.userConfig.getCalibrationConfig().getAwsConfig().enabled;
+        return this.userConfig.getCalibrationConfig().getAwsCalibrationConfig().enabled;
     }
 
     public double getLocalSteps() {
@@ -71,7 +72,7 @@ public class UserConfigHandler {
         }
     }
 
-    public void initializeCalibrationFromGlobal(final Config globalConfig) {
+    public void initializeCalibrationFromGlobal(final GlobalConfig globalConfig) {
         this.userConfig.setCalibrationConfig(new CalibrationConfig(globalConfig.getCalibrationConfig()));
     }
 

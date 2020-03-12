@@ -3,7 +3,7 @@ package de.uniba.dsg.serverless.pipeline.model;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.pipeline.model.config.Config;
+import de.uniba.dsg.serverless.pipeline.model.config.GlobalConfig;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +31,7 @@ public class PipelineSetup {
     private static final String PIPELINE_JSON = "pipeline.json";
     private static final String SEMODE_JAR_NAME = "SeMoDe.jar";
 
-    public final Config config;
+    public final GlobalConfig globalConfig;
     // name of the pipeline setup, also name for the root folder
     public final String name;
     // global pipeline paths
@@ -59,7 +59,7 @@ public class PipelineSetup {
         this.pathToBenchmarkingCommands = benchmarkPath.resolve("benchmarkingCommands");
         this.pathToFetchingCommands = benchmarkPath.resolve("fetchingCommands");
 
-        this.config = this.loadGlobalConfig(PIPELINE_JSON);
+        this.globalConfig = this.loadGlobalConfig(PIPELINE_JSON);
     }
 
 
@@ -67,10 +67,10 @@ public class PipelineSetup {
         return Files.exists(this.pathToSetup);
     }
 
-    private Config loadGlobalConfig(final String path) throws SeMoDeException {
+    private GlobalConfig loadGlobalConfig(final String path) throws SeMoDeException {
         final ObjectMapper om = new ObjectMapper();
         try {
-            return om.readValue(Resources.toString(Resources.getResource(path), StandardCharsets.UTF_8), Config.class);
+            return om.readValue(Resources.toString(Resources.getResource(path), StandardCharsets.UTF_8), GlobalConfig.class);
         } catch (final IOException e) {
             throw new SeMoDeException("Error while parsing the " + path + " file. Check the config.");
         }

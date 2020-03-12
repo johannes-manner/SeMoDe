@@ -377,20 +377,6 @@ public class AWSClient {
 
     }
 
-    // TODO delete
-    public void updateApiDeployment(final String restApiId, final String deploymentId) {
-        final UpdateDeploymentRequest updateDeploymentRequest = new UpdateDeploymentRequest()
-                .withRestApiId(restApiId)
-                .withDeploymentId(deploymentId);
-
-        System.out.println(deploymentId);
-
-        final UpdateDeploymentResult result = this.amazonApiGatewayClient.updateDeployment(updateDeploymentRequest);
-
-        // TODO include check for status code
-        System.out.println("update deployment: " + result.getSdkHttpMetadata().getHttpStatusCode());
-    }
-
     public void deleteLambdaFunction(final String functionName) {
         final DeleteFunctionRequest deleteFunctionRequest = new DeleteFunctionRequest()
                 .withFunctionName(functionName);
