@@ -2,10 +2,9 @@ package de.uniba.dsg.serverless.pipeline.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.GsonBuilder;
-import de.uniba.dsg.serverless.calibration.aws.AWSCalibrationConfig;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.pipeline.model.*;
+import de.uniba.dsg.serverless.pipeline.model.config.*;
 
 import java.io.IOException;
 import java.nio.file.Path;

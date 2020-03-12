@@ -1,14 +1,14 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
 import de.uniba.dsg.serverless.calibration.CalibrationMethods;
-import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.cli.PipelineSetupUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.pipeline.model.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.PipelineSetup;
-import de.uniba.dsg.serverless.pipeline.model.ProviderConfig;
+import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
+import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.ProviderConfig;
 import de.uniba.dsg.serverless.pipeline.utils.BenchmarkingCommandGenerator;
 import de.uniba.dsg.serverless.pipeline.utils.EndpointExtractor;
 import de.uniba.dsg.serverless.pipeline.utils.FetchingCommandGenerator;
@@ -262,13 +262,13 @@ public class PipelineSetupController {
 
     public void generateCalibration() throws SeMoDeException {
         String platform = "";
-        final List<String> validPlatforms = List.of(CalibrationPlatform.values()).stream().map(CalibrationPlatform::getText).collect(Collectors.toList());
+        final List<String> validPlatforms = List.of(SupportedPlatform.values()).stream().map(SupportedPlatform::getText).collect(Collectors.toList());
         while (!validPlatforms.contains(platform)) {
             System.out.println("Insert a possible calibration platform. Options: " + validPlatforms);
             platform = PipelineSetupUtility.scanner.nextLine();
         }
 
-        if (platform.equals(CalibrationPlatform.LOCAL.getText())) {
+        if (platform.equals(SupportedPlatform.LOCAL.getText())) {
             System.out.println("Insert localSteps property or skip setting: ");
             final String localSteps = PipelineSetupUtility.scanner.nextLine();
             System.out.println("Insert numberOfLocalCalibrations property or skip setting: ");
@@ -278,7 +278,7 @@ public class PipelineSetupController {
 
             this.userConfigHandler.updateLocalConfig(localSteps, numberOfLocalCalibrations, enabled);
 
-        } else if (platform.equals(CalibrationPlatform.AWS.getText())) {
+        } else if (platform.equals(SupportedPlatform.AWS.getText())) {
             System.out.println("Insert current region or skip setting: ");
             final String region = PipelineSetupUtility.scanner.nextLine();
             System.out.println("Insert runtime for calibration or skip setting: ");

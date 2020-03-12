@@ -2,15 +2,15 @@ package de.uniba.dsg.serverless.cli;
 
 import com.google.common.collect.Maps;
 import de.uniba.dsg.serverless.calibration.CalibrationCommand;
-import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
-import de.uniba.dsg.serverless.calibration.aws.AWSCalibrationConfig;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.calibration.local.ResourceLimit;
 import de.uniba.dsg.serverless.calibration.mapping.MappingMaster;
 import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
+import de.uniba.dsg.serverless.pipeline.model.config.AWSCalibrationConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,7 +29,7 @@ public class CalibrationUtility extends CustomUtility {
     private static final Logger logger = LogManager.getLogger(CalibrationUtility.class.getName());
     private CalibrationCommand subcommand;
     // calibration
-    private CalibrationPlatform platform;
+    private SupportedPlatform platform;
     private String calibrationName;
     // TODO make it provider independent (for later experiments)
     private AWSCalibrationConfig awsConfig;
@@ -52,10 +52,10 @@ public class CalibrationUtility extends CustomUtility {
             this.parseArguments(args);
             switch (this.subcommand) {
                 case PERFORM_CALIBRATION:
-                    if (this.platform == CalibrationPlatform.LOCAL) {
+                    if (this.platform == SupportedPlatform.LOCAL) {
                         // TODO make this configurable for CLI usage + document it
                         new LocalCalibration(this.calibrationName, new LocalCalibrationConfig(0.1, 1, true)).performCalibration();
-                    } else if (this.platform == CalibrationPlatform.AWS) {
+                    } else if (this.platform == SupportedPlatform.AWS) {
                         new AWSCalibration(this.calibrationName, this.awsConfig).performCalibration();
                     }
                     break;
@@ -84,7 +84,7 @@ public class CalibrationUtility extends CustomUtility {
         switch (this.subcommand) {
             case PERFORM_CALIBRATION:
                 this.validateArgumentSize(arguments, 3);
-                this.platform = CalibrationPlatform.fromString(arguments.get(1));
+                this.platform = SupportedPlatform.fromString(arguments.get(1));
                 this.calibrationName = arguments.get(2);
                 if (this.calibrationName.isEmpty() || this.calibrationName.contains("/") || this.calibrationName.contains(".")) {
                     throw new SeMoDeException("Illegal filename " + this.calibrationName);

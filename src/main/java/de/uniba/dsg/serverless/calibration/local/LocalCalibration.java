@@ -2,9 +2,9 @@ package de.uniba.dsg.serverless.calibration.local;
 
 import de.uniba.dsg.serverless.calibration.Calibration;
 import de.uniba.dsg.serverless.calibration.CalibrationMethods;
-import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.calibration.LinpackParser;
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,7 +33,7 @@ public class LocalCalibration implements CalibrationMethods {
 
     // used for CLI feature
     public LocalCalibration(final String name, final LocalCalibrationConfig config) throws SeMoDeException {
-        this.calibration = new Calibration(name, CalibrationPlatform.LOCAL);
+        this.calibration = new Calibration(name, SupportedPlatform.LOCAL);
         this.temporaryLog = this.calibration.calibrationLogs.resolve("output").resolve("out.txt");
         // TODO change CLI feature here - for now - default value
         // this.steps = 0.1;
@@ -42,7 +42,7 @@ public class LocalCalibration implements CalibrationMethods {
 
     // used within pipeline
     public LocalCalibration(final String name, final Path calibrationFolder, final LocalCalibrationConfig config) throws SeMoDeException {
-        this.calibration = new Calibration(name, CalibrationPlatform.LOCAL, calibrationFolder);
+        this.calibration = new Calibration(name, SupportedPlatform.LOCAL, calibrationFolder);
         this.temporaryLog = this.calibration.calibrationLogs.resolve("output").resolve("out.txt");
         this.config = config;
     }

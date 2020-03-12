@@ -1,258 +1,247 @@
 package de.uniba.dsg.serverless.pipeline.utils;
 
+import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.model.config.LanguageConfig;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Scanner;
-
-import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.pipeline.model.LanguageConfig;
+import java.nio.file.*;
+import java.util.*;
 
 /**
  * Settings for generating the fetching commands are very provider specific.
  * Therefore each provider is treated separately in this class.
- *
  */
 public class FetchingCommandGenerator {
-	
-	private static final Scanner scanner = new Scanner(System.in);
-	private final Path pathToBenchmarkLogs;
-	private final Path pathToFetchingCommands;
-	private final Path pathToEndpoints;
-	private final Map<String, LanguageConfig> languageConfig;
-	private final String startTime;
-	private final String endTime;
-	private final String seMoDeJarLocation;
-	
-	public FetchingCommandGenerator(Path pathToBenchmarkFolder, Path pathToFetchingCommands, Path pathToEndpoints, Map<String, LanguageConfig> languageConfig, String seMoDeJarLocation) {
-		this.pathToBenchmarkLogs = Paths.get(pathToBenchmarkFolder.toString(), "logs");
-		this.pathToFetchingCommands = pathToFetchingCommands;
-		this.pathToEndpoints = pathToEndpoints;
-		this.languageConfig = languageConfig;
-		this.seMoDeJarLocation = seMoDeJarLocation;
-		
-		// provider independent parameters
-		System.out.println("Specify a start time in the format YYYY-MM-DD_HH:MM");
-		startTime = scanner.nextLine();
-		System.out.println("Specify a end time in the format YYYY-MM-DD_HH:MM");
-		endTime = scanner.nextLine();
-	}
-	
-	public void fetchCommands(String provider, String language) throws SeMoDeException {
 
-		String providerLanguage = provider + "-" + language;
-		
-		// provider specific parameters
-		if("aws".equals(provider)) {
-			System.out.println("(" + providerLanguage + ") Specify the region, where the functions were executed");
-			String region = scanner.nextLine();
-			
-			this.generateCommands(provider, language, startTime, endTime, region);
-		}else if("azure".equals(provider)){
-			System.out.println("(" + providerLanguage + ") Specify the application insights key folder");
-			String insightsFolder = scanner.nextLine();
-			System.out.println("(" + providerLanguage + ") Specify the function name");
-			String functionName = scanner.nextLine();
-			if(functionName == null) {
-				functionName = "";
-			}
-			
-			this.generateCommands(provider, language, startTime, endTime, insightsFolder, functionName);
-		} else if ("google".equals(provider)) {
-			this.generateCommands(provider, language, startTime, endTime);
-		} else if ("ibm".equals(provider)) {
-			System.out.println("(" + providerLanguage + ") Specify the authorization key to get log infos from ibm openwhisk");
-			String authorizationKey = scanner.nextLine();
-			System.out.println("(" + providerLanguage + ") Specify the namespace (defaultOrg_defaultSpace)");
-			String namespace = scanner.nextLine();
-			
-			this.generateCommands(provider, language, startTime, endTime, authorizationKey, namespace);
-		} else {
-			throw new SeMoDeException("Provider is not supported " + provider);
-		}
-	}
+    private static final Scanner scanner = new Scanner(System.in);
+    private final Path pathToBenchmarkLogs;
+    private final Path pathToFetchingCommands;
+    private final Path pathToEndpoints;
+    private final Map<String, LanguageConfig> languageConfig;
+    private final String startTime;
+    private final String endTime;
+    private final String seMoDeJarLocation;
 
-	private void generateCommands(String provider, String language, String startTime, String endTime, String... args) throws SeMoDeException {
-		// GENERAL
-		String providerLanguage = provider + "-" + language;
-		String type = this.languageConfig.get(providerLanguage).getFetcherType();
+    public FetchingCommandGenerator(final Path pathToBenchmarkFolder, final Path pathToFetchingCommands, final Path pathToEndpoints, final Map<String, LanguageConfig> languageConfig, final String seMoDeJarLocation) {
+        this.pathToBenchmarkLogs = Paths.get(pathToBenchmarkFolder.toString(), "logs");
+        this.pathToFetchingCommands = pathToFetchingCommands;
+        this.pathToEndpoints = pathToEndpoints;
+        this.languageConfig = languageConfig;
+        this.seMoDeJarLocation = seMoDeJarLocation;
 
-		try {
-			List<String> functionNames = getFunctionNames(providerLanguage);
+        // provider independent parameters
+        System.out.println("Specify a start time in the format YYYY-MM-DD_HH:MM");
+		this.startTime = scanner.nextLine();
+        System.out.println("Specify a end time in the format YYYY-MM-DD_HH:MM");
+		this.endTime = scanner.nextLine();
+    }
 
-			try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(this.pathToFetchingCommands.toString(), providerLanguage + ".bat"), StandardOpenOption.CREATE,
-					StandardOpenOption.TRUNCATE_EXISTING)) {
+    public void fetchCommands(final String provider, final String language) throws SeMoDeException {
 
-				List<String> commands = null;
-				Map<String, String> logFilesMap = this.getBenchmarkLogsMap(provider);
-				switch (type) {
-				case "aws":
-					commands = getAWSFetchCommands(functionNames, this.pathToBenchmarkLogs, logFilesMap, providerLanguage, args[0], startTime,
-							endTime);
-					break;
-				case "azure_maven":
-					commands = getAzureFetchCommands(functionNames, this.pathToBenchmarkLogs, Paths.get(args[0]), logFilesMap, providerLanguage, 
-							Optional.of(args[1]), startTime, endTime);
-					break;
-				case "azure_serverless":
-					commands = getAzureFetchCommands(functionNames, this.pathToBenchmarkLogs, Paths.get(args[0]), logFilesMap, providerLanguage, 
-							Optional.empty(), startTime, endTime);
-					break;
-				case "google":
-					commands = getGoogleFetchCommands(functionNames, logFilesMap, startTime, endTime);
-					break;
-				case "ibm":
-					commands = getIbmFetchCommands(functionNames, logFilesMap, startTime, endTime, args[0], args[1]);
-					break;
-				}
-				for (String command : commands) {
-					writer.write(command);
-					writer.newLine();
-				}
-			}
-		} catch (IOException e) {
-			throw new SeMoDeException("Error while writing and reading files.", e);
-		}
-		System.out.println("Success");
-	}
+        final String providerLanguage = provider + "-" + language;
 
-	/**
-	 * Path to endpoints is easier accessible because the function names are the first part of each line.
-	 * @throws IOException
-	 */
-	private List<String> getFunctionNames(String fileName) throws IOException {
-		
-		List<String> functionNames = new ArrayList<>();
-		for (String functionPlusUrl : Files.readAllLines(Paths.get(this.pathToEndpoints.toString(), fileName))) {
-			functionNames.add(functionPlusUrl.split(" ")[0]);
-		}
-		return functionNames;
-	}
+        // provider specific parameters
+        if ("aws".equals(provider)) {
+            System.out.println("(" + providerLanguage + ") Specify the region, where the functions were executed");
+            final String region = scanner.nextLine();
 
-	private List<String> getAWSFetchCommands(List<String> functionNames, Path benchmarkLogsFolder, Map<String, String> logFilesMap,
-			String logPrefix, String region, String startTime, String endTime) throws IOException {
-		List<String> commands = new ArrayList<>();
-		
-		for (String functionName : functionNames) {
-			String logGroup = "/aws/lambda/" + functionName + "-dev-" + functionName;
-			String logFile = logFilesMap.get(functionName);
-			Objects.requireNonNull(logFile, "LogFile does not exist. There exists a mismatch in the input files.");
-			
-			// "start cmd /C " would be the parallel version which has issues unfortunately.
-			// Performance data is missing when executing in parallel
-			// hard coded relative paths, because also the folder structure is created in this prototype
-			// there should be no change due to the folder structure
-			commands.add("java -jar "  + this.seMoDeJarLocation + " awsPerformanceData " + region + " " + logGroup + " "
-					+ startTime + " " + endTime + " " + "../benchmarkingCommands/logs/" + logFile);
-		}
+            this.generateCommands(provider, language, this.startTime, this.endTime, region);
+        } else if ("azure".equals(provider)) {
+            System.out.println("(" + providerLanguage + ") Specify the application insights key folder");
+            final String insightsFolder = scanner.nextLine();
+            System.out.println("(" + providerLanguage + ") Specify the function name");
+            String functionName = scanner.nextLine();
+            if (functionName == null) {
+                functionName = "";
+            }
 
-		return commands;
-	}
-	
-	private List<String> getGoogleFetchCommands(List<String> functionNames,
-			Map<String, String> logFilesMap, String startTime, String endTime) {
+            this.generateCommands(provider, language, this.startTime, this.endTime, insightsFolder, functionName);
+        } else if ("google".equals(provider)) {
+            this.generateCommands(provider, language, this.startTime, this.endTime);
+        } else if ("ibm".equals(provider)) {
+            System.out.println("(" + providerLanguage + ") Specify the authorization key to get log infos from ibm openwhisk");
+            final String authorizationKey = scanner.nextLine();
+            System.out.println("(" + providerLanguage + ") Specify the namespace (defaultOrg_defaultSpace)");
+            final String namespace = scanner.nextLine();
 
-		List<String> commands = new ArrayList<>();
-		
-		for(String function : functionNames) {
-			String logFile = logFilesMap.get(function);
-			
-			commands.add("start cmd /C java -jar " + this.seMoDeJarLocation + " googlePerformanceData " + function + " " + startTime + " " + endTime + " " +  "../benchmarkingCommands/logs/" + logFile);
-		}
-		
-		return commands;
-	}
-	
-	private List<String> getIbmFetchCommands(List<String> functionNames, Map<String, String> logFilesMap,
-			String startTime, String endTime, String authorizationKey, String namespace) {
+            this.generateCommands(provider, language, this.startTime, this.endTime, authorizationKey, namespace);
+        } else {
+            throw new SeMoDeException("Provider is not supported " + provider);
+        }
+    }
 
-		List<String> commands = new ArrayList<>();
-		
-		for(String function : functionNames) {
-			String logFile = logFilesMap.get(function);
-			
-			commands.add("start cmd /C java -jar " + this.seMoDeJarLocation + " openWhiskPerformanceData " + namespace + " " + function + "-dev-" + function + " " + authorizationKey + " " + startTime + " " + endTime + " " +  "../benchmarkingCommands/logs/" + logFile);
-		}
-		
-		return commands;
-	}
+    private void generateCommands(final String provider, final String language, final String startTime, final String endTime, final String... args) throws SeMoDeException {
+        // GENERAL
+        final String providerLanguage = provider + "-" + language;
+        final String type = this.languageConfig.get(providerLanguage).getFetcherType();
 
-	private List<String> getAzureFetchCommands(List<String> serviceNames, Path benchmarkLogsFolder,
-			Path apiKeysFolder, Map<String, String> logFilesMap, String logPrefix, Optional<String> functionName, String startTime, String endTime)
-			throws IOException {
-		List<String> commands = new ArrayList<>();
-		Map<String, String[]> apiKeysMap = this.getApiKeysMap(apiKeysFolder);
-		if (apiKeysMap.size() != serviceNames.size()) {
-			throw new IllegalArgumentException("number of function names (" + serviceNames.size()
-					+ ") must be the same length as number of api keys (" + apiKeysMap.size() + ")");
-		}
-		for (String serviceName : serviceNames) {
-			String[] apiKey = apiKeysMap.get(serviceName);
-			Objects.requireNonNull(apiKey, "Api key does not exists. Wrong folder entered");
+        try {
+            final List<String> functionNames = this.getFunctionNames(providerLanguage);
 
-			String logFile = logFilesMap.get(serviceName);
-			Objects.requireNonNull(logFile, "LogFile does not exist. There exists a mismatch in the input files.");
-			
-			// hard coded relative paths, because also the folder structure is created in this prototype
-			// there should be no change due to the folder structure
-			if (functionName.isPresent()) {
-				commands.add("start cmd /C java -jar " + this.seMoDeJarLocation + " azurePerformanceData " + apiKey[0] + " "
-						+ apiKey[1] + " " + serviceName + " " + functionName.get() + " " + startTime + " " + endTime
-						+ " " + "../benchmarkingCommands/logs/" + logFile);
-			} else {
-				commands.add("start cmd /C java -jar " + this.seMoDeJarLocation + " azurePerformanceData " + apiKey[0] + " "
-						+ apiKey[1] + " " + serviceName + " " + serviceName + " " + startTime + " " + endTime + " "
-						+ "../benchmarkingCommands/logs/" + logFile);
-			}
-		}
-		return commands;
-	}
+            try (final BufferedWriter writer = Files.newBufferedWriter(Paths.get(this.pathToFetchingCommands.toString(), providerLanguage + ".bat"), StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING)) {
 
-	private Map<String, String[]> getApiKeysMap(Path apiKeysFolder) throws IOException {
-		Map<String, String[]> map = new HashMap<>();
+                List<String> commands = null;
+                final Map<String, String> logFilesMap = this.getBenchmarkLogsMap(provider);
+                switch (type) {
+                    case "aws":
+                        commands = this.getAWSFetchCommands(functionNames, this.pathToBenchmarkLogs, logFilesMap, providerLanguage, args[0], startTime,
+                                endTime);
+                        break;
+                    case "azure_maven":
+                        commands = this.getAzureFetchCommands(functionNames, this.pathToBenchmarkLogs, Paths.get(args[0]), logFilesMap, providerLanguage,
+                                Optional.of(args[1]), startTime, endTime);
+                        break;
+                    case "azure_serverless":
+                        commands = this.getAzureFetchCommands(functionNames, this.pathToBenchmarkLogs, Paths.get(args[0]), logFilesMap, providerLanguage,
+                                Optional.empty(), startTime, endTime);
+                        break;
+                    case "google":
+                        commands = this.getGoogleFetchCommands(functionNames, logFilesMap, startTime, endTime);
+                        break;
+                    case "ibm":
+                        commands = this.getIbmFetchCommands(functionNames, logFilesMap, startTime, endTime, args[0], args[1]);
+                        break;
+                }
+                for (final String command : commands) {
+                    writer.write(command);
+                    writer.newLine();
+                }
+            }
+        } catch (final IOException e) {
+            throw new SeMoDeException("Error while writing and reading files.", e);
+        }
+        System.out.println("Success");
+    }
 
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(apiKeysFolder)) {
-			for (Path entry : stream) {
-				String fileName = entry.getFileName().toString();
-				String[] apiKey = new String[2];
-				apiKey = Files.readAllLines(entry).toArray(apiKey);
-				map.put(fileName, apiKey);
-			}
-		}
+    /**
+     * Path to endpoints is easier accessible because the function names are the first part of each line.
+     *
+     * @throws IOException
+     */
+    private List<String> getFunctionNames(final String fileName) throws IOException {
 
-		return map;
-	}
+        final List<String> functionNames = new ArrayList<>();
+        for (final String functionPlusUrl : Files.readAllLines(Paths.get(this.pathToEndpoints.toString(), fileName))) {
+            functionNames.add(functionPlusUrl.split(" ")[0]);
+        }
+        return functionNames;
+    }
 
-	/**
-	 * Returns a Map where the functionName maps to the Name of the logfile
-	 * 
-	 * @param logsFolder
-	 *            Must be an existing folder with *.log files
-	 * @return Map
-	 * @throws IOException
-	 */
-	private Map<String, String> getBenchmarkLogsMap(String provider) throws IOException {
-		int prefixLength = "benchmarking_MM-dd-HH-mm-ss_".length() + provider.length() + "_".length();
-		Map<String, String> map = new HashMap<>();
+    private List<String> getAWSFetchCommands(final List<String> functionNames, final Path benchmarkLogsFolder, final Map<String, String> logFilesMap,
+											 final String logPrefix, final String region, final String startTime, final String endTime) throws IOException {
+        final List<String> commands = new ArrayList<>();
 
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(this.pathToBenchmarkLogs, "*.log")) {
-			for (Path entry : stream) {
-				String fileName = entry.getFileName().toString();
-				String functionName = fileName.substring(prefixLength, fileName.length() - ".log".length());
-				map.put(functionName, fileName);
-			}
-		}
+        for (final String functionName : functionNames) {
+            final String logGroup = "/aws/lambda/" + functionName + "-dev-" + functionName;
+            final String logFile = logFilesMap.get(functionName);
+            Objects.requireNonNull(logFile, "LogFile does not exist. There exists a mismatch in the input files.");
 
-		return map;
-	}
+            // "start cmd /C " would be the parallel version which has issues unfortunately.
+            // Performance data is missing when executing in parallel
+            // hard coded relative paths, because also the folder structure is created in this prototype
+            // there should be no change due to the folder structure
+            commands.add("java -jar " + this.seMoDeJarLocation + " awsPerformanceData " + region + " " + logGroup + " "
+                    + startTime + " " + endTime + " " + "../benchmarkingCommands/logs/" + logFile);
+        }
+
+        return commands;
+    }
+
+    private List<String> getGoogleFetchCommands(final List<String> functionNames,
+												final Map<String, String> logFilesMap, final String startTime, final String endTime) {
+
+        final List<String> commands = new ArrayList<>();
+
+        for (final String function : functionNames) {
+            final String logFile = logFilesMap.get(function);
+
+            commands.add("start cmd /C java -jar " + this.seMoDeJarLocation + " googlePerformanceData " + function + " " + startTime + " " + endTime + " " + "../benchmarkingCommands/logs/" + logFile);
+        }
+
+        return commands;
+    }
+
+    private List<String> getIbmFetchCommands(final List<String> functionNames, final Map<String, String> logFilesMap,
+											 final String startTime, final String endTime, final String authorizationKey, final String namespace) {
+
+        final List<String> commands = new ArrayList<>();
+
+        for (final String function : functionNames) {
+            final String logFile = logFilesMap.get(function);
+
+            commands.add("start cmd /C java -jar " + this.seMoDeJarLocation + " openWhiskPerformanceData " + namespace + " " + function + "-dev-" + function + " " + authorizationKey + " " + startTime + " " + endTime + " " + "../benchmarkingCommands/logs/" + logFile);
+        }
+
+        return commands;
+    }
+
+    private List<String> getAzureFetchCommands(final List<String> serviceNames, final Path benchmarkLogsFolder,
+											   final Path apiKeysFolder, final Map<String, String> logFilesMap, final String logPrefix, final Optional<String> functionName, final String startTime, final String endTime)
+            throws IOException {
+        final List<String> commands = new ArrayList<>();
+        final Map<String, String[]> apiKeysMap = this.getApiKeysMap(apiKeysFolder);
+        if (apiKeysMap.size() != serviceNames.size()) {
+            throw new IllegalArgumentException("number of function names (" + serviceNames.size()
+                    + ") must be the same length as number of api keys (" + apiKeysMap.size() + ")");
+        }
+        for (final String serviceName : serviceNames) {
+            final String[] apiKey = apiKeysMap.get(serviceName);
+            Objects.requireNonNull(apiKey, "Api key does not exists. Wrong folder entered");
+
+            final String logFile = logFilesMap.get(serviceName);
+            Objects.requireNonNull(logFile, "LogFile does not exist. There exists a mismatch in the input files.");
+
+            // hard coded relative paths, because also the folder structure is created in this prototype
+            // there should be no change due to the folder structure
+            if (functionName.isPresent()) {
+                commands.add("start cmd /C java -jar " + this.seMoDeJarLocation + " azurePerformanceData " + apiKey[0] + " "
+                        + apiKey[1] + " " + serviceName + " " + functionName.get() + " " + startTime + " " + endTime
+                        + " " + "../benchmarkingCommands/logs/" + logFile);
+            } else {
+                commands.add("start cmd /C java -jar " + this.seMoDeJarLocation + " azurePerformanceData " + apiKey[0] + " "
+                        + apiKey[1] + " " + serviceName + " " + serviceName + " " + startTime + " " + endTime + " "
+                        + "../benchmarkingCommands/logs/" + logFile);
+            }
+        }
+        return commands;
+    }
+
+    private Map<String, String[]> getApiKeysMap(final Path apiKeysFolder) throws IOException {
+        final Map<String, String[]> map = new HashMap<>();
+
+        try (final DirectoryStream<Path> stream = Files.newDirectoryStream(apiKeysFolder)) {
+            for (final Path entry : stream) {
+                final String fileName = entry.getFileName().toString();
+                String[] apiKey = new String[2];
+                apiKey = Files.readAllLines(entry).toArray(apiKey);
+                map.put(fileName, apiKey);
+            }
+        }
+
+        return map;
+    }
+
+    /**
+     * Returns a Map where the functionName maps to the Name of the logfile
+     *
+     * @param logsFolder Must be an existing folder with *.log files
+     * @return Map
+     * @throws IOException
+     */
+    private Map<String, String> getBenchmarkLogsMap(final String provider) throws IOException {
+        final int prefixLength = "benchmarking_MM-dd-HH-mm-ss_".length() + provider.length() + "_".length();
+        final Map<String, String> map = new HashMap<>();
+
+        try (final DirectoryStream<Path> stream = Files.newDirectoryStream(this.pathToBenchmarkLogs, "*.log")) {
+            for (final Path entry : stream) {
+                final String fileName = entry.getFileName().toString();
+                final String functionName = fileName.substring(prefixLength, fileName.length() - ".log".length());
+                map.put(functionName, fileName);
+            }
+        }
+
+        return map;
+    }
 }

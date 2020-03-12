@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.pipeline.model;
+package de.uniba.dsg.serverless.pipeline.model.config;
 
 /**
  * Model class for benchmark execution config and json serialization.

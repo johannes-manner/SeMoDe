@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.pipeline.model;
+package de.uniba.dsg.serverless.pipeline.model.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.uniba.dsg.serverless.model.SeMoDeException;

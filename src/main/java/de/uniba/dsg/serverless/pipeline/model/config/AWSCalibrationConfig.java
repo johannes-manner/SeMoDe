@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.calibration.aws;
+package de.uniba.dsg.serverless.pipeline.model.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Ints;

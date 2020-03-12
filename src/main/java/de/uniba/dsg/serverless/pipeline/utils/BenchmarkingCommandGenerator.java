@@ -1,7 +1,7 @@
 package de.uniba.dsg.serverless.pipeline.utils;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.pipeline.model.BenchmarkConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

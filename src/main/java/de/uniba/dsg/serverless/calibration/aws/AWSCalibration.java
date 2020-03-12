@@ -2,9 +2,10 @@ package de.uniba.dsg.serverless.calibration.aws;
 
 import de.uniba.dsg.serverless.calibration.Calibration;
 import de.uniba.dsg.serverless.calibration.CalibrationMethods;
-import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.calibration.LinpackParser;
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
+import de.uniba.dsg.serverless.pipeline.model.config.AWSCalibrationConfig;
 import de.uniba.dsg.serverless.util.SeMoDeProperty;
 import de.uniba.dsg.serverless.util.SeMoDePropertyManager;
 import org.apache.commons.lang3.tuple.Pair;
@@ -33,7 +34,7 @@ public class AWSCalibration implements CalibrationMethods {
 
     // used for CLI feature
     public AWSCalibration(final String name, final AWSCalibrationConfig config) throws SeMoDeException {
-        this.calibration = new Calibration(name, CalibrationPlatform.AWS);
+        this.calibration = new Calibration(name, SupportedPlatform.AWS);
         this.client = new AWSClient(config.region);
         this.config = config;
         this.platformPrefix = this.calibration.name + "_linpack_";
@@ -41,7 +42,7 @@ public class AWSCalibration implements CalibrationMethods {
 
     // used within pipeline
     public AWSCalibration(final String name, final Path calibrationFolder, final AWSCalibrationConfig config) throws SeMoDeException {
-        this.calibration = new Calibration(name, CalibrationPlatform.AWS, calibrationFolder);
+        this.calibration = new Calibration(name, SupportedPlatform.AWS, calibrationFolder);
         this.client = new AWSClient(config.region);
         this.config = config;
         this.platformPrefix = this.calibration.name + "_linpack_";

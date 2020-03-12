@@ -1,6 +1,5 @@
-package de.uniba.dsg.serverless.pipeline.model;
+package de.uniba.dsg.serverless.pipeline.model.config;
 
-import de.uniba.dsg.serverless.calibration.aws.AWSCalibrationConfig;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 
 /**

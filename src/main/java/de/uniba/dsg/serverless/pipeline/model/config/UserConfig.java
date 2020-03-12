@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.pipeline.model;
+package de.uniba.dsg.serverless.pipeline.model.config;
 
 import java.util.ArrayList;
 import java.util.List;
