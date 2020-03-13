@@ -81,7 +81,18 @@ public class PipelineSetupController {
         }
     }
 
-    public void configureBenchmarkSetup() {
+    /**
+     * As in 2018, the first prototype to benchmark functions was implemented during the project
+     * in the summer term. All information was created in bash files and executed from there.
+     * <br/>
+     * In 2020, the procedure changed, started with AWS, that native SDKs should be used for getting
+     * the information. The benchmarking pipeline is reimplemented due to this decision and other
+     * providers and open source FaaS platforms should follow.
+     * <br/>
+     * Therefore the {@link BenchmarkingCommandGenerator}, {@link EndpointExtractor} and {@link FetchingCommandGenerator}
+     * are deprecated.
+     */
+    public void configureBenchmarkSetup() throws SeMoDeException {
         String provider = "";
         final Map<String, ProviderConfig> validProviders = this.setup.globalConfig.getProviderConfigMap();
         while (!validProviders.containsKey(provider)) {
@@ -89,8 +100,35 @@ public class PipelineSetupController {
             provider = PipelineSetupUtility.scanner.nextLine();
         }
 
-        // TODO change all providers to native sdks
-        if (validProviders.containsKey(provider)) {
+        // the provider is already natively supported via its SDK supported.
+        if (SupportedPlatform.AWS.getText().equals(provider)) {
+
+            System.out.println("Insert aws function info:");
+            System.out.println("Insert current region or skip setting: ");
+            final String region = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert runtime for calibration or skip setting: ");
+            final String runtime = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert function execution role (AWS IAM ARN) or skip setting: ");
+            final String awsArnRole = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert function handler here or skip setting: ");
+            final String functionHandler = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert timeout for function handler or skip setting: ");
+            final String timeout = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert current memorySizes (JSON Array) or skip setting: ");
+            final String memorySizes = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert path to function source code (directory) or skip setting: ");
+            final String pathToSource = PipelineSetupUtility.scanner.nextLine();
+
+            System.out.println("Insert additional info, otherwise these fields are automatically configured during deployment!");
+            System.out.println("Insert current target url or skip setting: ");
+            final String targetUrl = PipelineSetupUtility.scanner.nextLine();
+            System.out.println("Insert current apiKey or skip setting: ");
+            final String apiKey = PipelineSetupUtility.scanner.nextLine();
+
+            this.userConfigHandler.updateAWSFunctionBenchmarkConfig(region, runtime, awsArnRole, functionHandler, timeout, memorySizes, pathToSource, targetUrl, apiKey);
+
+        } else {
+            // TODO change all providers to native sdks - legacy code
             try {
                 System.out.println("Insert memory sizes (JSON Array) or skip setting: ");
                 final String memorySize = PipelineSetupUtility.scanner.nextLine();
@@ -122,7 +160,7 @@ public class PipelineSetupController {
 
     }
 
-    public void prepareDeployment() throws SeMoDeException {
+    public void deployFunctions() throws SeMoDeException {
         final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
         // TODO make source copying etc. configurable, document function implementation
         System.out.println("copying sources...");
@@ -150,6 +188,7 @@ public class PipelineSetupController {
 
     }
 
+    @Deprecated
     public void undeploy() throws SeMoDeException {
         this.executeBashCommand("bash undeploy", "-undeploy");
     }
@@ -229,6 +268,7 @@ public class PipelineSetupController {
         }
     }
 
+    @Deprecated
     public void generateBenchmarkingCommands() throws SeMoDeException {
         // TODO make update of values (input parameters) more robust
         System.out.println("Insert number of threads");
@@ -252,6 +292,7 @@ public class PipelineSetupController {
         }
     }
 
+    @Deprecated
     public void fetchPerformanceData() throws SeMoDeException {
 
         final FetchingCommandGenerator fcg = new FetchingCommandGenerator(this.setup.pathToBenchmarkingCommands, this.setup.pathToFetchingCommands, this.setup.pathToEndpoints, this.setup.globalConfig.getLanguageConfigMap(), this.setup.getSeMoDeJarLocation());
@@ -334,6 +375,11 @@ public class PipelineSetupController {
         }
     }
 
+    /**
+     * Stops the calibration and undeploys the already deployed resources.
+     *
+     * @throws SeMoDeException
+     */
     public void stopCalibration() throws SeMoDeException {
         if (this.userConfigHandler.isLocalEnabled()) {
             this.calibration = new LocalCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getLocalConfig());

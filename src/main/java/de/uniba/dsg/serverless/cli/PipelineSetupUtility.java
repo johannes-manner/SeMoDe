@@ -52,8 +52,8 @@ public class PipelineSetupUtility extends CustomUtility {
         System.out.println("Benchmarking Options:");
         System.out.println(" (config)             Alter/Specify the current configuration");
         System.out.println(" (deploy)             Starts the deployment");
-        System.out.println(" (endpoints)          Generate endpoints for benchmarking");
-        System.out.println(" (commands)           Generate benchmarking commands in a bat-file");
+        System.out.println(" (endpoints)          Generate endpoints for benchmarking - deprecated");
+        System.out.println(" (commands)           Generate benchmarking commands in a bat-file - deprecated");
         System.out.println(" (fetch)              Fetch log data from various platforms");
         System.out.println(" (undeploy)           Undeploying the current cloud functions");
         System.out.println(" (benchmark)          Starts the whole benchmarking pipeline");
@@ -88,7 +88,7 @@ public class PipelineSetupUtility extends CustomUtility {
                 this.controller.configureBenchmarkSetup();
                 break;
             case "deploy":
-                this.controller.prepareDeployment();
+                this.controller.deployFunctions();
                 break;
             case "endpoints":
                 this.controller.generateEndpoints();

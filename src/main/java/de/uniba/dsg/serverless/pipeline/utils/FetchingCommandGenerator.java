@@ -11,7 +11,10 @@ import java.util.*;
 /**
  * Settings for generating the fetching commands are very provider specific.
  * Therefore each provider is treated separately in this class.
+ *
+ * @deprecated since rewriting of the pipeline in 2020
  */
+@Deprecated
 public class FetchingCommandGenerator {
 
     private static final Scanner scanner = new Scanner(System.in);
@@ -23,6 +26,7 @@ public class FetchingCommandGenerator {
     private final String endTime;
     private final String seMoDeJarLocation;
 
+    @Deprecated
     public FetchingCommandGenerator(final Path pathToBenchmarkFolder, final Path pathToFetchingCommands, final Path pathToEndpoints, final Map<String, LanguageConfig> languageConfig, final String seMoDeJarLocation) {
         this.pathToBenchmarkLogs = Paths.get(pathToBenchmarkFolder.toString(), "logs");
         this.pathToFetchingCommands = pathToFetchingCommands;
@@ -32,11 +36,12 @@ public class FetchingCommandGenerator {
 
         // provider independent parameters
         System.out.println("Specify a start time in the format YYYY-MM-DD_HH:MM");
-		this.startTime = scanner.nextLine();
+        this.startTime = scanner.nextLine();
         System.out.println("Specify a end time in the format YYYY-MM-DD_HH:MM");
-		this.endTime = scanner.nextLine();
+        this.endTime = scanner.nextLine();
     }
 
+    @Deprecated
     public void fetchCommands(final String provider, final String language) throws SeMoDeException {
 
         final String providerLanguage = provider + "-" + language;
@@ -130,7 +135,7 @@ public class FetchingCommandGenerator {
     }
 
     private List<String> getAWSFetchCommands(final List<String> functionNames, final Path benchmarkLogsFolder, final Map<String, String> logFilesMap,
-											 final String logPrefix, final String region, final String startTime, final String endTime) throws IOException {
+                                             final String logPrefix, final String region, final String startTime, final String endTime) throws IOException {
         final List<String> commands = new ArrayList<>();
 
         for (final String functionName : functionNames) {
@@ -150,7 +155,7 @@ public class FetchingCommandGenerator {
     }
 
     private List<String> getGoogleFetchCommands(final List<String> functionNames,
-												final Map<String, String> logFilesMap, final String startTime, final String endTime) {
+                                                final Map<String, String> logFilesMap, final String startTime, final String endTime) {
 
         final List<String> commands = new ArrayList<>();
 
@@ -164,7 +169,7 @@ public class FetchingCommandGenerator {
     }
 
     private List<String> getIbmFetchCommands(final List<String> functionNames, final Map<String, String> logFilesMap,
-											 final String startTime, final String endTime, final String authorizationKey, final String namespace) {
+                                             final String startTime, final String endTime, final String authorizationKey, final String namespace) {
 
         final List<String> commands = new ArrayList<>();
 
@@ -178,7 +183,7 @@ public class FetchingCommandGenerator {
     }
 
     private List<String> getAzureFetchCommands(final List<String> serviceNames, final Path benchmarkLogsFolder,
-											   final Path apiKeysFolder, final Map<String, String> logFilesMap, final String logPrefix, final Optional<String> functionName, final String startTime, final String endTime)
+                                               final Path apiKeysFolder, final Map<String, String> logFilesMap, final String logPrefix, final Optional<String> functionName, final String startTime, final String endTime)
             throws IOException {
         final List<String> commands = new ArrayList<>();
         final Map<String, String[]> apiKeysMap = this.getApiKeysMap(apiKeysFolder);

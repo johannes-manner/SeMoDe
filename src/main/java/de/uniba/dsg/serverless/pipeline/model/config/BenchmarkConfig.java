@@ -1,5 +1,8 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
+import com.google.gson.annotations.Expose;
+import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
+
 /**
  * Model class for benchmark execution config and json serialization.
  * DO NOT change this class. Otherwise json serialization and deserialization does not work properly.
@@ -7,9 +10,16 @@ package de.uniba.dsg.serverless.pipeline.model.config;
 public class BenchmarkConfig {
 
     // corePoolSize for executor service
-    private String numberThreads;
-    private String benchmarkMode;
-    private String benchmarkParameters;
+    @Expose
+    public String numberThreads;
+    @Expose
+    public String benchmarkMode;
+    @Expose
+    public String benchmarkParameters;
+
+    // aws parameters
+    @Expose
+    public AWSBenchmarkConfig awsBenchmarkConfig;
 
     public BenchmarkConfig() {
     }
@@ -21,34 +31,20 @@ public class BenchmarkConfig {
         this.benchmarkParameters = benchmarkParameters;
     }
 
-    public String getNumberThreads() {
-        return this.numberThreads;
-    }
-
-    public void setNumberThreads(final String numberThreads) {
-        this.numberThreads = numberThreads;
-    }
-
-    public String getBenchmarkMode() {
-        return this.benchmarkMode;
-    }
-
-    public void setBenchmarkMode(final String benchmarkMode) {
-        this.benchmarkMode = benchmarkMode;
-    }
-
-    public String getBenchmarkParameters() {
-        return this.benchmarkParameters;
-    }
-
-    public void setBenchmarkParameters(final String benchmarkParameters) {
-        this.benchmarkParameters = benchmarkParameters;
+    public AWSBenchmarkConfig getAwsBenchmarkConfig() {
+        if (this.awsBenchmarkConfig == null) {
+            this.awsBenchmarkConfig = new AWSBenchmarkConfig();
+        }
+        return this.awsBenchmarkConfig;
     }
 
     @Override
     public String toString() {
-        return "BenchmarkConfig [numberThreads=" + this.numberThreads + ", benchmarkMode=" + this.benchmarkMode
-                + ", benchmarkParameters=" + this.benchmarkParameters + "]";
+        return "BenchmarkConfig{" +
+                "numberThreads='" + this.numberThreads + '\'' +
+                ", benchmarkMode='" + this.benchmarkMode + '\'' +
+                ", benchmarkParameters='" + this.benchmarkParameters + '\'' +
+                ", awsBenchmarkConfig=" + this.awsBenchmarkConfig +
+                '}';
     }
-
 }

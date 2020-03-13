@@ -11,6 +11,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
+/**
+ * {@link BenchmarkingCommandGenerator} generates bash files to benchmark the corresponding function.
+ *
+ * @deprecated since rewriting of the pipeline in 2020
+ */
+@Deprecated
 public class BenchmarkingCommandGenerator {
 
     private final Path benchmarkCommandPath;
@@ -18,6 +24,7 @@ public class BenchmarkingCommandGenerator {
     private final BenchmarkConfig benchmarkConfig;
     private final String seMoDeJarLocation;
 
+    @Deprecated
     public BenchmarkingCommandGenerator(final Path benchmarkCommandPath, final Path endpointsPath, final BenchmarkConfig benchmarkConfig, final String seMoDeJarLocation) {
         this.benchmarkCommandPath = benchmarkCommandPath;
         this.endpointsPath = endpointsPath;
@@ -25,6 +32,7 @@ public class BenchmarkingCommandGenerator {
         this.seMoDeJarLocation = seMoDeJarLocation;
     }
 
+    @Deprecated
     public void generateCommands(final String language, final String provider) throws SeMoDeException {
 
         final String providerLanguage = provider + "-" + language;
@@ -44,7 +52,7 @@ public class BenchmarkingCommandGenerator {
                 while (line != null) {
                     final String[] functionPlusUrl = line.split(" ");
                     final String command = firstPart + " " + provider + "_" + functionPlusUrl[0] + " " + functionPlusUrl[1] + " " + jsonInput
-                            + " " + this.benchmarkConfig.getBenchmarkMode() + " " + this.benchmarkConfig.getNumberThreads() + " " + this.benchmarkConfig.getBenchmarkParameters()
+                            + " " + this.benchmarkConfig.benchmarkMode + " " + this.benchmarkConfig.numberThreads + " " + this.benchmarkConfig.benchmarkParameters
                             + "\"'";
                     writer.write(command);
                     writer.newLine();

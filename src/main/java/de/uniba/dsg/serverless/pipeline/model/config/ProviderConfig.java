@@ -11,7 +11,13 @@ import java.util.Map;
 /**
  * Model class for provider config and json serialization.
  * DO NOT change this class. Otherwise json serialization and deserialization does not work properly.
+ * <br/>
+ * The idea is to remove the class when rewriting the pipeline via native sdks.
+ * <br/>
+ *
+ * @deprecated since rewriting of the pipeline in 2020
  */
+@Deprecated
 public class ProviderConfig {
 
     private String name;
@@ -82,6 +88,7 @@ public class ProviderConfig {
         }
     }
 
+    @Deprecated
     public void validateAndCreate(final Map<String, ProviderConfig> providerConfigMap, final String provider, final String memorySize, final String language, final String deploymentSize) throws SeMoDeException, IOException {
         // update
         if (!"".equals(this.name)) this.name = provider;
@@ -96,6 +103,7 @@ public class ProviderConfig {
         this.validate(providerConfigMap);
     }
 
+    @Deprecated
     public void validateAndUpdate(final Map<String, ProviderConfig> providerConfigMap, final String memorySize, final String language, final String deploymentSize) throws SeMoDeException, IOException {
         // update
         if (!"".equals(memorySize))

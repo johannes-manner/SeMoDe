@@ -66,6 +66,4 @@ public class UserConfig {
                 ", calibrationConfig=" + this.calibrationConfig +
                 '}';
     }
-
-
 }

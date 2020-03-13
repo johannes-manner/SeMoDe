@@ -76,6 +76,7 @@ public class UserConfigHandler {
         this.userConfig.setCalibrationConfig(new CalibrationConfig(globalConfig.getCalibrationConfig()));
     }
 
+    @Deprecated
     public void addOrChangeProviderConfig(final Map<String, ProviderConfig> providerConfigMap, final String provider, final String memorySize, final String language, final String deploymentSize) throws IOException, SeMoDeException {
         boolean providerMissingInList = true;
 
@@ -118,5 +119,15 @@ public class UserConfigHandler {
             temp.put(config.getName(), config);
         }
         return temp;
+    }
+
+    public void updateAWSFunctionBenchmarkConfig(final String region, final String runtime, final String awsArnRole, final String functionHandler,
+                                                 final String timeout, final String memorySizes, final String pathToSource, final String targetUrl,
+                                                 final String apiKey) throws SeMoDeException {
+        try {
+            this.userConfig.getBenchmarkConfig().getAwsBenchmarkConfig().getFunctionConfig().update(region, runtime, awsArnRole, functionHandler, timeout, targetUrl, apiKey, memorySizes, pathToSource);
+        } catch (final IOException e) {
+            throw new SeMoDeException("Error during memory Size parsing");
+        }
     }
 }

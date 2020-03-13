@@ -12,6 +12,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
 
+/**
+ * {@link EndpointExtractor} extracts the target url from the serverless trace.
+ * The facility is currently limited to the fibonacci use case.
+ *
+ * @deprecated since rewriting of the pipeline in 2020
+ */
+@Deprecated
 public class EndpointExtractor {
 
     // Properties specific to our bash scripts
@@ -34,12 +41,14 @@ public class EndpointExtractor {
     private final Path deploymentFolderPath;
     private final Path outputDir;
 
+    @Deprecated
     public EndpointExtractor(final Map<String, LanguageConfig> languageConfigs, final Path deploymentFolderPath, final Path outputDir) {
         this.languageConfigs = languageConfigs;
         this.deploymentFolderPath = deploymentFolderPath;
         this.outputDir = outputDir;
     }
 
+    @Deprecated
     public void extractEndpoints(final String language, final String provider) throws SeMoDeException {
 
         final String providerLanguage = provider + "-" + language;
