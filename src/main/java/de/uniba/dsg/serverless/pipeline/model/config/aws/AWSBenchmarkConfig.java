@@ -18,6 +18,13 @@ public class AWSBenchmarkConfig {
         return this.functionConfig;
     }
 
+    public AWSDeploymentInternals getDeploymentInternals() {
+        if (this.deploymentInternals == null) {
+            this.deploymentInternals = new AWSDeploymentInternals();
+        }
+        return this.deploymentInternals;
+    }
+
     @Override
     public String toString() {
         return "AWSBenchmarkConfig{" +

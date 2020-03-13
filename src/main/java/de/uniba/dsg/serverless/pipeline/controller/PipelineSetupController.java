@@ -1,5 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
+import de.uniba.dsg.serverless.benchmark.BenchmarkMethods;
 import de.uniba.dsg.serverless.calibration.CalibrationMethods;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
@@ -35,7 +36,6 @@ public class PipelineSetupController {
     private final PipelineSetup setup;
     // wrapper/handler to access the user config
     private final UserConfigHandler userConfigHandler;
-
     private CalibrationMethods calibration;
 
     public PipelineSetupController(final PipelineSetup setup) {
@@ -161,6 +161,21 @@ public class PipelineSetupController {
     }
 
     public void deployFunctions() throws SeMoDeException {
+        for (final BenchmarkMethods benchmark : this.userConfigHandler.createBenchmarkMethodsFromConfig(this.setup.name, this.setup.pathToDeployment)) {
+            benchmark.deploy();
+        }
+    }
+
+    public void undeploy() throws SeMoDeException {
+        for (final BenchmarkMethods benchmark : this.userConfigHandler.createBenchmarkMethodsFromConfig(this.setup.name, this.setup.pathToDeployment)) {
+            benchmark.undeploy();
+        }
+    }
+
+    @Deprecated
+    public void prepareServerlessDeployment() throws SeMoDeException {
+
+        // TODO change all providers to native sdks - legacy code
         final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
         // TODO make source copying etc. configurable, document function implementation
         System.out.println("copying sources...");
@@ -189,7 +204,7 @@ public class PipelineSetupController {
     }
 
     @Deprecated
-    public void undeploy() throws SeMoDeException {
+    public void undeployServerlessDeployment() throws SeMoDeException {
         this.executeBashCommand("bash undeploy", "-undeploy");
     }
 

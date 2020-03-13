@@ -15,7 +15,7 @@ public class AWSDeploymentInternals {
     @Expose
     public String usagePlanId;
 
-    private AWSDeploymentInternals() {
+    public AWSDeploymentInternals() {
 
     }
 
@@ -23,6 +23,15 @@ public class AWSDeploymentInternals {
         this.restApiId = other.restApiId;
         this.apiKeyId = other.apiKeyId;
         this.usagePlanId = other.usagePlanId;
+    }
+
+    /**
+     * resets all the internal values, helpful for documentation purposes
+     */
+    public void reset() {
+        this.restApiId = "";
+        this.apiKeyId = "";
+        this.usagePlanId = "";
     }
 
     @Override

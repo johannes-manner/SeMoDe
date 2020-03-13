@@ -2,6 +2,8 @@ package de.uniba.dsg.serverless.pipeline.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.GsonBuilder;
+import de.uniba.dsg.serverless.benchmark.BenchmarkMethods;
+import de.uniba.dsg.serverless.benchmark.aws.AWSBenchmark;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.config.*;
@@ -10,7 +12,9 @@ import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -129,5 +133,22 @@ public class UserConfigHandler {
         } catch (final IOException e) {
             throw new SeMoDeException("Error during memory Size parsing");
         }
+    }
+
+    /**
+     * Creates a list of all benchmark configs, which are enabled.
+     * Currently only AWS is enabled.
+     *
+     * @param setupName
+     * @param pathToDeployment
+     * @return
+     */
+    public List<BenchmarkMethods> createBenchmarkMethodsFromConfig(final String setupName, final Path pathToDeployment) throws SeMoDeException {
+        final List<BenchmarkMethods> benchmarkMethods = new ArrayList<>();
+        // if this is the case, the benchmark config was initialized, see function above
+        if (this.userConfig.getBenchmarkConfig().awsBenchmarkConfig != null) {
+            benchmarkMethods.add(new AWSBenchmark(setupName, pathToDeployment, this.userConfig.getBenchmarkConfig().awsBenchmarkConfig));
+        }
+        return benchmarkMethods;
     }
 }
