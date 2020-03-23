@@ -1,0 +1,38 @@
+
+# change aws location via 
+# aws configure set region eu-west-1
+
+REGIONS=(
+    eu-central-1
+    eu-west-1
+    eu-west-2
+    eu-west-3
+    eu-north-1
+)
+
+for region in "${REGIONS[@]}"
+do
+    # set region temporarily
+    echo "configure region: $region"
+    aws configure set region "$region"
+
+    aws lambda list-functions > tmp.txt
+    
+    grep FunctionName tmp.txt | cut -c30- > names.txt 
+    
+    while IFS= read -r line
+        do 
+        echo "delete ${line%%??} lambda function"
+        aws lambda delete-function --function-name "${line%%??}" 
+    done < names.txt
+
+    # clean up
+    rm tmp.txt
+    rm names.txt
+    NAMES=""
+    
+done
+
+# set default region
+aws configure set region eu-west-1
+
