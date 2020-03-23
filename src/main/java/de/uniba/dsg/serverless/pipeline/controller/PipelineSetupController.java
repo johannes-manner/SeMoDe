@@ -1,6 +1,8 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
+import de.uniba.dsg.serverless.benchmark.BenchmarkExecutor;
 import de.uniba.dsg.serverless.benchmark.BenchmarkMethods;
+import de.uniba.dsg.serverless.benchmark.BenchmarkMode;
 import de.uniba.dsg.serverless.calibration.CalibrationMethods;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
@@ -8,19 +10,15 @@ import de.uniba.dsg.serverless.cli.PipelineSetupUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.PipelineSetup;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
-import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.ProviderConfig;
 import de.uniba.dsg.serverless.pipeline.utils.BenchmarkingCommandGenerator;
 import de.uniba.dsg.serverless.pipeline.utils.EndpointExtractor;
 import de.uniba.dsg.serverless.pipeline.utils.FetchingCommandGenerator;
-import de.uniba.dsg.serverless.util.SeMoDeProperty;
-import de.uniba.dsg.serverless.util.SeMoDePropertyManager;
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import java.io.*;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -70,10 +68,7 @@ public class PipelineSetupController {
         try {
             Files.createDirectories(this.setup.pathToSetup);
             // for benchmarking
-            Files.createDirectories(this.setup.pathToDeployment);
-            Files.createDirectories(this.setup.pathToEndpoints);
-            Files.createDirectories(this.setup.pathToBenchmarkingCommands);
-            Files.createDirectories(this.setup.pathToFetchingCommands);
+            Files.createDirectories(this.setup.pathToBenchmarkExecution);
             // for calibration
             Files.createDirectories(this.setup.pathToCalibration);
         } catch (final IOException e) {
@@ -145,6 +140,19 @@ public class PipelineSetupController {
             }
         }
 
+        // global benchmark parameters
+        // TODO check if this is really needed - check the notes
+        System.out.println("Insert number of threads or skip setting:");
+        final String numberOfThreads = PipelineSetupUtility.scanner.nextLine();
+        System.out.println("Insert a supported benchmarking mode or skip setting. Options: "
+                + List.of(BenchmarkMode.values()).stream().map(BenchmarkMode::getText).collect(Collectors.toList()));
+        final String benchmarkingMode = PipelineSetupUtility.scanner.nextLine();
+        System.out.println("Insert benchmarking parameters or skip setting:");
+        final String benchmarkingParameters = PipelineSetupUtility.scanner.nextLine();
+        System.out.println("Insert a static value (POST argument for the http call) for benchmarking the function or skip setting:");
+        final String postArgument = PipelineSetupUtility.scanner.nextLine();
+
+        this.userConfigHandler.updateGlobalBenchmarkParameters(numberOfThreads, benchmarkingMode, benchmarkingParameters, postArgument);
 
     }
 
@@ -161,101 +169,14 @@ public class PipelineSetupController {
     }
 
     public void deployFunctions() throws SeMoDeException {
-        for (final BenchmarkMethods benchmark : this.userConfigHandler.createBenchmarkMethodsFromConfig(this.setup.name, this.setup.pathToDeployment)) {
+        for (final BenchmarkMethods benchmark : this.userConfigHandler.createBenchmarkMethodsFromConfig(this.setup.name)) {
             benchmark.deploy();
         }
     }
 
-    public void undeploy() throws SeMoDeException {
-        for (final BenchmarkMethods benchmark : this.userConfigHandler.createBenchmarkMethodsFromConfig(this.setup.name, this.setup.pathToDeployment)) {
+    public void undeployBenchmark() throws SeMoDeException {
+        for (final BenchmarkMethods benchmark : this.userConfigHandler.createBenchmarkMethodsFromConfig(this.setup.name)) {
             benchmark.undeploy();
-        }
-    }
-
-    @Deprecated
-    public void prepareServerlessDeployment() throws SeMoDeException {
-
-        // TODO change all providers to native sdks - legacy code
-        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
-        // TODO make source copying etc. configurable, document function implementation
-        System.out.println("copying sources...");
-        for (final String provider : userProviders.keySet()) {
-            for (final String language : userProviders.get(provider).getLanguage()) {
-
-                // copies the sources from the fibonacci folder into the specific setup config
-                this.copySource(provider, language);
-
-                // change parameters in createDeployments bashscripts
-                this.changeDeploymentParameters(userProviders.get(provider), language);
-
-            }
-        }
-
-        // TODO run a single process builder for each provider / language combination
-
-        // create Deployments
-        System.out.println("creating deployment sizes");
-        this.executeBashCommand("bash createDeployments " + this.setup.getSeMoDeJarLocation(), "-preparation");
-
-        // deployment
-        System.out.println("Deploying created functions... (may take a while)");
-        this.executeBashCommand("bash deploy", "-deploy");
-
-    }
-
-    @Deprecated
-    public void undeployServerlessDeployment() throws SeMoDeException {
-        this.executeBashCommand("bash undeploy", "-undeploy");
-    }
-
-    private void executeBashCommand(final String command, final String fileSuffix) throws SeMoDeException {
-        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
-        for (final String provider : userProviders.keySet()) {
-            for (final String language : userProviders.get(provider).getLanguage()) {
-                final ProcessBuilder processBuilder = new ProcessBuilder(SeMoDePropertyManager.getInstance().getProperty(SeMoDeProperty.BASH_LOCATION), "-c", command);
-                final String providerLanguage = provider + "-" + language;
-                final Path sourceLocation = Paths.get(this.setup.pathToSetup.toString(), "sources", providerLanguage);
-                processBuilder.directory(sourceLocation.toFile());
-                processBuilder.redirectErrorStream(true);
-                Process process = null;
-                try {
-                    process = processBuilder.start();
-                    this.writeProcessOutputToFile(process, providerLanguage + fileSuffix);
-                    final int errCode = process.waitFor();
-                    System.out
-                            .println("Executed without errors? " + (errCode == 0 ? "Yes" : "No(code=" + errCode + ")"));
-                } catch (final IOException | InterruptedException e) {
-                    e.printStackTrace();
-                    process.destroy();
-                }
-            }
-        }
-    }
-
-    private void writeProcessOutputToFile(final Process process, final String fileName) throws SeMoDeException {
-        try (final BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-             final BufferedWriter bw = new BufferedWriter(new FileWriter(new File(this.setup.pathToDeployment.resolve(fileName).toString())))) {
-
-            String line;
-            while ((line = br.readLine()) != null) {
-                System.out.println("Process output: " + line);
-                bw.write(line + System.lineSeparator());
-            }
-        } catch (final IOException e) {
-            e.printStackTrace();
-            throw new SeMoDeException("Error while writing the output of the deploymentscript to the file");
-        }
-    }
-
-    private void copySource(final String provider, final String language) throws SeMoDeException {
-        final String sourceFolderName = provider + "-" + language;
-        // TODO enable other functions / folders than fibonacci
-        final File source = new File(Paths.get("fibonacci", sourceFolderName).toString());
-        final File target = new File(this.setup.pathToSources.resolve(sourceFolderName).toString());
-        try {
-            FileUtils.copyDirectory(source, target);
-        } catch (final IOException e) {
-            throw new SeMoDeException("Copying the source of " + sourceFolderName + "failed.", e);
         }
     }
 
@@ -273,53 +194,52 @@ public class PipelineSetupController {
         }
     }
 
-    public void generateEndpoints() throws SeMoDeException {
-        final EndpointExtractor endpointExtractor = new EndpointExtractor(this.setup.globalConfig.getLanguageConfigMap(), this.setup.pathToDeployment, this.setup.pathToEndpoints);
-        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
-        for (final String provider : userProviders.keySet()) {
-            for (final String language : userProviders.get(provider).getLanguage()) {
-                endpointExtractor.extractEndpoints(language, provider);
-            }
-        }
+    public void executeBenchmark() {
+        this.userConfigHandler.logBenchmarkStartTime();
+        final BenchmarkExecutor benchmarkExecutor = new BenchmarkExecutor();
+
     }
 
-    @Deprecated
-    public void generateBenchmarkingCommands() throws SeMoDeException {
-        // TODO make update of values (input parameters) more robust
-        System.out.println("Insert number of threads");
-        final String numberOfThreads = PipelineSetupUtility.scanner.nextLine();
-        System.out.println("Insert a supported benchmarking mode");
-        final String benchmarkingMode = PipelineSetupUtility.scanner.nextLine();
-        System.out.println("Insert benchmarking parameters");
-        final String benchmarkingParameters = PipelineSetupUtility.scanner.nextLine();
-        System.out.println("Copy a file called 'params.json' in the 'benchmarkingCommands' folder");
+//    @Deprecated
+//    public void generateBenchmarkingCommands() throws SeMoDeException {
+//        // TODO make update of values (input parameters) more robust
+//        System.out.println("Insert number of threads or skip setting:");
+//        final String numberOfThreads = PipelineSetupUtility.scanner.nextLine();
+//        System.out.println("Insert a supported benchmarking mode");
+//        final String benchmarkingMode = PipelineSetupUtility.scanner.nextLine();
+//        System.out.println("Insert benchmarking parameters");
+//        final String benchmarkingParameters = PipelineSetupUtility.scanner.nextLine();
+//        System.out.println("Copy a file called 'params.json' in the 'benchmarkingCommands' folder");
+//
+////        final BenchmarkConfig config = new BenchmarkConfig(numberOfThreads, benchmarkingMode, benchmarkingParameters);
+////        this.userConfigHandler.updateBenchmarkConfig(config);
+//
+////        final BenchmarkingCommandGenerator bcg = new BenchmarkingCommandGenerator(this.setup.pathToBenchmarkingCommands, this.setup.pathToEndpoints, config, this.setup.getSeMoDeJarLocation());
+//
+//        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
+//        for (final String provider : userProviders.keySet()) {
+//            for (final String language : userProviders.get(provider).getLanguage()) {
+//                bcg.generateCommands(language, provider);
+//            }
+//        }
+//    }
 
-        final BenchmarkConfig config = new BenchmarkConfig(numberOfThreads, benchmarkingMode, benchmarkingParameters);
-        this.userConfigHandler.updateBenchmarkConfig(config);
-
-        final BenchmarkingCommandGenerator bcg = new BenchmarkingCommandGenerator(this.setup.pathToBenchmarkingCommands, this.setup.pathToEndpoints, config, this.setup.getSeMoDeJarLocation());
-
-        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
-        for (final String provider : userProviders.keySet()) {
-            for (final String language : userProviders.get(provider).getLanguage()) {
-                bcg.generateCommands(language, provider);
-            }
-        }
+    public void fetchBenchmarkData() {
     }
 
     @Deprecated
     public void fetchPerformanceData() throws SeMoDeException {
 
-        final FetchingCommandGenerator fcg = new FetchingCommandGenerator(this.setup.pathToBenchmarkingCommands, this.setup.pathToFetchingCommands, this.setup.pathToEndpoints, this.setup.globalConfig.getLanguageConfigMap(), this.setup.getSeMoDeJarLocation());
-        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
-        for (final String provider : userProviders.keySet()) {
-            for (final String language : userProviders.get(provider).getLanguage()) {
-                fcg.fetchCommands(provider, language);
-            }
-        }
+//        final FetchingCommandGenerator fcg = new FetchingCommandGenerator(this.setup.pathToBenchmarkExecution, this.setup.pathToFetchingCommands, this.setup.pathToEndpoints, this.setup.globalConfig.getLanguageConfigMap(), this.setup.getSeMoDeJarLocation());
+//        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
+//        for (final String provider : userProviders.keySet()) {
+//            for (final String language : userProviders.get(provider).getLanguage()) {
+//                fcg.fetchCommands(provider, language);
+//            }
+//        }
     }
 
-    public void generateCalibration() throws SeMoDeException {
+    public void configureCalibration() throws SeMoDeException {
         String platform = "";
         final List<String> validPlatforms = List.of(SupportedPlatform.values()).stream().map(SupportedPlatform::getText).collect(Collectors.toList());
         while (!validPlatforms.contains(platform)) {
@@ -395,7 +315,7 @@ public class PipelineSetupController {
      *
      * @throws SeMoDeException
      */
-    public void stopCalibration() throws SeMoDeException {
+    public void undeployCalibration() throws SeMoDeException {
         if (this.userConfigHandler.isLocalEnabled()) {
             this.calibration = new LocalCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getLocalConfig());
             this.calibration.stopCalibration();

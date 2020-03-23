@@ -50,22 +50,20 @@ public class PipelineSetupUtility extends CustomUtility {
         System.out.println();
         System.out.println("Please type in a command or \"exit\".");
         System.out.println("Benchmarking Options:");
-        System.out.println(" (config)             Alter/Specify the current configuration");
-        System.out.println(" (deploy)             Starts the deployment");
-        System.out.println(" (endpoints)          Generate endpoints for benchmarking - deprecated");
-        System.out.println(" (commands)           Generate benchmarking commands in a bat-file - deprecated");
-        System.out.println(" (fetch)              Fetch log data from various platforms");
-        System.out.println(" (undeploy)           Undeploying the current cloud functions");
-        System.out.println(" (benchmark)          Starts the whole benchmarking pipeline");
+        System.out.println(" (configBenchmark)     Alter/Specify the current configuration");
+        System.out.println(" (deployBenchmark)     Starts the deployment");
+        System.out.println(" (executeBenchmark)    Executes the benchmark");
+        System.out.println(" (fetchBenchmark)      Fetch the benchmark data");
+        System.out.println(" (undeployBenchmark)   Undeploying the current cloud functions");
         System.out.println("Simulation Options:");
-        System.out.println(" (calibrate)          Perform a calibration (linpack)");
-        System.out.println(" (startCalibration)   Starts the deployment (optional) and the configured calibration");
-        System.out.println(" (stopCalibration)    Undeploys the calibration");
-        System.out.println(" (mapping)            Computes the mapping between two calibrations");
-        System.out.println(" (run)                Run container based on calibration");
+        System.out.println(" (configCalibration)   Perform a calibration (linpack)");
+        System.out.println(" (deployCalibration)   Starts the deployment (optional) and the configured calibration");
+        System.out.println(" (undeployCalibration) Undeploys the calibration");
+        System.out.println(" (mapping)             Computes the mapping between two calibrations");
+        System.out.println(" (run)                 Run container based on calibration");
         System.out.println("Other Options:");
-        System.out.println(" (status)             Get the current configuration");
-        System.out.println(" (exit)               Terminate the program");
+        System.out.println(" (status)              Get the current configuration");
+        System.out.println(" (exit)                Terminate the program");
     }
 
     private void loadOrInitSetup(final String name) throws SeMoDeException {
@@ -84,30 +82,24 @@ public class PipelineSetupUtility extends CustomUtility {
         switch (command) {
 
             // benchmark options
-            case "config":
+            case "configBenchmark":
                 this.controller.configureBenchmarkSetup();
                 break;
-            case "deploy":
+            case "deployBenchmark":
                 this.controller.deployFunctions();
                 break;
-            case "endpoints":
-                this.controller.generateEndpoints();
+            case "executeBenchmark":
+                this.controller.executeBenchmark();
                 break;
-            case "commands":
-                this.controller.generateBenchmarkingCommands();
+            case "fetchBenchmark":
+                this.controller.fetchBenchmarkData();
                 break;
-            case "fetch":
-                this.controller.fetchPerformanceData();
-                break;
-            case "undeploy":
-                this.controller.undeploy();
-                break;
-            case "benchmark":
-                // TODO automate as much as possible
+            case "undeployBenchmark":
+                this.controller.undeployBenchmark();
                 break;
             // calibration options
-            case "calibrate":
-                this.controller.generateCalibration();
+            case "configCalibration":
+                this.controller.configureCalibration();
                 break;
             case "startCalibration":
                 try {
@@ -118,8 +110,8 @@ public class PipelineSetupUtility extends CustomUtility {
                     throw e;
                 }
                 break;
-            case "stopCalibration":
-                this.controller.stopCalibration();
+            case "undeployCalibration":
+                this.controller.undeployCalibration();
                 break;
             case "mappging":
                 // TODO

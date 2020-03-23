@@ -7,21 +7,18 @@ import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AWSBenchmark implements BenchmarkMethods {
 
     private final String setupName;
-    private final Path pathToDeployment;
     private final AWSBenchmarkConfig awsBenchmarkConfig;
     private final AWSClient awsClient;
     private final String platformPrefix;
 
-    public AWSBenchmark(final String setupName, final Path pathToDeployment, final AWSBenchmarkConfig awsBenchmarkConfig) throws SeMoDeException {
+    public AWSBenchmark(final String setupName, final AWSBenchmarkConfig awsBenchmarkConfig) throws SeMoDeException {
         this.setupName = setupName + "_benchmark";
-        this.pathToDeployment = pathToDeployment;
         this.awsBenchmarkConfig = awsBenchmarkConfig;
         this.awsClient = new AWSClient(awsBenchmarkConfig.functionConfig.region);
         this.platformPrefix = this.setupName + "_";

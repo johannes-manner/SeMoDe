@@ -140,15 +140,22 @@ public class UserConfigHandler {
      * Currently only AWS is enabled.
      *
      * @param setupName
-     * @param pathToDeployment
      * @return
      */
-    public List<BenchmarkMethods> createBenchmarkMethodsFromConfig(final String setupName, final Path pathToDeployment) throws SeMoDeException {
+    public List<BenchmarkMethods> createBenchmarkMethodsFromConfig(final String setupName) throws SeMoDeException {
         final List<BenchmarkMethods> benchmarkMethods = new ArrayList<>();
         // if this is the case, the benchmark config was initialized, see function above
         if (this.userConfig.getBenchmarkConfig().awsBenchmarkConfig != null) {
-            benchmarkMethods.add(new AWSBenchmark(setupName, pathToDeployment, this.userConfig.getBenchmarkConfig().awsBenchmarkConfig));
+            benchmarkMethods.add(new AWSBenchmark(setupName, this.userConfig.getBenchmarkConfig().awsBenchmarkConfig));
         }
         return benchmarkMethods;
+    }
+
+    public void updateGlobalBenchmarkParameters(final String numberOfThreads, final String benchmarkingMode, final String benchmarkingParameters, final String postArgument) {
+        this.userConfig.getBenchmarkConfig().update(numberOfThreads, benchmarkingMode, benchmarkingParameters, postArgument);
+    }
+
+    public void logBenchmarkStartTime() {
+        this.userConfig.getBenchmarkConfig().logBenchmarkStartTime();
     }
 }

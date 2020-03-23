@@ -39,10 +39,7 @@ public class PipelineSetup {
     public final Path pathToConfig;
     public final Path pathToSources;
     // for benchmarking
-    public final Path pathToDeployment;
-    public final Path pathToEndpoints;
-    public final Path pathToBenchmarkingCommands;
-    public final Path pathToFetchingCommands;
+    public final Path pathToBenchmarkExecution;
     // for calibration
     public final Path pathToCalibration;
 
@@ -52,13 +49,7 @@ public class PipelineSetup {
         this.pathToConfig = this.pathToSetup.resolve("settings.json");
         this.pathToSources = this.pathToSetup.resolve("sources");
         this.pathToCalibration = this.pathToSetup.resolve("calibration");
-
-        final Path benchmarkPath = this.pathToSetup.resolve("benchmark");
-        this.pathToDeployment = benchmarkPath.resolve("deployments");
-        this.pathToEndpoints = benchmarkPath.resolve("endpoints");
-        this.pathToBenchmarkingCommands = benchmarkPath.resolve("benchmarkingCommands");
-        this.pathToFetchingCommands = benchmarkPath.resolve("fetchingCommands");
-
+        this.pathToBenchmarkExecution = this.pathToSetup.resolve("benchmark");
         this.globalConfig = this.loadGlobalConfig(PIPELINE_JSON);
     }
 

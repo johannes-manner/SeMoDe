@@ -66,7 +66,9 @@ public class AWSClient {
     }
 
     /**
-     * Invokes an AWS Lambda function with respective memory and returns the response.
+     * Invokes an AWS Lambda function with respective memory.
+     * GET request, used for the calibration or for function which specify a storage location to an S3 bucket,
+     * when data is generated.
      *
      * @param path schema is linpack_MEMORY
      */
