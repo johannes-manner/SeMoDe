@@ -24,12 +24,27 @@ public class AWSBenchmark implements BenchmarkMethods {
         this.platformPrefix = this.setupName + "_";
     }
 
-    private List<Pair<String, Integer>> generateFunctionNames() {
+    @Override
+    public List<Pair<String, Integer>> generateFunctionNames() {
         final List<Pair<String, Integer>> functionConfigs = new ArrayList<>();
         for (final Integer memorySize : this.awsBenchmarkConfig.functionConfig.memorySizes) {
             functionConfigs.add(new ImmutablePair<>(this.platformPrefix + memorySize, memorySize));
         }
         return functionConfigs;
+    }
+
+    @Override
+    public List<String> getUrlEndpointsOnPlatform() {
+        final List<String> urlEndpoints = new ArrayList<>();
+        for (final Pair<String, Integer> functionName : this.generateFunctionNames()) {
+            urlEndpoints.add(this.awsBenchmarkConfig.functionConfig.targetUrl + functionName.getLeft());
+        }
+        return urlEndpoints;
+    }
+
+    @Override
+    public boolean isInitialized() {
+        return this.awsBenchmarkConfig.isInitialized();
     }
 
     @Override

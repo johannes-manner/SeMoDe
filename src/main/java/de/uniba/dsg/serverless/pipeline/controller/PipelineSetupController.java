@@ -206,11 +206,12 @@ public class PipelineSetupController {
      * Logs the start and end time and stores it in the user config.
      * Needed for a later retrieval, see {@link #fetchBenchmarkData()}.
      */
-    public void executeBenchmark() {
+    public void executeBenchmark() throws SeMoDeException {
         this.userConfigHandler.logBenchmarkStartTime();
 
         final BenchmarkExecutor benchmarkExecutor = new BenchmarkExecutor(this.setup.pathToBenchmarkExecution, this.userConfigHandler.getBenchmarkConfig());
         benchmarkExecutor.generateLoadPattern();
+        benchmarkExecutor.executeBenchmark(this.userConfigHandler.createBenchmarkMethodsFromConfig(this.setup.name));
 
         this.userConfigHandler.logBenchmarkEndTime();
     }

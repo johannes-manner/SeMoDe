@@ -374,7 +374,6 @@ public class AWSClient {
 
         try {
             final AddPermissionResult result = this.amazonLambdaClient.addPermission(addPermissionRequest);
-            // TODO include check for status code
             System.out.println("update lambda permission: " + result.getSdkHttpMetadata().getHttpStatusCode());
             if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
                 System.err.println("Lambda function already exists! Permission update was not possible! Probably already there!");

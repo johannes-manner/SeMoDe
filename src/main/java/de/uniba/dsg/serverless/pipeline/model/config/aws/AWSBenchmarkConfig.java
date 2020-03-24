@@ -37,12 +37,6 @@ public class AWSBenchmarkConfig {
         this.functionConfig.reset();
     }
 
-    /**
-     * Only initialized, when the generated system values are present, e.g. the
-     * deployment internals. Otherwise not deployed or initialized.
-     *
-     * @return
-     */
     public boolean isInitialized() {
         return this.deploymentInternals.isInitialized();
     }
