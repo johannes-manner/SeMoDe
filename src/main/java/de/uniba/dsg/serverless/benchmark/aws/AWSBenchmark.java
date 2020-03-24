@@ -37,14 +37,24 @@ public class AWSBenchmark implements BenchmarkMethods {
     public List<String> getUrlEndpointsOnPlatform() {
         final List<String> urlEndpoints = new ArrayList<>();
         for (final Pair<String, Integer> functionName : this.generateFunctionNames()) {
-            urlEndpoints.add(this.awsBenchmarkConfig.functionConfig.targetUrl + functionName.getLeft());
+            urlEndpoints.add(this.awsBenchmarkConfig.functionConfig.targetUrl + "/" + functionName.getLeft());
         }
         return urlEndpoints;
     }
 
+    /**
+     * All values of the deploymentInternals are altered together,
+     * therefore a single check is sufficient.
+     *
+     * @return
+     */
     @Override
     public boolean isInitialized() {
-        return this.awsBenchmarkConfig.isInitialized();
+        final String restApiId = this.awsBenchmarkConfig.deploymentInternals.apiKeyId;
+        if (restApiId == null || "".equals(restApiId)) {
+            return false;
+        }
+        return true;
     }
 
     @Override

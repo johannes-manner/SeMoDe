@@ -101,7 +101,7 @@ public class PipelineSetupController {
             System.out.println("Insert aws function info:");
             System.out.println("Insert current region or skip setting: ");
             final String region = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert runtime for calibration or skip setting: ");
+            System.out.println("Insert runtime for benchmarking or skip setting: ");
             final String runtime = PipelineSetupUtility.scanner.nextLine();
             System.out.println("Insert function execution role (AWS IAM ARN) or skip setting: ");
             final String awsArnRole = PipelineSetupUtility.scanner.nextLine();
@@ -142,18 +142,19 @@ public class PipelineSetupController {
 
         // global benchmark parameters
         // TODO check if this is really needed - check the notes
+        System.out.println("Global benchmarking parameters:");
         System.out.println("Insert number of threads or skip setting:");
         final String numberOfThreads = PipelineSetupUtility.scanner.nextLine();
         System.out.println("Insert a supported benchmarking mode or skip setting. Options: "
                 + List.of(BenchmarkMode.values()).stream().map(BenchmarkMode::getText).collect(Collectors.toList()));
         System.out.println("Usage for each mode:\n"
-                + "concurrent NUMBER_OF_THREADS NUMBER_OF_REQUESTS\n"
-                + "sequentialInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
-                + "sequentialWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
-                + "sequentialConcurrent NUMBER_OF_THREADS NUMBER_OF_GROUPS NUMBER_OF_REQUESTS_GROUP DELAY\n"
-                + "sequentialChangingInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS (DELAY)+"
-                + "sequentialChangingWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS (DELAY)+"
-                + "arbitraryLoadPattern NUMBER_OF_THREADS FILE.csv");
+                + "\tconcurrent NUMBER_OF_THREADS NUMBER_OF_REQUESTS\n"
+                + "\tsequentialInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
+                + "\tsequentialWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
+                + "\tsequentialConcurrent NUMBER_OF_THREADS NUMBER_OF_GROUPS NUMBER_OF_REQUESTS_GROUP DELAY\n"
+                + "\tsequentialChangingInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS (DELAY)+\n"
+                + "\tsequentialChangingWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS (DELAY)+\n"
+                + "\tarbitraryLoadPattern NUMBER_OF_THREADS FILE.csv");
         final String benchmarkingMode = PipelineSetupUtility.scanner.nextLine();
         System.out.println("Insert benchmarking parameters or skip setting:");
         final String benchmarkingParameters = PipelineSetupUtility.scanner.nextLine();

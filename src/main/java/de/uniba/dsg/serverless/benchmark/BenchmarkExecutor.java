@@ -5,6 +5,8 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class BenchmarkExecutor {
@@ -71,17 +74,18 @@ public class BenchmarkExecutor {
                 for (final String functionEndpoint : benchmarkMethods.getUrlEndpointsOnPlatform()) {
                     // for each timestamp
                     for (final double timestamp : timestamps) {
-//                        try {
-//                            // 1 second time before the processing starts to get the processing of the functions triggers done
-//                            responses.add(executor.schedule(new FunctionTrigger(this.benchmarkConfig.postArgument, new URL(functionEndpoint)), (long) (1000 + timestamp * 1000), TimeUnit.MILLISECONDS));
-//                        } catch (final MalformedURLException e) {
-//                            throw new SeMoDeException("URL was malformed: " + functionEndpoint, e);
-//                        }
-                        System.out.println(functionEndpoint);
+                        try {
+                            // 1 second time before the processing starts to get the processing of the functions triggers done
+                            responses.add(executor.schedule(new FunctionTrigger(this.benchmarkConfig.postArgument, new URL(functionEndpoint)), (long) (1000 + timestamp * 1000), TimeUnit.MILLISECONDS));
+                        } catch (final MalformedURLException e) {
+                            throw new SeMoDeException("URL was malformed: " + functionEndpoint, e);
+                        }
                     }
                 }
             }
         }
+
+        // TODO shutdown executor service
     }
 
     private List<Double> loadLoadPatternFromFile() throws SeMoDeException {

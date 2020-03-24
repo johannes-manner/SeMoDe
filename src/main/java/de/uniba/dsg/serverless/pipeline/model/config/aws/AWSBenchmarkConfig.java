@@ -37,10 +37,6 @@ public class AWSBenchmarkConfig {
         this.functionConfig.reset();
     }
 
-    public boolean isInitialized() {
-        return this.deploymentInternals.isInitialized();
-    }
-
     @Override
     public String toString() {
         return "AWSBenchmarkConfig{" +

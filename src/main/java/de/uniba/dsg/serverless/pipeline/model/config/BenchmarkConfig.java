@@ -25,9 +25,9 @@ public class BenchmarkConfig {
     @Expose
     public String postArgument;
     @Expose
-    public LocalDateTime startTime;
+    public String startTime;
     @Expose
-    public LocalDateTime endTime;
+    public String endTime;
 
     // aws parameters
     @Expose
@@ -41,15 +41,6 @@ public class BenchmarkConfig {
             this.awsBenchmarkConfig = new AWSBenchmarkConfig();
         }
         return this.awsBenchmarkConfig;
-    }
-
-    /**
-     * Checks if the benchmark config was successfully configured.
-     *
-     * @return true, if the aws benchmark config was initialized with all mandatory parameters, otherwise false.
-     */
-    public boolean isAwsBenchmarkConfigInitialized() {
-        return this.awsBenchmarkConfig.isInitialized();
     }
 
     public void update(final String numberOfThreads, final String benchmarkingMode, final String benchmarkingParameters, final String postArgument) {
@@ -75,7 +66,7 @@ public class BenchmarkConfig {
      * Value is needed for a later retrieval of the information from the corresponding platform.
      */
     public void logBenchmarkStartTime() {
-        this.startTime = LocalDateTime.now();
+        this.startTime = LocalDateTime.now().toString();
     }
 
     /**
@@ -83,7 +74,7 @@ public class BenchmarkConfig {
      * Value is needed for a later retrieval of the information from the corresponding platform.
      */
     public void logBenchmarkEndTime() {
-        this.endTime = LocalDateTime.now();
+        this.endTime = LocalDateTime.now().toString();
     }
 
     @Override

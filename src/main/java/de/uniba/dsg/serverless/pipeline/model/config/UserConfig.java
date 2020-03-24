@@ -41,7 +41,7 @@ public class UserConfig {
      */
     public BenchmarkConfig getBenchmarkConfig() {
         if (this.benchmarkConfig == null) {
-            return new BenchmarkConfig();
+            this.benchmarkConfig = new BenchmarkConfig();
         }
         return this.benchmarkConfig;
     }

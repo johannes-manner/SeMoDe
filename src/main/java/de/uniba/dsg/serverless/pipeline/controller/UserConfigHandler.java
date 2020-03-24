@@ -155,15 +155,15 @@ public class UserConfigHandler {
         this.userConfig.getBenchmarkConfig().update(numberOfThreads, benchmarkingMode, benchmarkingParameters, postArgument);
     }
 
+    public BenchmarkConfig getBenchmarkConfig() {
+        return this.userConfig.getBenchmarkConfig();
+    }
+
     public void logBenchmarkStartTime() {
         this.userConfig.getBenchmarkConfig().logBenchmarkStartTime();
     }
 
     public void logBenchmarkEndTime() {
         this.userConfig.getBenchmarkConfig().logBenchmarkEndTime();
-    }
-
-    public BenchmarkConfig getBenchmarkConfig() {
-        return this.getBenchmarkConfig();
     }
 }
