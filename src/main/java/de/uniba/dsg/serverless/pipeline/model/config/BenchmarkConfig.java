@@ -43,6 +43,15 @@ public class BenchmarkConfig {
         return this.awsBenchmarkConfig;
     }
 
+    /**
+     * Checks if the benchmark config was successfully configured.
+     *
+     * @return true, if the aws benchmark config was initialized with all mandatory parameters, otherwise false.
+     */
+    public boolean isAwsBenchmarkConfigInitialized() {
+        return this.awsBenchmarkConfig.isInitialized();
+    }
+
     public void update(final String numberOfThreads, final String benchmarkingMode, final String benchmarkingParameters, final String postArgument) {
         if (!"".equals(numberOfThreads) && Ints.tryParse(numberOfThreads) != null) {
             this.numberThreads = Ints.tryParse(numberOfThreads);

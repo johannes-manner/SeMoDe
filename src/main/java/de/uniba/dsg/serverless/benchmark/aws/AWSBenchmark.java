@@ -40,5 +40,6 @@ public class AWSBenchmark implements BenchmarkMethods {
     @Override
     public void undeploy() {
         this.awsClient.removeAllDeployedResources(this.generateFunctionNames(), this.awsBenchmarkConfig.deploymentInternals);
+        this.awsBenchmarkConfig.resetConfig();
     }
 }

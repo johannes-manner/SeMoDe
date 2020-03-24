@@ -65,6 +65,15 @@ public class AWSFunctionConfig {
         }
     }
 
+    /**
+     * Resets all the internal values, helpful for documentation purposes
+     * to not confuse the user.
+     */
+    public void reset() {
+        this.targetUrl = "";
+        this.apiKey = "";
+    }
+
     @Override
     public String toString() {
         return "AWSFunctionConfig{" +

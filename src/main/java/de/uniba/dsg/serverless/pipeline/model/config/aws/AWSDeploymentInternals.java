@@ -26,12 +26,26 @@ public class AWSDeploymentInternals {
     }
 
     /**
-     * resets all the internal values, helpful for documentation purposes
+     * Resets all the internal values, helpful for documentation purposes
+     * to not confuse the user.
      */
     public void reset() {
         this.restApiId = "";
         this.apiKeyId = "";
         this.usagePlanId = "";
+    }
+
+    /**
+     * All values are altered together.
+     * Checking one attribute is therefore sufficient.
+     *
+     * @return
+     */
+    public boolean isInitialized() {
+        if (this.restApiId == null || "".equals(this.restApiId)) {
+            return false;
+        }
+        return true;
     }
 
     @Override

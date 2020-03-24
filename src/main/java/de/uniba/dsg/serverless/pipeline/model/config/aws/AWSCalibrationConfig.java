@@ -75,6 +75,18 @@ public class AWSCalibrationConfig {
         if (!"".equals(enabled)) this.enabled = Boolean.parseBoolean(enabled);
         this.functionConfig.update(region, runtime, awsArnLambdaRole, functionHandler, timeout, targetUrl, apiKey, memorySizes, pathToSource);
     }
+
+    /**
+     * Resets the system generated values and the identifier and names
+     * from the aws cloud platform. Leaves the <i>settings.json</i> in a
+     * consistent state.
+     * <br/>
+     * If you alter this method, also check {@link AWSBenchmarkConfig#resetConfig()}.
+     */
+    public void resetConfig() {
+        this.deploymentInternals.reset();
+        this.functionConfig.reset();
+    }
 }
 
 

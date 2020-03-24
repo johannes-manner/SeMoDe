@@ -534,8 +534,5 @@ public class AWSClient {
         }
 
         this.deleteApi(deploymentInternals);
-
-        // remove all values from the deployment internals
-        deploymentInternals.reset();
     }
 }

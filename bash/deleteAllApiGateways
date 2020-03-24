@@ -1,0 +1,38 @@
+
+# change aws location via
+# aws configure set region eu-west-1
+
+REGIONS=(
+    eu-central-1
+    eu-west-1
+    eu-west-2
+    eu-west-3
+    eu-north-1
+)
+
+for region in "${REGIONS[@]}"
+do
+    # set region temporarily
+    echo "configure region: $region"
+    aws configure set region "$region"
+
+    aws apigateway get-rest-apis > tmp.txt
+
+    grep id tmp.txt | cut -c20- > ids.txt
+
+    while IFS= read -r line
+        do
+        echo "delete ${line%%??} rest api"
+        aws apigateway delete-rest-api --rest-api-id "${line%%??}"
+        # cannot delete to many api in short time - has to wait 30 seconds after each deletion
+        sleep 30
+    done < ids.txt
+
+    # clean up
+    rm tmp.txt
+    rm ids.txt
+done
+
+# set default region
+aws configure set region eu-west-1
+

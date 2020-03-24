@@ -87,6 +87,7 @@ public class AWSCalibration implements CalibrationMethods {
     public void stopCalibration() {
         final List<Pair<String, Integer>> functionConfigs = this.generateFunctionNames();
         this.client.removeAllDeployedResources(functionConfigs, this.config.deploymentInternals);
+        this.config.resetConfig();
     }
 
     private void executeLinpackCalibration(final String platformPrefix) throws SeMoDeException {

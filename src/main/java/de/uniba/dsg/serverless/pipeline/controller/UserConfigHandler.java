@@ -158,4 +158,12 @@ public class UserConfigHandler {
     public void logBenchmarkStartTime() {
         this.userConfig.getBenchmarkConfig().logBenchmarkStartTime();
     }
+
+    public void logBenchmarkEndTime() {
+        this.userConfig.getBenchmarkConfig().logBenchmarkEndTime();
+    }
+
+    public BenchmarkConfig getBenchmarkConfig() {
+        return this.getBenchmarkConfig();
+    }
 }

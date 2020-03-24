@@ -146,6 +146,14 @@ public class PipelineSetupController {
         final String numberOfThreads = PipelineSetupUtility.scanner.nextLine();
         System.out.println("Insert a supported benchmarking mode or skip setting. Options: "
                 + List.of(BenchmarkMode.values()).stream().map(BenchmarkMode::getText).collect(Collectors.toList()));
+        System.out.println("Usage for each mode:\n"
+                + "concurrent NUMBER_OF_THREADS NUMBER_OF_REQUESTS\n"
+                + "sequentialInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
+                + "sequentialWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
+                + "sequentialConcurrent NUMBER_OF_THREADS NUMBER_OF_GROUPS NUMBER_OF_REQUESTS_GROUP DELAY\n"
+                + "sequentialChangingInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS (DELAY)+"
+                + "sequentialChangingWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS (DELAY)+"
+                + "arbitraryLoadPattern NUMBER_OF_THREADS FILE.csv");
         final String benchmarkingMode = PipelineSetupUtility.scanner.nextLine();
         System.out.println("Insert benchmarking parameters or skip setting:");
         final String benchmarkingParameters = PipelineSetupUtility.scanner.nextLine();
@@ -194,35 +202,18 @@ public class PipelineSetupController {
         }
     }
 
+    /**
+     * Logs the start and end time and stores it in the user config.
+     * Needed for a later retrieval, see {@link #fetchBenchmarkData()}.
+     */
     public void executeBenchmark() {
         this.userConfigHandler.logBenchmarkStartTime();
-        final BenchmarkExecutor benchmarkExecutor = new BenchmarkExecutor();
 
+        final BenchmarkExecutor benchmarkExecutor = new BenchmarkExecutor(this.setup.pathToBenchmarkExecution, this.userConfigHandler.getBenchmarkConfig());
+        benchmarkExecutor.generateLoadPattern();
+
+        this.userConfigHandler.logBenchmarkEndTime();
     }
-
-//    @Deprecated
-//    public void generateBenchmarkingCommands() throws SeMoDeException {
-//        // TODO make update of values (input parameters) more robust
-//        System.out.println("Insert number of threads or skip setting:");
-//        final String numberOfThreads = PipelineSetupUtility.scanner.nextLine();
-//        System.out.println("Insert a supported benchmarking mode");
-//        final String benchmarkingMode = PipelineSetupUtility.scanner.nextLine();
-//        System.out.println("Insert benchmarking parameters");
-//        final String benchmarkingParameters = PipelineSetupUtility.scanner.nextLine();
-//        System.out.println("Copy a file called 'params.json' in the 'benchmarkingCommands' folder");
-//
-////        final BenchmarkConfig config = new BenchmarkConfig(numberOfThreads, benchmarkingMode, benchmarkingParameters);
-////        this.userConfigHandler.updateBenchmarkConfig(config);
-//
-////        final BenchmarkingCommandGenerator bcg = new BenchmarkingCommandGenerator(this.setup.pathToBenchmarkingCommands, this.setup.pathToEndpoints, config, this.setup.getSeMoDeJarLocation());
-//
-//        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
-//        for (final String provider : userProviders.keySet()) {
-//            for (final String language : userProviders.get(provider).getLanguage()) {
-//                bcg.generateCommands(language, provider);
-//            }
-//        }
-//    }
 
     public void fetchBenchmarkData() {
     }
