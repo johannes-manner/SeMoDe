@@ -4,8 +4,6 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.controller.PipelineSetupController;
 import de.uniba.dsg.serverless.pipeline.model.PipelineSetup;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 import java.util.Scanner;
@@ -13,7 +11,6 @@ import java.util.Scanner;
 public class PipelineSetupUtility extends CustomUtility {
 
     public static final Scanner scanner = new Scanner(System.in);
-    private static final Logger logger = LogManager.getLogger(PipelineSetupUtility.class.getName());
 
     private PipelineSetupController controller;
 
@@ -24,13 +21,13 @@ public class PipelineSetupUtility extends CustomUtility {
     @Override
     public void start(final List<String> args) {
         if (args.size() < 1) {
-            logger.fatal("Wrong parameter size: " + "\nUSAGE: SETUP_NAME");
+            System.err.println("Wrong parameter size: " + "\nUSAGE: SETUP_NAME");
             return;
         }
         try {
             this.loadOrInitSetup(args.get(0));
         } catch (final SeMoDeException e) {
-            logger.fatal(e);
+            System.err.println(e);
             return;
         }
         this.printRunCommandUsage();
@@ -39,7 +36,7 @@ public class PipelineSetupUtility extends CustomUtility {
             try {
                 this.executeRunCommand(command);
             } catch (final SeMoDeException e) {
-                logger.fatal(e);
+                System.err.println(e);
             }
             this.printRunCommandUsage();
             command = scanner.nextLine();
@@ -75,7 +72,7 @@ public class PipelineSetupUtility extends CustomUtility {
             this.controller.init();
         }
 
-        logger.info("Successfully loaded benchmark setup \"" + setup.name + "\"");
+        System.out.println("Successfully loaded benchmark setup \"" + setup.name + "\"");
     }
 
     private void executeRunCommand(final String command) throws SeMoDeException {

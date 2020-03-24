@@ -1,8 +1,7 @@
 package de.uniba.dsg.serverless.benchmark;
 
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import de.uniba.dsg.serverless.util.FileLogger;
 import org.glassfish.jersey.client.ClientProperties;
 
 import javax.ws.rs.client.*;
@@ -16,9 +15,6 @@ import java.util.concurrent.Callable;
 
 public class FunctionTrigger implements Callable<String> {
 
-    // only use the logger in this class for logging the REST data - see
-    // log4j2-test.xml
-    private static final Logger logger = LogManager.getLogger(FunctionTrigger.class.getName());
 
     private static final String CSV_SEPARATOR = System.getProperty("CSV_SEPARATOR");
 
@@ -31,11 +27,14 @@ public class FunctionTrigger implements Callable<String> {
     private final Map<String, String> queryParameters;
     private final Map<String, String> headerParameters;
 
-    public FunctionTrigger(final String platform, final String jsonInput, final URL url, final Map<String, String> headerValues) {
+    private final FileLogger logger;
+
+    public FunctionTrigger(final String platform, final String jsonInput, final URL url, final Map<String, String> headerValues, final FileLogger fileLogger) {
 
         this.platform = platform;
         this.jsonInput = jsonInput;
         this.headerParameters = headerValues;
+        this.logger = fileLogger;
 
         String tempHost = url.getProtocol() + "://" + url.getHost();
         if (url.getPort() != -1) {
@@ -60,7 +59,7 @@ public class FunctionTrigger implements Callable<String> {
     public String call() throws SeMoDeException {
 
         final String uuid = UUID.randomUUID().toString();
-        logger.info("START" + CSV_SEPARATOR + uuid);
+        this.logger.info("START" + CSV_SEPARATOR + uuid);
 
         final Client client = ClientBuilder.newClient();
         client.property(ClientProperties.CONNECT_TIMEOUT, LoadPatternGenerator.PLATFORM_FUNCTION_TIMEOUT * 1000);
@@ -81,15 +80,15 @@ public class FunctionTrigger implements Callable<String> {
             }
             response = invocation.post(Entity.entity(this.jsonInput, MediaType.APPLICATION_JSON));
         } catch (final RuntimeException e) {
-            logger.info("END" + CSV_SEPARATOR + uuid);
-            logger.warn("ERROR" + CSV_SEPARATOR + uuid);
+            this.logger.info("END" + CSV_SEPARATOR + uuid);
+            this.logger.warning("ERROR" + CSV_SEPARATOR + uuid);
             throw new SeMoDeException("Can't submit request", e);
         }
-        logger.info("END" + CSV_SEPARATOR + uuid);
+        this.logger.info("END" + CSV_SEPARATOR + uuid);
 
 
         if (response.getStatus() != REQUEST_PASSED_STATUS) {
-            logger.warn("ERROR" + CSV_SEPARATOR + uuid + CSV_SEPARATOR + response.getStatus() + " - "
+            this.logger.warning("ERROR" + CSV_SEPARATOR + uuid + CSV_SEPARATOR + response.getStatus() + " - "
                     + response.getStatusInfo());
             throw new SeMoDeException(
                     "Request exited with an error: " + response.getStatus() + " - " + response.getStatusInfo());
@@ -99,7 +98,7 @@ public class FunctionTrigger implements Callable<String> {
         // result key and a containerId
         final String responseEntity = response.readEntity(String.class);
 
-        final CloudFunctionResponse functionResponse = new CloudFunctionResponse(responseEntity, uuid);
+        final CloudFunctionResponse functionResponse = new CloudFunctionResponse(responseEntity, uuid, this.logger);
         functionResponse.extractMetadata();
         functionResponse.logMetadata();
 

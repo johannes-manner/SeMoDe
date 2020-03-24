@@ -3,6 +3,7 @@ package de.uniba.dsg.serverless.benchmark;
 import com.google.common.primitives.Doubles;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
+import de.uniba.dsg.serverless.util.FileLogger;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -23,11 +24,15 @@ public class BenchmarkExecutor {
     private final Path pathToBenchmarkExecution;
     private final BenchmarkConfig benchmarkConfig;
 
+    // for logging benchmark execution
+    private final FileLogger logger;
+
     private Path loadPatternFile;
 
-    public BenchmarkExecutor(final Path pathToBenchmarkExecution, final BenchmarkConfig benchmarkConfig) {
+    public BenchmarkExecutor(final Path pathToBenchmarkExecution, final BenchmarkConfig benchmarkConfig) throws SeMoDeException {
         this.pathToBenchmarkExecution = pathToBenchmarkExecution;
         this.benchmarkConfig = benchmarkConfig;
+        this.logger = new FileLogger("benchmarkLogger", pathToBenchmarkExecution.resolve("execution.log").toString());
     }
 
     public void generateLoadPattern() throws SeMoDeException {
@@ -79,7 +84,7 @@ public class BenchmarkExecutor {
                         try {
                             // 1 second time before the processing starts to get the processing of the functions triggers done
                             tmpTimestamp = (long) (1000 + timestamp * 1000);
-                            final FunctionTrigger f = new FunctionTrigger(benchmarkMethods.getPlatform(), this.benchmarkConfig.postArgument, new URL(functionEndpoint), headerParameters);
+                            final FunctionTrigger f = new FunctionTrigger(benchmarkMethods.getPlatform(), this.benchmarkConfig.postArgument, new URL(functionEndpoint), headerParameters, this.logger);
                             responses.add(executor.schedule(f, tmpTimestamp, TimeUnit.MILLISECONDS));
                         } catch (final MalformedURLException e) {
                             throw new SeMoDeException("URL was malformed: " + functionEndpoint, e);
