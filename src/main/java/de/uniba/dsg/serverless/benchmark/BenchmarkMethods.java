@@ -3,6 +3,7 @@ package de.uniba.dsg.serverless.benchmark;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
+import java.util.Map;
 
 public interface BenchmarkMethods {
 
@@ -22,6 +23,22 @@ public interface BenchmarkMethods {
      * @return
      */
     public List<String> getUrlEndpointsOnPlatform();
+
+    /**
+     * Creates a map of header parameters for a single benchmark.
+     * The assumed architecture is that a single benchmark with multiple functions
+     * is secured by a single secret.
+     *
+     * @return header map for configuring the web request
+     */
+    public Map<String, String> getHeaderParameter();
+
+    /**
+     * Return the platform name for logging.
+     *
+     * @return
+     */
+    public String getPlatform();
 
     /**
      * Only initialized, when the generated system values are present, e.g. the

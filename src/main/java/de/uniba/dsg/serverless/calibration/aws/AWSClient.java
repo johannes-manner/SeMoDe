@@ -276,7 +276,7 @@ public class AWSClient {
                 .withRestApiId(restApiId)
                 .withResourceId(resourceId)
                 .withHttpMethod("ANY")
-                .withType("AWS_PROXY")
+                .withType("AWS")
                 .withIntegrationHttpMethod("POST")
                 .withUri("arn:aws:apigateway:" + region + ":lambda:path/2015-03-31/functions/arn:aws:lambda:" + region + ":"
                         + this.iamClient.getUser().getUser().getUserId()
@@ -447,7 +447,7 @@ public class AWSClient {
 
     private void deployLambdaFunction(final String functionName, final int memorySize, final AWSFunctionConfig functionConfig) throws SeMoDeException {
         // change directory to the linpack directory and zip it
-        this.executeBashCommand("cd " + functionConfig.pathToSource + "; zip function.zip *");
+        this.executeBashCommand("cd " + functionConfig.pathToSource + "; zip -r function.zip *");
         this.deployLambdaFunction(functionName, functionConfig.runtime, functionConfig.awsArnLambdaRole,
                 functionConfig.functionHandler, functionConfig.timeout, memorySize,
                 Paths.get(functionConfig.pathToSource + "/function.zip"));

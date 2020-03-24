@@ -1,6 +1,5 @@
 package de.uniba.dsg.serverless.cli;
 
-import de.uniba.dsg.serverless.benchmark.FunctionTrigger;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -122,8 +121,8 @@ public class BenchmarkUtility extends CustomUtility {
         }
 
         for (final double d : timestamps) {
-            responses.add(
-                    executor.schedule(new FunctionTrigger(jsonInput, url), (long) (d * 1000), TimeUnit.MILLISECONDS));
+//            responses.add(
+//                    executor.schedule(new FunctionTrigger(jsonInput, url), (long) (d * 1000), TimeUnit.MILLISECONDS));
         }
 
         for (final Future<String> future : responses) {

@@ -3,12 +3,15 @@ package de.uniba.dsg.serverless.benchmark.aws;
 import de.uniba.dsg.serverless.benchmark.BenchmarkMethods;
 import de.uniba.dsg.serverless.calibration.aws.AWSClient;
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AWSBenchmark implements BenchmarkMethods {
 
@@ -40,6 +43,18 @@ public class AWSBenchmark implements BenchmarkMethods {
             urlEndpoints.add(this.awsBenchmarkConfig.functionConfig.targetUrl + "/" + functionName.getLeft());
         }
         return urlEndpoints;
+    }
+
+    @Override
+    public Map<String, String> getHeaderParameter() {
+        final Map<String, String> headerParameters = new HashMap<>();
+        headerParameters.put("x-api-key", this.awsBenchmarkConfig.functionConfig.apiKey);
+        return headerParameters;
+    }
+
+    @Override
+    public String getPlatform() {
+        return SupportedPlatform.AWS.getText();
     }
 
     /**

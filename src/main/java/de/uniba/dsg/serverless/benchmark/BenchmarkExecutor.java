@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -66,17 +67,20 @@ public class BenchmarkExecutor {
         final ScheduledExecutorService executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
         final List<Future<String>> responses = new ArrayList<>();
 
-
+        long tmpTimestamp = 0;
         // for each provider
         for (final BenchmarkMethods benchmarkMethods : benchmarkMethodsFromConfig) {
             if (benchmarkMethods.isInitialized()) {
                 // for each function
+                final Map<String, String> headerParameters = benchmarkMethods.getHeaderParameter();
                 for (final String functionEndpoint : benchmarkMethods.getUrlEndpointsOnPlatform()) {
                     // for each timestamp
                     for (final double timestamp : timestamps) {
                         try {
                             // 1 second time before the processing starts to get the processing of the functions triggers done
-                            responses.add(executor.schedule(new FunctionTrigger(this.benchmarkConfig.postArgument, new URL(functionEndpoint)), (long) (1000 + timestamp * 1000), TimeUnit.MILLISECONDS));
+                            tmpTimestamp = (long) (1000 + timestamp * 1000);
+                            final FunctionTrigger f = new FunctionTrigger(benchmarkMethods.getPlatform(), this.benchmarkConfig.postArgument, new URL(functionEndpoint), headerParameters);
+                            responses.add(executor.schedule(f, tmpTimestamp, TimeUnit.MILLISECONDS));
                         } catch (final MalformedURLException e) {
                             throw new SeMoDeException("URL was malformed: " + functionEndpoint, e);
                         }
@@ -85,7 +89,17 @@ public class BenchmarkExecutor {
             }
         }
 
-        // TODO shutdown executor service
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(tmpTimestamp + 30_000, TimeUnit.MILLISECONDS)) {
+                if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+                    throw new SeMoDeException("Pool did not terminate. Shutdown JVM manually!");
+                }
+            }
+        } catch (final InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     private List<Double> loadLoadPatternFromFile() throws SeMoDeException {
