@@ -1,7 +1,7 @@
 package de.uniba.dsg.serverless.calibration;
 
-import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 import java.io.IOException;
 import java.nio.file.Files;

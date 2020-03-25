@@ -1,7 +1,7 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 import java.io.IOException;
 import java.util.ArrayList;

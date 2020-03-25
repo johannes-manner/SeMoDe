@@ -7,8 +7,8 @@ import de.uniba.dsg.serverless.calibration.MemoryUnit;
 import de.uniba.dsg.serverless.calibration.local.DockerContainer;
 import de.uniba.dsg.serverless.calibration.local.ResourceLimit;
 import de.uniba.dsg.serverless.cli.CalibrationUtility;
-import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 

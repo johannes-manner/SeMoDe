@@ -3,16 +3,16 @@ package de.uniba.dsg.serverless.cli;
 import com.google.common.collect.Maps;
 import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.calibration.CalibrationCommand;
-import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.calibration.local.ResourceLimit;
 import de.uniba.dsg.serverless.calibration.mapping.MappingMaster;
+import de.uniba.dsg.serverless.calibration.methods.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
-import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
 import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 import java.io.FileInputStream;
 import java.io.IOException;

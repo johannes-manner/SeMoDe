@@ -1,9 +1,9 @@
 package de.uniba.dsg.serverless.calibration.mapping;
 
 import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
 import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 import java.nio.file.Path;
 

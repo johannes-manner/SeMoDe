@@ -1,6 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.model;
 
-import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 public enum SupportedPlatform {
 

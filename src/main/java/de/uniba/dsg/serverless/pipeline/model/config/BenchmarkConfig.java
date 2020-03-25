@@ -2,7 +2,7 @@ package de.uniba.dsg.serverless.pipeline.model.config;
 
 import com.google.common.primitives.Ints;
 import com.google.gson.annotations.Expose;
-import de.uniba.dsg.serverless.benchmark.BenchmarkMode;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
 
 import java.time.LocalDateTime;

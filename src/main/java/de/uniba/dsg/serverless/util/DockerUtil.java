@@ -1,7 +1,5 @@
 package de.uniba.dsg.serverless.util;
 
-import de.uniba.dsg.serverless.model.SeMoDeException;
-
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -16,10 +14,10 @@ public class DockerUtil {
      * @return time as long
      * @throws SeMoDeException when the time is not of ISO_DATE_TIME format
      */
-    public static long parseTime(String time) throws SeMoDeException {
+    public static long parseTime(final String time) throws SeMoDeException {
         try {
             return LocalDateTime.parse(time, DateTimeFormatter.ISO_DATE_TIME).toInstant(ZoneOffset.ofHours(0)).toEpochMilli();
-        } catch (DateTimeParseException e) {
+        } catch (final DateTimeParseException e) {
             throw new SeMoDeException("Date does not have the correct format. time:" + time);
         }
     }

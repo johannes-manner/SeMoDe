@@ -3,7 +3,7 @@ package de.uniba.dsg.serverless.pipeline.model.config.aws;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
-import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

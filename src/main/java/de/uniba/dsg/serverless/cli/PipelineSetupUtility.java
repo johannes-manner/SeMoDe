@@ -1,9 +1,9 @@
 package de.uniba.dsg.serverless.cli;
 
-import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.controller.PipelineSetupController;
 import de.uniba.dsg.serverless.pipeline.model.PipelineSetup;
 import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.List;

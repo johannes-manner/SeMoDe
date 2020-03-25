@@ -2,9 +2,9 @@ package de.uniba.dsg.serverless.pipeline.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
-import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.config.GlobalConfig;
 import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

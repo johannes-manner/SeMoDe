@@ -2,11 +2,11 @@ package de.uniba.dsg.serverless.calibration.local;
 
 import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.calibration.Calibration;
-import de.uniba.dsg.serverless.calibration.CalibrationMethods;
 import de.uniba.dsg.serverless.calibration.LinpackParser;
-import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
 import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 import java.io.BufferedReader;
 import java.io.IOException;

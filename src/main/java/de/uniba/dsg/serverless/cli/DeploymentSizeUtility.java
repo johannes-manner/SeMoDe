@@ -1,9 +1,9 @@
 package de.uniba.dsg.serverless.cli;
 
 import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.FileSizeEnlarger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +28,7 @@ public class DeploymentSizeUtility extends CustomUtility {
     @Override
     public void start(final List<String> args) {
         try {
-			this.parseArguments(args);
+            this.parseArguments(args);
 
             final FileSizeEnlarger enlarger = new FileSizeEnlarger(this.path);
             if (this.isZipFile) {
@@ -48,18 +48,18 @@ public class DeploymentSizeUtility extends CustomUtility {
         }
 
         try {
-			this.desiredFileSize = Long.parseLong(arguments.get(1));
+            this.desiredFileSize = Long.parseLong(arguments.get(1));
         } catch (final NumberFormatException e) {
             throw new SeMoDeException(e.getMessage(), e);
         }
 
         try {
             final String fileName = arguments.get(0);
-			this.path = Paths.get(fileName);
+            this.path = Paths.get(fileName);
             if (!Files.exists(this.path) || !Files.isRegularFile(this.path) || !Files.isReadable(this.path)) {
                 throw new SeMoDeException("File must be an existing readable file or zipFile.");
             }
-			this.isZipFile = fileName.toLowerCase().endsWith(".zip") || fileName.toLowerCase().endsWith(".jar");
+            this.isZipFile = fileName.toLowerCase().endsWith(".zip") || fileName.toLowerCase().endsWith(".jar");
             if (this.desiredFileSize <= Files.size(this.path)) {
                 throw new SeMoDeException("Desired File Size must be larger than current file Size.");
             }
@@ -71,7 +71,7 @@ public class DeploymentSizeUtility extends CustomUtility {
             throw new SeMoDeException("No comment escape sequence provided");
         }
         if (!this.isZipFile) {
-			this.commentStart = arguments.get(2);
+            this.commentStart = arguments.get(2);
         }
     }
 }

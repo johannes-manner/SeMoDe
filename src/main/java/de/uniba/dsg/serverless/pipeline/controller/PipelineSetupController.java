@@ -1,19 +1,16 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
-import de.uniba.dsg.serverless.benchmark.BenchmarkExecutor;
-import de.uniba.dsg.serverless.benchmark.BenchmarkMode;
-import de.uniba.dsg.serverless.benchmark.methods.BenchmarkMethods;
-import de.uniba.dsg.serverless.calibration.CalibrationMethods;
-import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
-import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.calibration.methods.AWSCalibration;
+import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
+import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
+import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.model.PipelineSetup;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.ProviderConfig;
-import de.uniba.dsg.serverless.pipeline.utils.BenchmarkingCommandGenerator;
-import de.uniba.dsg.serverless.pipeline.utils.EndpointExtractor;
-import de.uniba.dsg.serverless.pipeline.utils.FetchingCommandGenerator;
 import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -94,9 +91,6 @@ public class PipelineSetupController {
      * In 2020, the procedure changed, started with AWS, that native SDKs should be used for getting
      * the information. The benchmarking pipeline is reimplemented due to this decision and other
      * providers and open source FaaS platforms should follow.
-     * <br/>
-     * Therefore the {@link BenchmarkingCommandGenerator}, {@link EndpointExtractor} and {@link FetchingCommandGenerator}
-     * are deprecated.
      */
     public void configureBenchmarkSetup() throws SeMoDeException {
         String provider = "";

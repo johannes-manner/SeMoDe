@@ -1,7 +1,5 @@
 package de.uniba.dsg.serverless.util;
 
-import de.uniba.dsg.serverless.model.SeMoDeException;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;

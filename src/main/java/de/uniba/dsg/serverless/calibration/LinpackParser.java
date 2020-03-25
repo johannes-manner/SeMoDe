@@ -1,6 +1,6 @@
 package de.uniba.dsg.serverless.calibration;
 
-import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,6 +10,7 @@ import java.util.List;
 /**
  * Class to only parse the Linpack results locally and on providers' platfrom.
  * See {@link #parseLinpack()}.
+ *
  * @author mendress
  */
 public class LinpackParser {
@@ -17,7 +18,7 @@ public class LinpackParser {
 
     private final Path linpackCalibrationPath;
 
-    public LinpackParser(Path linpackCalibrationPath) {
+    public LinpackParser(final Path linpackCalibrationPath) {
         this.linpackCalibrationPath = linpackCalibrationPath;
     }
 
@@ -29,14 +30,14 @@ public class LinpackParser {
      * @throws SeMoDeException if the file can't be read.
      */
     public double parseLinpack() throws SeMoDeException {
-        if (!Files.exists(linpackCalibrationPath)) {
+        if (!Files.exists(this.linpackCalibrationPath)) {
             throw new SeMoDeException("Calibration benchmark file does not exist.");
         }
         try {
-            List<String> lines = Files.readAllLines(linpackCalibrationPath);
-            String[] results = lines.get(lines.size() - 7).split("\\s+");
+            final List<String> lines = Files.readAllLines(this.linpackCalibrationPath);
+            final String[] results = lines.get(lines.size() - 7).split("\\s+");
             return Double.parseDouble(results[3]);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new SeMoDeException("Could not read file. ", e);
         }
     }
