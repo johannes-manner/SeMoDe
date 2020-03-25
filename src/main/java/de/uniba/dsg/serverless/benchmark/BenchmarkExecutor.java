@@ -32,7 +32,7 @@ public class BenchmarkExecutor {
     public BenchmarkExecutor(final Path pathToBenchmarkExecution, final BenchmarkConfig benchmarkConfig) throws SeMoDeException {
         this.pathToBenchmarkExecution = pathToBenchmarkExecution;
         this.benchmarkConfig = benchmarkConfig;
-        this.logger = new FileLogger("benchmarkLogger", pathToBenchmarkExecution.resolve("execution.log").toString());
+        this.logger = new FileLogger("benchmarkLogger", pathToBenchmarkExecution.resolve("execution.log").toString(), false);
     }
 
     public void generateLoadPattern() throws SeMoDeException {

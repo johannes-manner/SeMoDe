@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.config.GlobalConfig;
+import de.uniba.dsg.serverless.util.FileLogger;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -27,7 +28,6 @@ import java.util.function.Predicate;
 public class PipelineSetup {
 
     public static final String SETUP_LOCATION = "setups";
-    public static final String SEPERATOR = ";";
     private static final String PIPELINE_JSON = "pipeline.json";
     private static final String SEMODE_JAR_NAME = "SeMoDe.jar";
 
@@ -43,6 +43,9 @@ public class PipelineSetup {
     // for calibration
     public final Path pathToCalibration;
 
+    // for logging the pipeline interaction
+    public final FileLogger logger;
+
     public PipelineSetup(final String name) throws SeMoDeException {
         this.name = name;
         this.pathToSetup = Paths.get(PipelineSetup.SETUP_LOCATION, name);
@@ -51,6 +54,7 @@ public class PipelineSetup {
         this.pathToCalibration = this.pathToSetup.resolve("calibration");
         this.pathToBenchmarkExecution = this.pathToSetup.resolve("benchmark");
         this.globalConfig = this.loadGlobalConfig(PIPELINE_JSON);
+        this.logger = new FileLogger("pipeline", this.pathToSetup.resolve("pipeline.log").toString(), false);
     }
 
 

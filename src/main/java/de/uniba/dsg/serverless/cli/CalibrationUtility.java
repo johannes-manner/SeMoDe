@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.cli;
 
 import com.google.common.collect.Maps;
+import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.calibration.CalibrationCommand;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
@@ -11,8 +12,7 @@ import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import de.uniba.dsg.serverless.util.FileLogger;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -26,7 +26,8 @@ import java.util.Properties;
 public class CalibrationUtility extends CustomUtility {
 
     public static final Path PROFILING_PATH = Paths.get("profiling");
-    private static final Logger logger = LogManager.getLogger(CalibrationUtility.class.getName());
+    private static final FileLogger logger = ArgumentProcessor.logger;
+
     private CalibrationCommand subcommand;
     // calibration
     private SupportedPlatform platform;
@@ -68,7 +69,7 @@ public class CalibrationUtility extends CustomUtility {
                     break;
             }
         } catch (final SeMoDeException e) {
-            logger.fatal("Could not perform calibration. " + e.getMessage(), e);
+            logger.warning("Could not perform calibration. " + e.getMessage());
             this.printUsage();
         }
     }

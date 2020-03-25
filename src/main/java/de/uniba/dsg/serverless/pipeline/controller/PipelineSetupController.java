@@ -14,8 +14,6 @@ import de.uniba.dsg.serverless.pipeline.model.config.ProviderConfig;
 import de.uniba.dsg.serverless.pipeline.utils.BenchmarkingCommandGenerator;
 import de.uniba.dsg.serverless.pipeline.utils.EndpointExtractor;
 import de.uniba.dsg.serverless.pipeline.utils.FetchingCommandGenerator;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
@@ -27,8 +25,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PipelineSetupController {
-
-    private static final Logger logger = LogManager.getLogger(PipelineSetupController.class.getName());
 
     private final ObjectMapper om;
     private final PipelineSetup setup;
@@ -91,33 +87,33 @@ public class PipelineSetupController {
         String provider = "";
         final Map<String, ProviderConfig> validProviders = this.setup.globalConfig.getProviderConfigMap();
         while (!validProviders.containsKey(provider)) {
-            System.out.println("Insert a valid provider: " + validProviders.keySet().toString());
+            this.setup.logger.info("Insert a valid provider: " + validProviders.keySet().toString());
             provider = PipelineSetupUtility.scanner.nextLine();
         }
 
         // the provider is already natively supported via its SDK supported.
         if (SupportedPlatform.AWS.getText().equals(provider)) {
 
-            System.out.println("Insert aws function info:");
-            System.out.println("Insert current region or skip setting: ");
+            this.setup.logger.info("Insert aws function info:");
+            this.setup.logger.info("Insert current region or skip setting: ");
             final String region = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert runtime for benchmarking or skip setting: ");
+            this.setup.logger.info("Insert runtime for benchmarking or skip setting: ");
             final String runtime = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert function execution role (AWS IAM ARN) or skip setting: ");
+            this.setup.logger.info("Insert function execution role (AWS IAM ARN) or skip setting: ");
             final String awsArnRole = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert function handler here or skip setting: ");
+            this.setup.logger.info("Insert function handler here or skip setting: ");
             final String functionHandler = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert timeout for function handler or skip setting: ");
+            this.setup.logger.info("Insert timeout for function handler or skip setting: ");
             final String timeout = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert current memorySizes (JSON Array) or skip setting: ");
+            this.setup.logger.info("Insert current memorySizes (JSON Array) or skip setting: ");
             final String memorySizes = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert path to function source code (directory) or skip setting: ");
+            this.setup.logger.info("Insert path to function source code (directory) or skip setting: ");
             final String pathToSource = PipelineSetupUtility.scanner.nextLine();
 
-            System.out.println("Insert additional info, otherwise these fields are automatically configured during deployment!");
-            System.out.println("Insert current target url or skip setting: ");
+            this.setup.logger.info("Insert additional info, otherwise these fields are automatically configured during deployment!");
+            this.setup.logger.info("Insert current target url or skip setting: ");
             final String targetUrl = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert current apiKey or skip setting: ");
+            this.setup.logger.info("Insert current apiKey or skip setting: ");
             final String apiKey = PipelineSetupUtility.scanner.nextLine();
 
             this.userConfigHandler.updateAWSFunctionBenchmarkConfig(region, runtime, awsArnRole, functionHandler, timeout, memorySizes, pathToSource, targetUrl, apiKey);
@@ -125,29 +121,29 @@ public class PipelineSetupController {
         } else {
             // TODO change all providers to native sdks - legacy code
             try {
-                System.out.println("Insert memory sizes (JSON Array) or skip setting: ");
+                this.setup.logger.info("Insert memory sizes (JSON Array) or skip setting: ");
                 final String memorySize = PipelineSetupUtility.scanner.nextLine();
-                System.out.println("Insert languages (JSON Array), e.g. [\"java\"] or skip setting: ");
+                this.setup.logger.info("Insert languages (JSON Array), e.g. [\"java\"] or skip setting: ");
                 final String language = PipelineSetupUtility.scanner.nextLine();
-                System.out.println("Insert deployment sizes (JSON Array) or skip setting: ");
+                this.setup.logger.info("Insert deployment sizes (JSON Array) or skip setting: ");
                 final String deploymentSize = PipelineSetupUtility.scanner.nextLine();
 
                 this.userConfigHandler.addOrChangeProviderConfig(this.setup.globalConfig.getProviderConfigMap(), provider, memorySize, language, deploymentSize);
             } catch (final IOException e) {
-                System.err.println("Incorrect json format - inserted values!");
+                this.setup.logger.warning("Incorrect json format - inserted values!");
             } catch (final SeMoDeException e) {
-                System.err.println("Incorrect property value: " + e.getMessage());
+                this.setup.logger.warning("Incorrect property value: " + e.getMessage());
             }
         }
 
         // global benchmark parameters
         // TODO check if this is really needed - check the notes
-        System.out.println("Global benchmarking parameters:");
-        System.out.println("Insert number of threads or skip setting:");
+        this.setup.logger.info("Global benchmarking parameters:");
+        this.setup.logger.info("Insert number of threads or skip setting:");
         final String numberOfThreads = PipelineSetupUtility.scanner.nextLine();
-        System.out.println("Insert a supported benchmarking mode or skip setting. Options: "
+        this.setup.logger.info("Insert a supported benchmarking mode or skip setting. Options: "
                 + List.of(BenchmarkMode.values()).stream().map(BenchmarkMode::getText).collect(Collectors.toList()));
-        System.out.println("Usage for each mode:\n"
+        this.setup.logger.info("Usage for each mode:\n"
                 + "\tconcurrent NUMBER_OF_THREADS NUMBER_OF_REQUESTS\n"
                 + "\tsequentialInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
                 + "\tsequentialWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
@@ -156,9 +152,9 @@ public class PipelineSetupController {
                 + "\tsequentialChangingWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS (DELAY)+\n"
                 + "\tarbitraryLoadPattern NUMBER_OF_THREADS FILE.csv");
         final String benchmarkingMode = PipelineSetupUtility.scanner.nextLine();
-        System.out.println("Insert benchmarking parameters or skip setting:");
+        this.setup.logger.info("Insert benchmarking parameters or skip setting:");
         final String benchmarkingParameters = PipelineSetupUtility.scanner.nextLine();
-        System.out.println("Insert a static value (POST argument for the http call) for benchmarking the function or skip setting:");
+        this.setup.logger.info("Insert a static value (POST argument for the http call) for benchmarking the function or skip setting:");
         final String postArgument = PipelineSetupUtility.scanner.nextLine();
 
         this.userConfigHandler.updateGlobalBenchmarkParameters(numberOfThreads, benchmarkingMode, benchmarkingParameters, postArgument);
@@ -170,10 +166,10 @@ public class PipelineSetupController {
     }
 
     public void printPipelineSetupStatus() throws SeMoDeException {
-        System.out.println("Printing status of pipeline setup \"" + this.setup.name + "\"");
-        System.out.println("Printing Properties:");
+        this.setup.logger.info("Printing status of pipeline setup \"" + this.setup.name + "\"");
+        this.setup.logger.info("Printing Properties:");
 
-        System.out.println(this.userConfigHandler.getPrintableString());
+        this.setup.logger.info(this.userConfigHandler.getPrintableString());
 
     }
 
@@ -236,51 +232,51 @@ public class PipelineSetupController {
         String platform = "";
         final List<String> validPlatforms = List.of(SupportedPlatform.values()).stream().map(SupportedPlatform::getText).collect(Collectors.toList());
         while (!validPlatforms.contains(platform)) {
-            System.out.println("Insert a possible calibration platform. Options: " + validPlatforms);
+            this.setup.logger.info("Insert a possible calibration platform. Options: " + validPlatforms);
             platform = PipelineSetupUtility.scanner.nextLine();
         }
 
         if (platform.equals(SupportedPlatform.LOCAL.getText())) {
-            System.out.println("Insert localSteps property or skip setting: ");
+            this.setup.logger.info("Insert localSteps property or skip setting: ");
             final String localSteps = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert numberOfLocalCalibrations property or skip setting: ");
+            this.setup.logger.info("Insert numberOfLocalCalibrations property or skip setting: ");
             final String numberOfLocalCalibrations = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert enabled property (true or false) or skip setting: ");
+            this.setup.logger.info("Insert enabled property (true or false) or skip setting: ");
             final String enabled = PipelineSetupUtility.scanner.nextLine();
 
             this.userConfigHandler.updateLocalConfig(localSteps, numberOfLocalCalibrations, enabled);
 
         } else if (platform.equals(SupportedPlatform.AWS.getText())) {
-            System.out.println("Insert calibration info:");
-            System.out.println("Insert true or false, if you want to deploy linpack or skip setting: ");
+            this.setup.logger.info("Insert calibration info:");
+            this.setup.logger.info("Insert true or false, if you want to deploy linpack or skip setting: ");
             final String deployLinpack = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert current bucketName or skip setting: ");
+            this.setup.logger.info("Insert current bucketName or skip setting: ");
             final String bucketName = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert current number of executions or skip setting: ");
+            this.setup.logger.info("Insert current number of executions or skip setting: ");
             final String numberOfAWSExecutions = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert enabled property (true or false) or skip setting: ");
+            this.setup.logger.info("Insert enabled property (true or false) or skip setting: ");
             final String enabled = PipelineSetupUtility.scanner.nextLine();
 
-            System.out.println("Insert calibration function info:");
-            System.out.println("Insert current region or skip setting: ");
+            this.setup.logger.info("Insert calibration function info:");
+            this.setup.logger.info("Insert current region or skip setting: ");
             final String region = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert runtime for calibration or skip setting: ");
+            this.setup.logger.info("Insert runtime for calibration or skip setting: ");
             final String runtime = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert function execution role (AWS IAM ARN) or skip setting: ");
+            this.setup.logger.info("Insert function execution role (AWS IAM ARN) or skip setting: ");
             final String awsArnRole = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert function handler here or skip setting: ");
+            this.setup.logger.info("Insert function handler here or skip setting: ");
             final String functionHandler = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert timeout for function handler or skip setting: ");
+            this.setup.logger.info("Insert timeout for function handler or skip setting: ");
             final String timeout = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert current memorySizes (JSON Array) or skip setting: ");
+            this.setup.logger.info("Insert current memorySizes (JSON Array) or skip setting: ");
             final String memorySizes = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert path to function source code (directory) or skip setting: ");
+            this.setup.logger.info("Insert path to function source code (directory) or skip setting: ");
             final String pathToSource = PipelineSetupUtility.scanner.nextLine();
 
-            System.out.println("Insert additional info, otherwise these fields are automatically configured during deployment!");
-            System.out.println("Insert current target url or skip setting: ");
+            this.setup.logger.info("Insert additional info, otherwise these fields are automatically configured during deployment!");
+            this.setup.logger.info("Insert current target url or skip setting: ");
             final String targetUrl = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert current apiKey or skip setting: ");
+            this.setup.logger.info("Insert current apiKey or skip setting: ");
             final String apiKey = PipelineSetupUtility.scanner.nextLine();
 
             this.userConfigHandler.updateAWSConfig(region, runtime, awsArnRole, functionHandler, timeout, deployLinpack, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled, pathToSource);

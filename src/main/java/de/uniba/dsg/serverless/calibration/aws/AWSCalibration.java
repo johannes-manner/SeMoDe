@@ -1,5 +1,6 @@
 package de.uniba.dsg.serverless.calibration.aws;
 
+import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.calibration.Calibration;
 import de.uniba.dsg.serverless.calibration.CalibrationMethods;
 import de.uniba.dsg.serverless.calibration.LinpackParser;
@@ -7,10 +8,9 @@ import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSFunctionConfig;
+import de.uniba.dsg.serverless.util.FileLogger;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,7 +21,8 @@ import java.util.stream.Collectors;
 
 public class AWSCalibration implements CalibrationMethods {
 
-    private static final Logger logger = LogManager.getLogger(AWSCalibration.class.getName());
+    private static final FileLogger logger = ArgumentProcessor.logger;
+
     private final AWSCalibrationConfig config;
     private final AWSFunctionConfig functionConfig;
     private final AWSClient client;

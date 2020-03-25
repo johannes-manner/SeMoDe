@@ -14,16 +14,16 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.google.common.util.concurrent.Uninterruptibles;
+import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSDeploymentInternals;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSFunctionConfig;
+import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeProperty;
 import de.uniba.dsg.serverless.util.SeMoDePropertyManager;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 
@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 
 public class AWSClient {
 
-    private static final Logger logger = LogManager.getLogger(AWSClient.class.getName());
+    private static final FileLogger logger = ArgumentProcessor.logger;
 
     private final AmazonS3 amazonS3Client;
     private final AmazonApiGateway amazonApiGatewayClient;

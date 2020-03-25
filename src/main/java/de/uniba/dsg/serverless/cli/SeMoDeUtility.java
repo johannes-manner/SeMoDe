@@ -1,9 +1,9 @@
 package de.uniba.dsg.serverless.cli;
 
+import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.provider.aws.AWSLogHandler;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import de.uniba.dsg.serverless.util.FileLogger;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,17 +17,17 @@ import java.util.List;
  */
 public final class SeMoDeUtility extends CustomUtility {
 
-    private static final Logger logger = LogManager.getLogger(SeMoDeUtility.class.getName());
+    private static final FileLogger logger = ArgumentProcessor.logger;
 
     public SeMoDeUtility(final String name) {
         super(name);
     }
 
     @Override
-	public void start(final List<String> args) {
+    public void start(final List<String> args) {
 
         if (args.size() < 5) {
-            logger.fatal("Wrong parameter size: \n(1) Region, e.g. \"eu-west-1\" - " + "\n(2) LogGroupName "
+            logger.warning("Wrong parameter size: \n(1) Region, e.g. \"eu-west-1\" - " + "\n(2) LogGroupName "
                     + "\n(3) search string, e.g. \"exception\" to tackle java exception" + "\n(4) Start time filter "
                     + "\n(5) End time filter ");
             return;
@@ -48,7 +48,7 @@ public final class SeMoDeUtility extends CustomUtility {
             logger.info("Region: " + region + "\tLogGroupName: " + logGroupName + "\tSearch string: " + searchString);
             new AWSLogHandler(region, logGroupName, startTime, endTime).startAnalzying(searchString);
         } catch (final SeMoDeException e) {
-            logger.fatal(e.getMessage());
+            logger.warning(e.getMessage());
         }
     }
 }

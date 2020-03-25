@@ -1,8 +1,8 @@
 package de.uniba.dsg.serverless.cli;
 
+import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import de.uniba.dsg.serverless.util.FileLogger;
 
 import java.io.IOException;
 import java.net.URL;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @Deprecated
 public class BenchmarkUtility extends CustomUtility {
 
-    private static final Logger logger = LogManager.getLogger(BenchmarkUtility.class.getName());
+    private static final FileLogger logger = ArgumentProcessor.logger;
 
     public BenchmarkUtility(final String name) {
         super(name);
@@ -33,14 +33,14 @@ public class BenchmarkUtility extends CustomUtility {
             final int failedRequests = this.executeBenchmark(args);
             logger.info("Number of failed requests: " + failedRequests);
         } catch (final SeMoDeException e) {
-            logger.fatal("Exception during benchmark execution.", e);
+            logger.warning("Exception during benchmark execution.");
             return;
         }
 
     }
 
     private void logUsage() {
-        logger.fatal("Usage for each mode:\n"
+        logger.warning("Usage for each mode:\n"
                 + "(Mode 1) PROVIDER_FUNCTION_NAME URL JSONINPUT concurrent NUMBER_OF_THREADS NUMBER_OF_REQUESTS\n"
                 + "(Mode 2) PROVIDER_FUNCTION_NAME URL JSONINPUT sequentialInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
                 + "(Mode 3) PROVIDER_FUNCTION_NAME URL JSONINPUT sequentailWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
@@ -167,7 +167,7 @@ public class BenchmarkUtility extends CustomUtility {
                 }
             } while (!future.isDone());
         } catch (final CancellationException | ExecutionException e) {
-            logger.warn("ExecutionException", e);
+            logger.warning("ExecutionException");
             failedRequests++;
         }
         return failedRequests;

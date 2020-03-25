@@ -1,5 +1,13 @@
 package de.uniba.dsg.serverless.simulation.load;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.uniba.dsg.serverless.ArgumentProcessor;
+import de.uniba.dsg.serverless.cli.CustomUtility;
+import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.simulation.load.model.SimulationInput;
+import de.uniba.dsg.serverless.util.FileLogger;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,138 +17,128 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import de.uniba.dsg.serverless.cli.CustomUtility;
-import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.simulation.load.model.SimulationInput;
-
 public class SimulationUtility extends CustomUtility {
 
-	private static final Logger logger = LogManager.getLogger(SimulationUtility.class);
+    private static final FileLogger logger = ArgumentProcessor.logger;
 
-	private Path file;
+    private Path file;
 
-	public SimulationUtility(String name) {
-		super(name);
-	}
+    public SimulationUtility(final String name) {
+        super(name);
+    }
 
-	@Override
-	public void start(List<String> args) {
+    @Override
+    public void start(final List<String> args) {
 
-		if (args == null || args.size() != 2) {
-			logger.fatal("The provided element size is not correct! " + args);
-			return;
-		}
+        if (args == null || args.size() != 2) {
+            logger.warning("The provided element size is not correct! " + args);
+            return;
+        }
 
-		try {
-			this.file = Paths.get(args.get(0));
-			List<SimulationInput> simulationInput = new ObjectMapper().readValue(args.get(1),
-					new TypeReference<List<SimulationInput>>() {
-					});
-			this.simulate(simulationInput);
+        try {
+            this.file = Paths.get(args.get(0));
+            final List<SimulationInput> simulationInput = new ObjectMapper().readValue(args.get(1),
+                    new TypeReference<List<SimulationInput>>() {
+                    });
+            this.simulate(simulationInput);
 
-		} catch (IOException e) {
-			e.printStackTrace();
-			logger.fatal("Error reading simulation input json! " + args.get(1));
-			return;
-		} catch (SeMoDeException e) {
-			logger.fatal(e.getMessage());
-			return;
-		}
-	}
+        } catch (final IOException e) {
+            e.printStackTrace();
+            logger.warning("Error reading simulation input json! " + args.get(1));
+            return;
+        } catch (final SeMoDeException e) {
+            logger.warning(e.getMessage());
+            return;
+        }
+    }
 
-	public void simulate(List<SimulationInput> simInputs) throws SeMoDeException {
+    public void simulate(final List<SimulationInput> simInputs) throws SeMoDeException {
 
-		// necessary for computing the output
-		List<SimulationInputAndDistributionMap> values = new ArrayList<>();
+        // necessary for computing the output
+        final List<SimulationInputAndDistributionMap> values = new ArrayList<>();
 
-		// interpret the load pattern and supply a distribution on a second basis
-		LoadPatternInterpreter interpreter = new LoadPatternInterpreter(file);
-		Map<Integer, Integer> loadDistributionPerSecond = interpreter.interpretLoadPattern();
+        // interpret the load pattern and supply a distribution on a second basis
+        final LoadPatternInterpreter interpreter = new LoadPatternInterpreter(this.file);
+        final Map<Integer, Integer> loadDistributionPerSecond = interpreter.interpretLoadPattern();
 
-		// adding the initial request distribution
-		values.add(new SimulationInputAndDistributionMap("Initial distribution", loadDistributionPerSecond));
+        // adding the initial request distribution
+        values.add(new SimulationInputAndDistributionMap("Initial distribution", loadDistributionPerSecond));
 
-		for (SimulationInput simInput : simInputs) {
+        for (final SimulationInput simInput : simInputs) {
 
-			LoadPatternSimulator sim = new LoadPatternSimulator(interpreter.getDoubleValues());
-			Map<String, Map<Integer, Integer>> simulationResults = sim.simulate(simInput);
+            final LoadPatternSimulator sim = new LoadPatternSimulator(interpreter.getDoubleValues());
+            final Map<String, Map<Integer, Integer>> simulationResults = sim.simulate(simInput);
 
-			for (String key : simulationResults.keySet()) {
-				values.add(new SimulationInputAndDistributionMap(key, simulationResults.get(key)));
-			}
-		}
+            for (final String key : simulationResults.keySet()) {
+                values.add(new SimulationInputAndDistributionMap(key, simulationResults.get(key)));
+            }
+        }
 
-		this.createSimulationDirectory();
-		this.writeDistributionToFile("distribution.csv", values);
+        this.createSimulationDirectory();
+        this.writeDistributionToFile("distribution.csv", values);
 
-	}
+    }
 
-	private void createSimulationDirectory() throws SeMoDeException {
-		if (!Files.exists(Paths.get("simulation"))) {
-			try {
-				Files.createDirectory(Paths.get("simulation"));
-			} catch (IOException e) {
-				throw new SeMoDeException("Could not create simulation directory", e);
-			}
-		}
+    private void createSimulationDirectory() throws SeMoDeException {
+        if (!Files.exists(Paths.get("simulation"))) {
+            try {
+                Files.createDirectory(Paths.get("simulation"));
+            } catch (final IOException e) {
+                throw new SeMoDeException("Could not create simulation directory", e);
+            }
+        }
 
-	}
+    }
 
-	private void writeDistributionToFile(String fileName, List<SimulationInputAndDistributionMap> values)
-			throws SeMoDeException {
-		List<String> lines = new ArrayList<>();
+    private void writeDistributionToFile(final String fileName, final List<SimulationInputAndDistributionMap> values)
+            throws SeMoDeException {
+        final List<String> lines = new ArrayList<>();
 
-		// find the maximum time in all the simulation steps
-		Optional<Integer> max = values.stream().map(s -> s.values.keySet().stream().max(Integer::compareTo))
-				.filter(op -> op.isPresent()).map(op -> op.get()).max(Integer::compareTo);
+        // find the maximum time in all the simulation steps
+        final Optional<Integer> max = values.stream().map(s -> s.values.keySet().stream().max(Integer::compareTo))
+                .filter(op -> op.isPresent()).map(op -> op.get()).max(Integer::compareTo);
 
-		if (max.isPresent() == false) {
-			throw new SeMoDeException("There is no value present in none of the provided maps");
-		}
+        if (max.isPresent() == false) {
+            throw new SeMoDeException("There is no value present in none of the provided maps");
+        }
 
-		int maxTime = max.get();
-		String headline = "Timestamp;";
-		for (SimulationInputAndDistributionMap simMap : values) {
-			headline += simMap.name + ";";
-		}
-		lines.add(headline);
+        final int maxTime = max.get();
+        String headline = "Timestamp;";
+        for (final SimulationInputAndDistributionMap simMap : values) {
+            headline += simMap.name + ";";
+        }
+        lines.add(headline);
 
-		for (int i = 0; i <= maxTime; i++) {
-			String line = "" + i + ";";
+        for (int i = 0; i <= maxTime; i++) {
+            String line = "" + i + ";";
 
-			for (SimulationInputAndDistributionMap simMap : values) {
-				if (simMap.values.containsKey(i)) {
-					line += simMap.values.get(i) + ";";
-				} else {
-					line += "0;";
-				}
-			}
+            for (final SimulationInputAndDistributionMap simMap : values) {
+                if (simMap.values.containsKey(i)) {
+                    line += simMap.values.get(i) + ";";
+                } else {
+                    line += "0;";
+                }
+            }
 
-			lines.add(line);
-		}
+            lines.add(line);
+        }
 
-		try {
-			Files.write(Paths.get("simulation/" + fileName), lines);
-		} catch (IOException e) {
-			throw new SeMoDeException("Write distribution to file failed", e);
-		}
-	}
+        try {
+            Files.write(Paths.get("simulation/" + fileName), lines);
+        } catch (final IOException e) {
+            throw new SeMoDeException("Write distribution to file failed", e);
+        }
+    }
 
-	private class SimulationInputAndDistributionMap {
+    private class SimulationInputAndDistributionMap {
 
-		private final String name;
-		private final Map<Integer, Integer> values;
+        private final String name;
+        private final Map<Integer, Integer> values;
 
-		public SimulationInputAndDistributionMap(String name, Map<Integer, Integer> values) {
-			super();
-			this.name = name;
-			this.values = values;
-		}
-	}
+        public SimulationInputAndDistributionMap(final String name, final Map<Integer, Integer> values) {
+            super();
+            this.name = name;
+            this.values = values;
+        }
+    }
 }

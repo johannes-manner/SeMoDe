@@ -2,15 +2,15 @@ package de.uniba.dsg.serverless.calibration.profiling;
 
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Statistics;
+import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.calibration.MemoryUnit;
 import de.uniba.dsg.serverless.calibration.local.DockerContainer;
 import de.uniba.dsg.serverless.calibration.local.ResourceLimit;
 import de.uniba.dsg.serverless.cli.CalibrationUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.util.FileLogger;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -24,16 +24,17 @@ import java.util.Map;
 
 public class ContainerExecutor {
 
-    private static final Logger logger = LogManager.getLogger(ContainerExecutor.class.getName());
+    private static final FileLogger logger = ArgumentProcessor.logger;
+
     private final DockerContainer container;
     private List<String> logs;
 
-    public ContainerExecutor(String containerTag, String dockerFile, boolean buildContainer) throws SeMoDeException {
+    public ContainerExecutor(final String containerTag, final String dockerFile, final boolean buildContainer) throws SeMoDeException {
         // TODO maybe change so context is passed here instead of dockerfile -> Dockerfile by default
-        container = new DockerContainer(dockerFile, containerTag);
+        this.container = new DockerContainer(dockerFile, containerTag);
         if (buildContainer) {
             logger.info("building container " + containerTag);
-            container.buildContainer();
+            this.container.buildContainer();
         }
     }
 
@@ -46,52 +47,52 @@ public class ContainerExecutor {
      * @param n                    number of executions
      * @throws SeMoDeException
      */
-    public void executeLocalProfiles(Map<String, String> environmentVariables, ResourceLimit limits, int n) throws SeMoDeException {
-        List<Profile> profiles = new ArrayList<>();
-        String time = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        Path out = CalibrationUtility.PROFILING_PATH
+    public void executeLocalProfiles(final Map<String, String> environmentVariables, final ResourceLimit limits, final int n) throws SeMoDeException {
+        final List<Profile> profiles = new ArrayList<>();
+        final String time = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        final Path out = CalibrationUtility.PROFILING_PATH
                 .resolve("profiles")
-                .resolve(container.imageTag.split("/")[1]) // use the name of docker tag (<org>/<name> -> <name>)
+                .resolve(this.container.imageTag.split("/")[1]) // use the name of docker tag (<org>/<name> -> <name>)
                 .resolve(time);
         for (int i = 0; i < n; i++) {
-            Profile p = runContainer(environmentVariables, limits);
-            saveProfile(p, out.resolve("profile_" + i));
+            final Profile p = this.runContainer(environmentVariables, limits);
+            this.saveProfile(p, out.resolve("profile_" + i));
             profiles.add(p);
             logger.info("Executed and saved profile " + i);
         }
-        String csvOutput = out.resolve("profiles.csv").toString();
-        try (CSVPrinter printer = new CSVPrinter(new FileWriter(csvOutput, true), CSVFormat.EXCEL)) {
+        final String csvOutput = out.resolve("profiles.csv").toString();
+        try (final CSVPrinter printer = new CSVPrinter(new FileWriter(csvOutput, true), CSVFormat.EXCEL)) {
             printer.printRecord("FunctionName", "StartTime", "EndTime", "PreciseDuration", "MemorySize", "MemoryUsed");
-            for (Profile p : profiles) {
-                printer.printRecord(container.imageTag, p.started, p.finished, p.metaInfo.durationMS,
+            for (final Profile p : profiles) {
+                printer.printRecord(this.container.imageTag, p.started, p.finished, p.metaInfo.durationMS,
                         limits.getMemoryLimitInMb(), MemoryUnit.MB.fromBytes(p.metaInfo.averageMemoryUsage));
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new SeMoDeException("Unable to write CSV File", e);
         }
     }
 
-    private Profile runContainer(Map<String, String> envParams, ResourceLimit limits) throws SeMoDeException {
-        String containerId = container.startContainer(envParams, limits);
-        long containerStartTime = ContainerMetrics.parseTime(container.inspectContainer().getState().getStartedAt());
-        List<Statistics> stats = container.logStatistics();
-        List<ContainerMetrics> metrics = new ArrayList<>();
-        for (Statistics s : stats) {
+    private Profile runContainer(final Map<String, String> envParams, final ResourceLimit limits) throws SeMoDeException {
+        final String containerId = this.container.startContainer(envParams, limits);
+        final long containerStartTime = ContainerMetrics.parseTime(this.container.inspectContainer().getState().getStartedAt());
+        final List<Statistics> stats = this.container.logStatistics();
+        final List<ContainerMetrics> metrics = new ArrayList<>();
+        for (final Statistics s : stats) {
             metrics.add(ContainerMetrics.fromStatistics(s, containerStartTime));
         }
-        InspectContainerResponse additionalInformation = container.inspectContainer();
-        logs = container.getLogs();
+        final InspectContainerResponse additionalInformation = this.container.inspectContainer();
+        this.logs = this.container.getLogs();
         return new Profile(metrics, additionalInformation);
     }
 
-    private void saveProfile(Profile profile, Path folder) throws SeMoDeException {
+    private void saveProfile(final Profile profile, final Path folder) throws SeMoDeException {
         if (Files.exists(folder)) {
             throw new SeMoDeException("Folder already exists.");
         }
         profile.save(folder);
         try {
-            Files.write(folder.resolve("log"), logs);
-        } catch (IOException e) {
+            Files.write(folder.resolve("log"), this.logs);
+        } catch (final IOException e) {
             throw new SeMoDeException("Exeption writing log file.", e);
         }
     }

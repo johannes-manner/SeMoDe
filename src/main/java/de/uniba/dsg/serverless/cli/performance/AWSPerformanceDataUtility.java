@@ -1,58 +1,58 @@
 package de.uniba.dsg.serverless.cli.performance;
 
+import de.uniba.dsg.serverless.ArgumentProcessor;
+import de.uniba.dsg.serverless.cli.CustomUtility;
+import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.provider.aws.AWSLogHandler;
+import de.uniba.dsg.serverless.util.FileLogger;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+public final class AWSPerformanceDataUtility extends CustomUtility {
 
-import de.uniba.dsg.serverless.cli.CustomUtility;
-import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.provider.aws.AWSLogHandler;
+    private static final FileLogger logger = ArgumentProcessor.logger;
 
-public final class AWSPerformanceDataUtility extends CustomUtility{
+    private final GenericPerformanceDataFetcher fetcher;
 
-	private static final Logger logger = LogManager.getLogger(AWSPerformanceDataUtility.class.getName());
-	
-	private final GenericPerformanceDataFetcher fetcher;
+    public AWSPerformanceDataUtility(final String name) {
+        super(name);
+        this.fetcher = new GenericPerformanceDataFetcher();
+    }
 
-	public AWSPerformanceDataUtility(String name) {
-		super(name);
-		this.fetcher = new GenericPerformanceDataFetcher();
-	}
+    @Override
+    public void start(final List<String> args) {
 
-	public void start(List<String> args) {
+        if (args.size() < 4) {
+            logger.warning("Wrong parameter size: \n(1) Region, e.g. \"eu-west-1\" - " + "\n(2) LogGroupName "
+                    + "\n(3) Start time filter of performance data" + "\n(4) End time filter of performance data"
+                    + "\n(5) Optional - REST calls file");
+            return;
+        }
 
-		if (args.size() < 4) {
-			logger.fatal("Wrong parameter size: \n(1) Region, e.g. \"eu-west-1\" - " + "\n(2) LogGroupName "
-					+ "\n(3) Start time filter of performance data" + "\n(4) End time filter of performance data"
-					+ "\n(5) Optional - REST calls file");
-			return;
-		}
+        final String region = args.get(0);
+        final String logGroupName = args.get(1);
+        final String startTimeString = args.get(2);
+        final String endTimeString = args.get(3);
 
-		String region = args.get(0);
-		String logGroupName = args.get(1);
-		String startTimeString = args.get(2);
-		String endTimeString = args.get(3);
+        try {
+            this.validateStartEnd(startTimeString, endTimeString);
+            final LocalDateTime startTime = this.parseTime(startTimeString);
+            final LocalDateTime endTime = this.parseTime(endTimeString);
+            final AWSLogHandler logHandler = new AWSLogHandler(region, logGroupName, startTime, endTime);
+            final Optional<String> restFile;
+            if (args.size() == 5) {
+                restFile = Optional.of(args.get(4));
+            } else {
+                restFile = Optional.empty();
+            }
 
-		try {
-			this.validateStartEnd(startTimeString, endTimeString);
-			LocalDateTime startTime = this.parseTime(startTimeString);
-			LocalDateTime endTime = this.parseTime(endTimeString);
-			AWSLogHandler logHandler = new AWSLogHandler(region, logGroupName, startTime, endTime);
-			Optional<String> restFile;
-			if (args.size() == 5) {
-				restFile = Optional.of(args.get(4));
-			}else {
-				restFile = Optional.empty();
-			}
-			
-			this.fetcher.writePerformanceDataToFile("aws", logHandler, logGroupName.substring("/aws/lambda/".length()), restFile);
-			
-		} catch (SeMoDeException e) {
-			logger.fatal(e.getMessage() + "Cause: "
-					+ (e.getCause() == null ? "No further cause!" : e.getCause().getMessage()));
-		}
-	}
+            this.fetcher.writePerformanceDataToFile("aws", logHandler, logGroupName.substring("/aws/lambda/".length()), restFile);
+
+        } catch (final SeMoDeException e) {
+            logger.warning(e.getMessage() + "Cause: "
+                    + (e.getCause() == null ? "No further cause!" : e.getCause().getMessage()));
+        }
+    }
 }

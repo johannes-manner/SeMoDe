@@ -1,61 +1,61 @@
 package de.uniba.dsg.serverless.cli.performance;
 
+import de.uniba.dsg.serverless.ArgumentProcessor;
+import de.uniba.dsg.serverless.cli.CustomUtility;
+import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.provider.azure.AzureLogHandler;
+import de.uniba.dsg.serverless.util.FileLogger;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import de.uniba.dsg.serverless.cli.CustomUtility;
-import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.provider.azure.AzureLogHandler;
-
 public final class AzurePerformanceDataUtility extends CustomUtility {
 
-	private static final Logger logger = LogManager.getLogger(AzurePerformanceDataUtility.class.getName());
+    private static final FileLogger logger = ArgumentProcessor.logger;
 
-	private final GenericPerformanceDataFetcher fetcher;
-	
-	public AzurePerformanceDataUtility(String name) {
-		super(name);
-		this.fetcher = new GenericPerformanceDataFetcher();
-	}
+    private final GenericPerformanceDataFetcher fetcher;
 
-	public void start(List<String> args) {
+    public AzurePerformanceDataUtility(final String name) {
+        super(name);
+        this.fetcher = new GenericPerformanceDataFetcher();
+    }
 
-		if (args.size() < 6) {
-			logger.fatal("Wrong parameter size: " + "\n(1) Application ID " + "\n(2) API Key " + "\n(3) Service Name"
-					+ "\n(4) Function Name" + "\n(5) Start time filter of performance data"
-					+ "\n(6) End time filter of performance data" + "\n(7) Optional - REST calls file");
-			return;
-		}
+    @Override
+	public void start(final List<String> args) {
 
-		String applicationID = args.get(0);
-		String apiKey = args.get(1);
-		String serviceName = args.get(2);
-		String functionName = args.get(3);
-		String startTimeString = args.get(4);
-		String endTimeString = args.get(5);
+        if (args.size() < 6) {
+            logger.warning("Wrong parameter size: " + "\n(1) Application ID " + "\n(2) API Key " + "\n(3) Service Name"
+                    + "\n(4) Function Name" + "\n(5) Start time filter of performance data"
+                    + "\n(6) End time filter of performance data" + "\n(7) Optional - REST calls file");
+            return;
+        }
 
-		try {
-			this.validateStartEnd(startTimeString, endTimeString);
-			LocalDateTime startTime = this.parseTime(startTimeString);
-			LocalDateTime endTime = this.parseTime(endTimeString);
+        final String applicationID = args.get(0);
+        final String apiKey = args.get(1);
+        final String serviceName = args.get(2);
+        final String functionName = args.get(3);
+        final String startTimeString = args.get(4);
+        final String endTimeString = args.get(5);
 
-			AzureLogHandler azureLogHandler = new AzureLogHandler(applicationID, apiKey, functionName, startTime,
-					endTime);
+        try {
+            this.validateStartEnd(startTimeString, endTimeString);
+            final LocalDateTime startTime = this.parseTime(startTimeString);
+            final LocalDateTime endTime = this.parseTime(endTimeString);
 
-			Optional<String> restFile;
-			if (args.size() == 7) {
-				restFile = Optional.of(args.get(6));
-			} else {
-				restFile = Optional.empty();
-			}
+            final AzureLogHandler azureLogHandler = new AzureLogHandler(applicationID, apiKey, functionName, startTime,
+                    endTime);
 
-			this.fetcher.writePerformanceDataToFile("azure", azureLogHandler, serviceName, restFile);
-		} catch (SeMoDeException e) {
-			logger.fatal(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!" : e.getCause().getMessage()));
-		}
-	}
+            final Optional<String> restFile;
+            if (args.size() == 7) {
+                restFile = Optional.of(args.get(6));
+            } else {
+                restFile = Optional.empty();
+            }
+
+            this.fetcher.writePerformanceDataToFile("azure", azureLogHandler, serviceName, restFile);
+        } catch (final SeMoDeException e) {
+            logger.warning(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!" : e.getCause().getMessage()));
+        }
+    }
 }
