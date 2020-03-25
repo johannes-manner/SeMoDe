@@ -5,7 +5,10 @@ import com.google.gson.GsonBuilder;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.AWSBenchmark;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
-import de.uniba.dsg.serverless.pipeline.model.config.*;
+import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.GlobalConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.UserConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -17,9 +20,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Wrapper to change the attributes of the user config class.
@@ -84,26 +85,6 @@ public class UserConfigHandler {
         this.userConfig.setCalibrationConfig(new CalibrationConfig(globalConfig.getCalibrationConfig()));
     }
 
-    @Deprecated
-    public void addOrChangeProviderConfig(final Map<String, ProviderConfig> providerConfigMap, final String provider, final String memorySize, final String language, final String deploymentSize) throws IOException, SeMoDeException {
-        boolean providerMissingInList = true;
-
-        for (final ProviderConfig providerConfig : this.userConfig.getProviderConfigs()) {
-            if (providerConfig.getName().equals(provider)) {
-                providerConfig.validateAndUpdate(providerConfigMap, memorySize, language, deploymentSize);
-                providerMissingInList = false;
-                break;
-            }
-        }
-
-        if (providerMissingInList) {
-            final ProviderConfig config = new ProviderConfig();
-            config.validateAndCreate(providerConfigMap, provider, memorySize, language, deploymentSize);
-            this.userConfig.getProviderConfigs().add(config);
-        }
-
-    }
-
     public void saveUserConfigToFile(final Path pathToConfig) throws SeMoDeException {
         try {
             new ObjectMapper().writer().withDefaultPrettyPrinter().writeValue(pathToConfig.toFile(),
@@ -115,18 +96,6 @@ public class UserConfigHandler {
 
     public String getPrintableString() {
         return new GsonBuilder().setPrettyPrinting().create().toJson(this.userConfig);
-    }
-
-    public void updateBenchmarkConfig(final BenchmarkConfig config) {
-        this.userConfig.setBenchmarkConfig(config);
-    }
-
-    public Map<String, ProviderConfig> getUserConfigProviders() {
-        final Map<String, ProviderConfig> temp = new HashMap<>();
-        for (final ProviderConfig config : this.userConfig.getProviderConfigs()) {
-            temp.put(config.getName(), config);
-        }
-        return temp;
     }
 
     public void updateAWSFunctionBenchmarkConfig(final String region, final String runtime, final String awsArnRole, final String functionHandler,

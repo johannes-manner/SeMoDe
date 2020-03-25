@@ -6,27 +6,10 @@ import java.util.Map;
 
 public class GlobalConfig {
 
-    private List<ProviderConfig> providerConfigs;
     private List<LanguageConfig> languageConfigs;
     private CalibrationConfig calibrationConfig;
 
     public GlobalConfig() {
-    }
-
-    public List<ProviderConfig> getProviderConfigs() {
-        return this.providerConfigs;
-    }
-
-    public void setProviderConfigs(final List<ProviderConfig> providerConfigs) {
-        this.providerConfigs = providerConfigs;
-    }
-
-    public Map<String, ProviderConfig> getProviderConfigMap() {
-        final Map<String, ProviderConfig> providerMap = new HashMap<>();
-        for (final ProviderConfig provider : this.providerConfigs) {
-            providerMap.put(provider.getName(), provider);
-        }
-        return providerMap;
     }
 
     public Map<String, LanguageConfig> getLanguageConfigMap() {
@@ -57,7 +40,6 @@ public class GlobalConfig {
     @Override
     public String toString() {
         return "Config{" +
-                "providerConfigs=" + this.providerConfigs +
                 ", languageConfigs=" + this.languageConfigs +
                 ", calibrationConfig=" + this.calibrationConfig +
                 '}';

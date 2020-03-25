@@ -8,7 +8,6 @@ import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.model.PipelineSetup;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
-import de.uniba.dsg.serverless.pipeline.model.config.ProviderConfig;
 import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.lang3.tuple.Pair;
@@ -16,11 +15,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
@@ -94,9 +90,9 @@ public class PipelineSetupController {
      */
     public void configureBenchmarkSetup() throws SeMoDeException {
         String provider = "";
-        final Map<String, ProviderConfig> validProviders = this.setup.globalConfig.getProviderConfigMap();
-        while (!validProviders.containsKey(provider)) {
-            this.setup.logger.info("Insert a valid provider: " + validProviders.keySet().toString());
+        final List<String> validPlatforms = List.of(SupportedPlatform.values()).stream().map(SupportedPlatform::getText).collect(Collectors.toList());
+        while (!validPlatforms.contains(provider)) {
+            this.setup.logger.info("Insert a valid provider: " + validPlatforms);
             provider = this.scanAndLog();
         }
 
@@ -129,20 +125,6 @@ public class PipelineSetupController {
 
         } else {
             // TODO change all providers to native sdks - legacy code
-            try {
-                this.setup.logger.info("Insert memory sizes (JSON Array) or skip setting: ");
-                final String memorySize = this.scanAndLog();
-                this.setup.logger.info("Insert languages (JSON Array), e.g. [\"java\"] or skip setting: ");
-                final String language = this.scanAndLog();
-                this.setup.logger.info("Insert deployment sizes (JSON Array) or skip setting: ");
-                final String deploymentSize = this.scanAndLog();
-
-                this.userConfigHandler.addOrChangeProviderConfig(this.setup.globalConfig.getProviderConfigMap(), provider, memorySize, language, deploymentSize);
-            } catch (final IOException e) {
-                this.setup.logger.warning("Incorrect json format - inserted values!");
-            } catch (final SeMoDeException e) {
-                this.setup.logger.warning("Incorrect property value: " + e.getMessage());
-            }
         }
 
         // global benchmark parameters
@@ -194,20 +176,6 @@ public class PipelineSetupController {
         }
     }
 
-    private void changeDeploymentParameters(final ProviderConfig providerConfig, final String language) throws SeMoDeException {
-        final String sourceFolderName = providerConfig.getName() + "-" + language;
-        final Path createDeployments = Paths.get(this.setup.pathToSources.toString(), sourceFolderName, "createDeployments");
-
-        try {
-            String content = new String(Files.readAllBytes(createDeployments));
-            content = content.replaceAll("DEPLOYMENT_SIZES", providerConfig.getDeploymentSize().stream().map(i -> i.toString()).collect(Collectors.joining(" ")));
-            content = content.replaceAll("MEMORY_SIZES", providerConfig.getMemorySize().stream().map(i -> i.toString()).collect(Collectors.joining(" ")));
-            Files.write(createDeployments, content.getBytes());
-        } catch (final IOException e) {
-            throw new SeMoDeException("File is not readable or writable: " + createDeployments.toString(), e);
-        }
-    }
-
     /**
      * Logs the start and end time and stores it in the user config.
      * Needed for a later retrieval, see {@link #fetchBenchmarkData()}.
@@ -227,18 +195,6 @@ public class PipelineSetupController {
         for (final BenchmarkMethods benchmark : this.userConfigHandler.createBenchmarkMethodsFromConfig(this.setup.name)) {
             benchmark.writePerformanceDataToFile(this.setup.pathToBenchmarkExecution, startEndTime.getLeft(), startEndTime.getRight());
         }
-    }
-
-    @Deprecated
-    public void fetchPerformanceData() throws SeMoDeException {
-
-//        final FetchingCommandGenerator fcg = new FetchingCommandGenerator(this.setup.pathToBenchmarkExecution, this.setup.pathToFetchingCommands, this.setup.pathToEndpoints, this.setup.globalConfig.getLanguageConfigMap(), this.setup.getSeMoDeJarLocation());
-//        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
-//        for (final String provider : userProviders.keySet()) {
-//            for (final String language : userProviders.get(provider).getLanguage()) {
-//                fcg.fetchCommands(provider, language);
-//            }
-//        }
     }
 
     public void configureCalibration() throws SeMoDeException {
