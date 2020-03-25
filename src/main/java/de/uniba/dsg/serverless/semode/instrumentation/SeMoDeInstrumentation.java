@@ -3,7 +3,7 @@ package de.uniba.dsg.serverless.semode.instrumentation;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.uniba.dsg.serverless.benchmark.logs.aws.AWSLogAnalyzer;
+import de.uniba.dsg.serverless.benchmark.log.aws.AWSLogAnalyzer;
 
 /**
  * This class generates instrumentation statements and is closely related to the
@@ -31,7 +31,7 @@ public final class SeMoDeInstrumentation {
      * @param logger        - LambdaLogger from the aws-lambda-java-core
      */
     public static void instrumentFunction(final String handlerClass, final String handlerMethod, final String inputClass, final Object input,
-										  final String outputClass, final LambdaLogger logger) {
+                                          final String outputClass, final LambdaLogger logger) {
 
         final String prefix = AWSLogAnalyzer.TROUBLESHOOT_PREFIX + AWSLogAnalyzer.TROUBLESHOOT_SPLIT_PATTERN;
 

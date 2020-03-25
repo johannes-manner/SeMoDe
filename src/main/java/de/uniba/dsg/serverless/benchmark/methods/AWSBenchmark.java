@@ -2,8 +2,8 @@ package de.uniba.dsg.serverless.benchmark.methods;
 
 import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.benchmark.data.PerformanceDataWriter;
-import de.uniba.dsg.serverless.benchmark.logs.LogHandler;
-import de.uniba.dsg.serverless.benchmark.logs.aws.AWSLogHandler;
+import de.uniba.dsg.serverless.benchmark.log.LogHandler;
+import de.uniba.dsg.serverless.benchmark.log.aws.AWSLogHandler;
 import de.uniba.dsg.serverless.calibration.aws.AWSClient;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;

@@ -1,6 +1,6 @@
 package de.uniba.dsg.serverless.benchmark.data;
 
-import de.uniba.dsg.serverless.benchmark.logs.LogHandler;
+import de.uniba.dsg.serverless.benchmark.log.LogHandler;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.model.WritableEvent;
 import de.uniba.dsg.serverless.util.BenchmarkingRESTAnalyzer;

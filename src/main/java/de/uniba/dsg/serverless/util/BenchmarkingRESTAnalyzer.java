@@ -89,7 +89,7 @@ public class BenchmarkingRESTAnalyzer {
                 }
             };
 
-            lines.stream().filter(isNotEmpty).map(splitLine).filter(correctPlatform).forEach(insertEvent);
+            lines.stream().filter(isNotEmpty).map(String::trim).map(splitLine).filter(correctPlatform).forEach(insertEvent);
 
         } catch (final IOException e) {
             throw new SeMoDeException("Error while reading the file " + this.benchmarkingFile.toString(), e);

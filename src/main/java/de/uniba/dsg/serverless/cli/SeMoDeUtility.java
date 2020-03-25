@@ -1,7 +1,7 @@
 package de.uniba.dsg.serverless.cli;
 
 import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.benchmark.logs.aws.AWSLogHandler;
+import de.uniba.dsg.serverless.benchmark.log.aws.AWSLogHandler;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.util.FileLogger;
 

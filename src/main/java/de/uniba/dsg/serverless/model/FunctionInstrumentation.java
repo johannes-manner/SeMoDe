@@ -1,7 +1,7 @@
 package de.uniba.dsg.serverless.model;
 
 import com.amazonaws.services.logs.model.OutputLogEvent;
-import de.uniba.dsg.serverless.benchmark.logs.aws.AWSLogAnalyzer;
+import de.uniba.dsg.serverless.benchmark.log.aws.AWSLogAnalyzer;
 
 import java.util.HashMap;
 import java.util.Map;
