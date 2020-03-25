@@ -9,10 +9,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Writes the performance data locally and the platform data from the
@@ -22,18 +19,8 @@ final public class PerformanceDataWriter {
 
     public static final double NETWORK_AND_PLATFORM_DELAY = 5000.0;
 
-    public void writePerformanceDataToFile(final Path file, final LogHandler logHandler,
-                                           final Optional<String> restFile) throws SeMoDeException {
-
-        Map<String, WritableEvent> restMap = new HashMap<>();
-
-        // if a benchmarking file is selected
-        if (restFile.isPresent()) {
-            final BenchmarkingRESTAnalyzer restAnalyzer = new BenchmarkingRESTAnalyzer(Paths.get(restFile.get()));
-            restMap = restAnalyzer.extractRESTEvents();
-        }
-
-        this.writePerformanceDataToFile(file, restMap, logHandler.getPerformanceData());
+    public void writePerformanceDataToFile(final Path file, final LogHandler logHandler, final BenchmarkingRESTAnalyzer restHandler) throws SeMoDeException {
+        this.writePerformanceDataToFile(file, restHandler.extractRESTEvents(), logHandler.getPerformanceData());
     }
 
     private void writePerformanceDataToFile(final Path file, final Map<String, WritableEvent> restMap,

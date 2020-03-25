@@ -8,13 +8,18 @@ import de.uniba.dsg.serverless.calibration.aws.AWSClient;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
+import de.uniba.dsg.serverless.util.BenchmarkingRESTAnalyzer;
 import de.uniba.dsg.serverless.util.FileLogger;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AWSBenchmark implements BenchmarkMethods {
 
@@ -85,7 +90,8 @@ public class AWSBenchmark implements BenchmarkMethods {
             final LogHandler logHandler = new AWSLogHandler(this.awsBenchmarkConfig.functionConfig.region, "/aws/lambda/" + functionName.getLeft(), startTime, endTime);
             // TODO change REST FILE
             logger.info("Fetch data for " + functionName.getLeft() + " from " + startTime + " to " + endTime);
-            writer.writePerformanceDataToFile(path.resolve(SupportedPlatform.AWS.getText() + "_" + functionName.getLeft()), logHandler, Optional.empty());
+            final BenchmarkingRESTAnalyzer restHandler = new BenchmarkingRESTAnalyzer(SupportedPlatform.AWS.getText(), Paths.get(path.toString(), "execution.log"));
+            writer.writePerformanceDataToFile(path.resolve(SupportedPlatform.AWS.getText() + "_" + functionName.getLeft() + ".csv"), logHandler, restHandler);
         }
     }
 

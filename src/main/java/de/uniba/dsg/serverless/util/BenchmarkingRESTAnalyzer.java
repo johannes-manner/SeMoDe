@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,12 +20,11 @@ public class BenchmarkingRESTAnalyzer {
 
     private static final FileLogger logger = ArgumentProcessor.logger;
 
-    private static final DateTimeFormatter formatter = DateTimeFormatter
-            .ofPattern(System.getProperty("DATE_TIME_FORMAT"));
-
     private final Path benchmarkingFile;
+    private final String platform;
 
-    public BenchmarkingRESTAnalyzer(final Path benchmarkingFile) {
+    public BenchmarkingRESTAnalyzer(final String platform, final Path benchmarkingFile) {
+        this.platform = platform;
         this.benchmarkingFile = benchmarkingFile;
     }
 
@@ -47,12 +45,12 @@ public class BenchmarkingRESTAnalyzer {
         final Map<String, LocalRESTEvent> extractedEvents = new HashMap<>();
 
         // read the lines
-        // Sample line: 2018-05-25 13:44:54.826;[pool-2-thread-1];INFO
-        // ;de.uniba.dsg.serverless.benchmark.FunctionTrigger;69cfe08c-2b1e-4344-8a2c-0e7732f23146;284d7ba0-b0ce-40cb-9c5b-49696af5ded8;PLATFORMID
+        // Sample line: [;2020-03-25 13:05:15:121;] [INFO   ] ;aws;START;acb4addc-c649-498c-ae58-114a0e027e35
         try {
             final List<String> lines = Files.readAllLines(this.benchmarkingFile);
             final Predicate<String> isNotEmpty = s -> !s.trim().isEmpty();
             final Function<String, String[]> splitLine = s -> s.split(System.getProperty("CSV_SEPARATOR"));
+            final Predicate<String[]> correctPlatform = s -> s[3].equals(this.platform);
             final Consumer<String[]> insertEvent = (String[] s) -> {
                 // minimum 6, otherwise an error message is logged and can not be computed in
                 // this way
@@ -67,9 +65,9 @@ public class BenchmarkingRESTAnalyzer {
                     final LocalRESTEvent event = extractedEvents.get(uuid);
                     final String key = s[4];
                     if ("START".equals(key)) {
-                        event.setStartTime(LocalDateTime.parse(s[0], formatter));
+                        event.setStartTime(LocalDateTime.parse(s[1]));
                     } else if ("END".equals(key)) {
-                        event.setEndTime(LocalDateTime.parse(s[0], formatter));
+                        event.setEndTime(LocalDateTime.parse(s[1]));
                     } else if ("ERROR".equals(key)) {
                         event.setErroneous(true);
                     } else if ("PLATFORMID".equals(key)) {
@@ -91,7 +89,7 @@ public class BenchmarkingRESTAnalyzer {
                 }
             };
 
-            lines.stream().filter(isNotEmpty).map(splitLine).forEach(insertEvent);
+            lines.stream().filter(isNotEmpty).map(splitLine).filter(correctPlatform).forEach(insertEvent);
 
         } catch (final IOException e) {
             throw new SeMoDeException("Error while reading the file " + this.benchmarkingFile.toString(), e);

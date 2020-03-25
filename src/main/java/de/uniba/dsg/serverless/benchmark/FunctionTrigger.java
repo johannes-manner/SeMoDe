@@ -59,7 +59,7 @@ public class FunctionTrigger implements Callable<String> {
     public String call() throws SeMoDeException {
 
         final String uuid = UUID.randomUUID().toString();
-        this.logger.info(this.platform + CSV_SEPARATOR + "START" + CSV_SEPARATOR + uuid);
+        this.logger.info(CSV_SEPARATOR + this.platform + CSV_SEPARATOR + "START" + CSV_SEPARATOR + uuid);
 
         final Client client = ClientBuilder.newClient();
         client.property(ClientProperties.CONNECT_TIMEOUT, LoadPatternGenerator.PLATFORM_FUNCTION_TIMEOUT * 1000);
@@ -80,15 +80,15 @@ public class FunctionTrigger implements Callable<String> {
             }
             response = invocation.post(Entity.entity(this.jsonInput, MediaType.APPLICATION_JSON));
         } catch (final RuntimeException e) {
-            this.logger.info(this.platform + CSV_SEPARATOR + "END" + CSV_SEPARATOR + uuid);
-            this.logger.warning(this.platform + CSV_SEPARATOR + "ERROR" + CSV_SEPARATOR + uuid);
+            this.logger.info(CSV_SEPARATOR + this.platform + CSV_SEPARATOR + "END" + CSV_SEPARATOR + uuid);
+            this.logger.warning(CSV_SEPARATOR + this.platform + CSV_SEPARATOR + "ERROR" + CSV_SEPARATOR + uuid);
             throw new SeMoDeException("Can't submit request", e);
         }
-        this.logger.info(this.platform + CSV_SEPARATOR + "END" + CSV_SEPARATOR + uuid);
+        this.logger.info(CSV_SEPARATOR + this.platform + CSV_SEPARATOR + "END" + CSV_SEPARATOR + uuid);
 
 
         if (response.getStatus() != REQUEST_PASSED_STATUS) {
-            this.logger.warning(this.platform + CSV_SEPARATOR + "ERROR" + CSV_SEPARATOR + uuid + CSV_SEPARATOR + response.getStatus() + " - "
+            this.logger.warning(CSV_SEPARATOR + this.platform + CSV_SEPARATOR + "ERROR" + CSV_SEPARATOR + uuid + CSV_SEPARATOR + response.getStatus() + " - "
                     + response.getStatusInfo());
             throw new SeMoDeException(
                     "Request exited with an error: " + response.getStatus() + " - " + response.getStatusInfo());

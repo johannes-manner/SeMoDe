@@ -82,7 +82,7 @@ public class CloudFunctionResponse {
     public void logMetadata(final String platform) {
 
         for (final String key : this.metaInformation.keySet()) {
-            this.fileLogger.info(platform + CSV_SEPARATOR + key.toUpperCase() + CSV_SEPARATOR + this.uuid + CSV_SEPARATOR + this.metaInformation.get(key));
+            this.fileLogger.info(CSV_SEPARATOR + platform + CSV_SEPARATOR + key.toUpperCase() + CSV_SEPARATOR + this.uuid + CSV_SEPARATOR + this.metaInformation.get(key));
         }
     }
 }

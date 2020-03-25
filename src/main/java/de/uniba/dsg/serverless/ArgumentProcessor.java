@@ -16,9 +16,8 @@ public class ArgumentProcessor {
     public static void main(final String[] args) {
         // set logging system property
         // TODO think about property management
-        System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tH:%1$tM:%1$tS:%1$tL] [%4$-7s] %5$s %n");
+        System.setProperty("java.util.logging.SimpleFormatter.format", "[;%1$tFT%1$tH:%1$tM:%1$tS.%1$tL;] [%4$-7s] %5$s %n");
         System.setProperty("CSV_SEPARATOR", ";");
-        System.setProperty("DATE_TIME_FORMAT", "yyyy-MM-dd HH:mm:ss.SSS");
 
         logger = new FileLogger("semode", "semode.log", true);
 
