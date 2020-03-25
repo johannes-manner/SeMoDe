@@ -2,16 +2,20 @@ package de.uniba.dsg.serverless.pipeline.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.GsonBuilder;
-import de.uniba.dsg.serverless.benchmark.BenchmarkMethods;
-import de.uniba.dsg.serverless.benchmark.aws.AWSBenchmark;
+import de.uniba.dsg.serverless.benchmark.methods.AWSBenchmark;
+import de.uniba.dsg.serverless.benchmark.methods.BenchmarkMethods;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.config.*;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -165,5 +169,15 @@ public class UserConfigHandler {
 
     public void logBenchmarkEndTime() {
         this.userConfig.getBenchmarkConfig().logBenchmarkEndTime();
+    }
+
+    public Pair<LocalDateTime, LocalDateTime> getStartAndEndTime() throws SeMoDeException {
+        try {
+            return new ImmutablePair<>(LocalDateTime.parse(this.userConfig.getBenchmarkConfig().startTime),
+                    LocalDateTime.parse(this.userConfig.getBenchmarkConfig().endTime));
+        } catch (final DateTimeParseException e) {
+            throw new SeMoDeException("Start or end time not parsable: start: " + this.userConfig.getBenchmarkConfig().startTime
+                    + " end: " + this.userConfig.getBenchmarkConfig().endTime);
+        }
     }
 }

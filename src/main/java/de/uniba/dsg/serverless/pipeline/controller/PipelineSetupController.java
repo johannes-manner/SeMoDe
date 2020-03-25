@@ -1,8 +1,8 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
 import de.uniba.dsg.serverless.benchmark.BenchmarkExecutor;
-import de.uniba.dsg.serverless.benchmark.BenchmarkMethods;
 import de.uniba.dsg.serverless.benchmark.BenchmarkMode;
+import de.uniba.dsg.serverless.benchmark.methods.BenchmarkMethods;
 import de.uniba.dsg.serverless.calibration.CalibrationMethods;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
@@ -14,12 +14,14 @@ import de.uniba.dsg.serverless.pipeline.utils.BenchmarkingCommandGenerator;
 import de.uniba.dsg.serverless.pipeline.utils.EndpointExtractor;
 import de.uniba.dsg.serverless.pipeline.utils.FetchingCommandGenerator;
 import de.uniba.dsg.serverless.util.FileLogger;
+import org.apache.commons.lang3.tuple.Pair;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -226,7 +228,11 @@ public class PipelineSetupController {
         this.userConfigHandler.logBenchmarkEndTime();
     }
 
-    public void fetchBenchmarkData() {
+    public void fetchBenchmarkData() throws SeMoDeException {
+        final Pair<LocalDateTime, LocalDateTime> startEndTime = this.userConfigHandler.getStartAndEndTime();
+        for (final BenchmarkMethods benchmark : this.userConfigHandler.createBenchmarkMethodsFromConfig(this.setup.name)) {
+            benchmark.writePerformanceDataToFile(this.setup.pathToBenchmarkExecution, startEndTime.getLeft(), startEndTime.getRight());
+        }
     }
 
     @Deprecated

@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.benchmark;
 
 import com.google.common.primitives.Doubles;
+import de.uniba.dsg.serverless.benchmark.methods.BenchmarkMethods;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.util.FileLogger;

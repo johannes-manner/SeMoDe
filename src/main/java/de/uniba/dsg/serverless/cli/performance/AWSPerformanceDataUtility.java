@@ -1,24 +1,26 @@
 package de.uniba.dsg.serverless.cli.performance;
 
 import de.uniba.dsg.serverless.ArgumentProcessor;
+import de.uniba.dsg.serverless.benchmark.data.PerformanceDataWriter;
+import de.uniba.dsg.serverless.benchmark.logs.aws.AWSLogHandler;
 import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.provider.aws.AWSLogHandler;
 import de.uniba.dsg.serverless.util.FileLogger;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Deprecated
 public final class AWSPerformanceDataUtility extends CustomUtility {
 
     private static final FileLogger logger = ArgumentProcessor.logger;
 
-    private final GenericPerformanceDataFetcher fetcher;
+    private final PerformanceDataWriter fetcher;
 
     public AWSPerformanceDataUtility(final String name) {
         super(name);
-        this.fetcher = new GenericPerformanceDataFetcher();
+        this.fetcher = new PerformanceDataWriter();
     }
 
     @Override
@@ -48,7 +50,7 @@ public final class AWSPerformanceDataUtility extends CustomUtility {
                 restFile = Optional.empty();
             }
 
-            this.fetcher.writePerformanceDataToFile("aws", logHandler, logGroupName.substring("/aws/lambda/".length()), restFile);
+//            this.fetcher.writePerformanceDataToFile("aws", logHandler, logGroupName.substring("/aws/lambda/".length()), restFile);
 
         } catch (final SeMoDeException e) {
             logger.warning(e.getMessage() + "Cause: "

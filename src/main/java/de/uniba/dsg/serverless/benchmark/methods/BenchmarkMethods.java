@@ -1,7 +1,10 @@
-package de.uniba.dsg.serverless.benchmark;
+package de.uniba.dsg.serverless.benchmark.methods;
 
+import de.uniba.dsg.serverless.model.SeMoDeException;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +50,8 @@ public interface BenchmarkMethods {
      * @return
      */
     public boolean isInitialized();
+
+    public void writePerformanceDataToFile(Path path, final LocalDateTime startTime, final LocalDateTime endTime) throws SeMoDeException;
 
     public void deploy();
 

@@ -1,8 +1,8 @@
 package de.uniba.dsg.serverless.cli;
 
 import de.uniba.dsg.serverless.ArgumentProcessor;
+import de.uniba.dsg.serverless.benchmark.logs.aws.AWSLogHandler;
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.provider.aws.AWSLogHandler;
 import de.uniba.dsg.serverless.util.FileLogger;
 
 import java.time.LocalDateTime;
@@ -15,6 +15,7 @@ import java.util.List;
  * <b>(2)</b> LogGroupName <br/>
  * <b>(3)</b> search string, e.g. "Exception" to tackle java exception <br/>
  */
+@Deprecated
 public final class SeMoDeUtility extends CustomUtility {
 
     private static final FileLogger logger = ArgumentProcessor.logger;

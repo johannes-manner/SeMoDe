@@ -1,19 +1,24 @@
-package de.uniba.dsg.serverless.benchmark.aws;
+package de.uniba.dsg.serverless.benchmark.methods;
 
-import de.uniba.dsg.serverless.benchmark.BenchmarkMethods;
+import de.uniba.dsg.serverless.ArgumentProcessor;
+import de.uniba.dsg.serverless.benchmark.data.PerformanceDataWriter;
+import de.uniba.dsg.serverless.benchmark.logs.LogHandler;
+import de.uniba.dsg.serverless.benchmark.logs.aws.AWSLogHandler;
 import de.uniba.dsg.serverless.calibration.aws.AWSClient;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
+import de.uniba.dsg.serverless.util.FileLogger;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.util.*;
 
 public class AWSBenchmark implements BenchmarkMethods {
+
+    private static final FileLogger logger = ArgumentProcessor.logger;
 
     private final String setupName;
     private final AWSBenchmarkConfig awsBenchmarkConfig;
@@ -70,6 +75,18 @@ public class AWSBenchmark implements BenchmarkMethods {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public void writePerformanceDataToFile(final Path path, final LocalDateTime startTime, final LocalDateTime endTime) throws SeMoDeException {
+        final PerformanceDataWriter writer = new PerformanceDataWriter();
+
+        for (final Pair<String, Integer> functionName : this.generateFunctionNames()) {
+            final LogHandler logHandler = new AWSLogHandler(this.awsBenchmarkConfig.functionConfig.region, "/aws/lambda/" + functionName.getLeft(), startTime, endTime);
+            // TODO change REST FILE
+            logger.info("Fetch data for " + functionName.getLeft() + " from " + startTime + " to " + endTime);
+            writer.writePerformanceDataToFile(path.resolve(SupportedPlatform.AWS.getText() + "_" + functionName.getLeft()), logHandler, Optional.empty());
+        }
     }
 
     @Override

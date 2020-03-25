@@ -1,24 +1,26 @@
 package de.uniba.dsg.serverless.cli.performance;
 
 import de.uniba.dsg.serverless.ArgumentProcessor;
+import de.uniba.dsg.serverless.benchmark.data.PerformanceDataWriter;
+import de.uniba.dsg.serverless.benchmark.logs.google.GoogleLogHandler;
 import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.provider.google.GoogleLogHandler;
 import de.uniba.dsg.serverless.util.FileLogger;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Deprecated
 public class GooglePerformanceDataUtility extends CustomUtility {
 
     private static final FileLogger logger = ArgumentProcessor.logger;
 
-    private final GenericPerformanceDataFetcher fetcher;
+    private final PerformanceDataWriter fetcher;
 
     public GooglePerformanceDataUtility(final String name) {
         super(name);
-        this.fetcher = new GenericPerformanceDataFetcher();
+        this.fetcher = new PerformanceDataWriter();
     }
 
     @Override
@@ -52,7 +54,7 @@ public class GooglePerformanceDataUtility extends CustomUtility {
                 restFile = Optional.empty();
             }
 
-            this.fetcher.writePerformanceDataToFile("google", logHandler, functionName, restFile);
+//            this.fetcher.writePerformanceDataToFile("google", logHandler, functionName, restFile);
 
         } catch (final SeMoDeException e) {
             logger.warning(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!" : e.getCause().getMessage()));
