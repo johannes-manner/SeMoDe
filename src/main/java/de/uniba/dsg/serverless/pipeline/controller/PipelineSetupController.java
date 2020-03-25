@@ -1,47 +1,49 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
-import de.uniba.dsg.serverless.calibration.CalibrationMethods;
-import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
-import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
-import de.uniba.dsg.serverless.cli.PipelineSetupUtility;
-import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.pipeline.model.BenchmarkConfig;
+import de.uniba.dsg.serverless.calibration.methods.AWSCalibration;
+import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
+import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
+import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.model.PipelineSetup;
-import de.uniba.dsg.serverless.pipeline.model.ProviderConfig;
-import de.uniba.dsg.serverless.pipeline.utils.BenchmarkingCommandGenerator;
-import de.uniba.dsg.serverless.pipeline.utils.EndpointExtractor;
-import de.uniba.dsg.serverless.pipeline.utils.FetchingCommandGenerator;
-import de.uniba.dsg.serverless.util.SeMoDeProperty;
-import de.uniba.dsg.serverless.util.SeMoDePropertyManager;
-import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
+import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import java.io.*;
+import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 public class PipelineSetupController {
-
-    private static final Logger logger = LogManager.getLogger(PipelineSetupController.class.getName());
 
     private final ObjectMapper om;
     private final PipelineSetup setup;
     // wrapper/handler to access the user config
     private final UserConfigHandler userConfigHandler;
-
+    private final Scanner scanner;
     private CalibrationMethods calibration;
 
     public PipelineSetupController(final PipelineSetup setup) {
         this.setup = setup;
         this.om = new ObjectMapper();
         this.userConfigHandler = new UserConfigHandler();
+        this.scanner = new Scanner(System.in);
+    }
+
+    public FileLogger getPipelineLogger() {
+        return this.setup.logger;
+    }
+
+    private String scanAndLog() {
+        final String enteredString = this.scanner.nextLine();
+        this.setup.logger.info("Entered String: " + enteredString);
+        return enteredString;
     }
 
     /**
@@ -52,7 +54,7 @@ public class PipelineSetupController {
      */
     public void init() throws SeMoDeException {
         this.createBenchmarkFolderStructure();
-        this.userConfigHandler.initializeCalibrationFromGlobal(this.setup.config);
+        this.userConfigHandler.initializeCalibrationFromGlobal(this.setup.globalConfig);
         this.savePipelineSetup();
     }
 
@@ -70,10 +72,7 @@ public class PipelineSetupController {
         try {
             Files.createDirectories(this.setup.pathToSetup);
             // for benchmarking
-            Files.createDirectories(this.setup.pathToDeployment);
-            Files.createDirectories(this.setup.pathToEndpoints);
-            Files.createDirectories(this.setup.pathToBenchmarkingCommands);
-            Files.createDirectories(this.setup.pathToFetchingCommands);
+            Files.createDirectories(this.setup.pathToBenchmarkExecution);
             // for calibration
             Files.createDirectories(this.setup.pathToCalibration);
         } catch (final IOException e) {
@@ -81,29 +80,75 @@ public class PipelineSetupController {
         }
     }
 
-    public void configureBenchmarkSetup() {
-        String provider;
-        final Map<String, ProviderConfig> validProviders = this.setup.config.getProviderConfigMap();
-        do {
-            System.out.println("Insert a valid provider: " + validProviders.keySet().toString());
-            provider = PipelineSetupUtility.scanner.nextLine();
-            if (validProviders.containsKey(provider)) {
-                try {
-                    System.out.println("Insert memory sizes (JSON Array) or skip setting: ");
-                    final String memorySize = PipelineSetupUtility.scanner.nextLine();
-                    System.out.println("Insert languages (JSON Array), e.g. [\"java\"] or skip setting: ");
-                    final String language = PipelineSetupUtility.scanner.nextLine();
-                    System.out.println("Insert deployment sizes (JSON Array) or skip setting: ");
-                    final String deploymentSize = PipelineSetupUtility.scanner.nextLine();
+    /**
+     * As in 2018, the first prototype to benchmark functions was implemented during the project
+     * in the summer term. All information was created in bash files and executed from there.
+     * <br/>
+     * In 2020, the procedure changed, started with AWS, that native SDKs should be used for getting
+     * the information. The benchmarking pipeline is reimplemented due to this decision and other
+     * providers and open source FaaS platforms should follow.
+     */
+    public void configureBenchmarkSetup() throws SeMoDeException {
+        String provider = "";
+        final List<String> validPlatforms = List.of(SupportedPlatform.values()).stream().map(SupportedPlatform::getText).collect(Collectors.toList());
+        while (!validPlatforms.contains(provider)) {
+            this.setup.logger.info("Insert a valid provider: " + validPlatforms);
+            provider = this.scanAndLog();
+        }
 
-                    this.userConfigHandler.addOrChangeProviderConfig(this.setup.config.getProviderConfigMap(), provider, memorySize, language, deploymentSize);
-                } catch (final IOException e) {
-                    System.err.println("Incorrect json format - inserted values!");
-                } catch (final SeMoDeException e) {
-                    System.err.println("Incorrect property value: " + e.getMessage());
-                }
-            }
-        } while (!"".equals(provider));
+        // the provider is already natively supported via its SDK supported.
+        if (SupportedPlatform.AWS.getText().equals(provider)) {
+
+            this.setup.logger.info("Insert aws function info:");
+            this.setup.logger.info("Insert current region or skip setting: ");
+            final String region = this.scanAndLog();
+            this.setup.logger.info("Insert runtime for benchmarking or skip setting: ");
+            final String runtime = this.scanAndLog();
+            this.setup.logger.info("Insert function execution role (AWS IAM ARN) or skip setting: ");
+            final String awsArnRole = this.scanAndLog();
+            this.setup.logger.info("Insert function handler here or skip setting: ");
+            final String functionHandler = this.scanAndLog();
+            this.setup.logger.info("Insert timeout for function handler or skip setting: ");
+            final String timeout = this.scanAndLog();
+            this.setup.logger.info("Insert current memorySizes (JSON Array) or skip setting: ");
+            final String memorySizes = this.scanAndLog();
+            this.setup.logger.info("Insert path to function source code (directory) or skip setting: ");
+            final String pathToSource = this.scanAndLog();
+
+            this.setup.logger.info("Insert additional info, otherwise these fields are automatically configured during deployment!");
+            this.setup.logger.info("Insert current target url or skip setting: ");
+            final String targetUrl = this.scanAndLog();
+            this.setup.logger.info("Insert current apiKey or skip setting: ");
+            final String apiKey = this.scanAndLog();
+
+            this.userConfigHandler.updateAWSFunctionBenchmarkConfig(region, runtime, awsArnRole, functionHandler, timeout, memorySizes, pathToSource, targetUrl, apiKey);
+
+        } else {
+            // TODO change all providers to native sdks - legacy code
+        }
+
+        // global benchmark parameters
+        // TODO check if this is really needed - check the notes
+        this.setup.logger.info("Global benchmarking parameters:");
+        this.setup.logger.info("Insert number of threads or skip setting:");
+        final String numberOfThreads = this.scanAndLog();
+        this.setup.logger.info("Insert a supported benchmarking mode or skip setting. Options: "
+                + List.of(BenchmarkMode.values()).stream().map(BenchmarkMode::getText).collect(Collectors.toList()));
+        this.setup.logger.info("Usage for each mode:\n"
+                + "\tconcurrent NUMBER_OF_THREADS NUMBER_OF_REQUESTS\n"
+                + "\tsequentialInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
+                + "\tsequentialWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
+                + "\tsequentialConcurrent NUMBER_OF_THREADS NUMBER_OF_GROUPS NUMBER_OF_REQUESTS_GROUP DELAY\n"
+                + "\tsequentialChangingInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS (DELAY)+\n"
+                + "\tsequentialChangingWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS (DELAY)+\n"
+                + "\tarbitraryLoadPattern NUMBER_OF_THREADS FILE.csv");
+        final String benchmarkingMode = this.scanAndLog();
+        this.setup.logger.info("Insert benchmarking parameters or skip setting:");
+        final String benchmarkingParameters = this.scanAndLog();
+        this.setup.logger.info("Insert a static value (POST argument for the http call) for benchmarking the function or skip setting:");
+        final String postArgument = this.scanAndLog();
+
+        this.userConfigHandler.updateGlobalBenchmarkParameters(numberOfThreads, benchmarkingMode, benchmarkingParameters, postArgument);
 
     }
 
@@ -112,199 +157,98 @@ public class PipelineSetupController {
     }
 
     public void printPipelineSetupStatus() throws SeMoDeException {
-        System.out.println("Printing status of pipeline setup \"" + this.setup.name + "\"");
-        System.out.println("Printing Properties:");
+        this.setup.logger.info("Printing status of pipeline setup \"" + this.setup.name + "\"");
+        this.setup.logger.info("Printing Properties:");
 
-        System.out.println(this.userConfigHandler.getPrintableString());
-
-    }
-
-    public void prepareDeployment() throws SeMoDeException {
-        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
-        // TODO make source copying etc. configurable, document function implementation
-        System.out.println("copying sources...");
-        for (final String provider : userProviders.keySet()) {
-            for (final String language : userProviders.get(provider).getLanguage()) {
-
-                // copies the sources from the fibonacci folder into the specific setup config
-                this.copySource(provider, language);
-
-                // change parameters in createDeployments bashscripts
-                this.changeDeploymentParameters(userProviders.get(provider), language);
-
-            }
-        }
-
-        // TODO run a single process builder for each provider / language combination
-
-        // create Deployments
-        System.out.println("creating deployment sizes");
-        this.executeBashCommand("bash createDeployments " + this.setup.getSeMoDeJarLocation(), "-preparation");
-
-        // deployment
-        System.out.println("Deploying created functions... (may take a while)");
-        this.executeBashCommand("bash deploy", "-deploy");
+        this.setup.logger.info(this.userConfigHandler.getPrintableString());
 
     }
 
-    public void undeploy() throws SeMoDeException {
-        this.executeBashCommand("bash undeploy", "-undeploy");
-    }
-
-    private void executeBashCommand(final String command, final String fileSuffix) throws SeMoDeException {
-        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
-        for (final String provider : userProviders.keySet()) {
-            for (final String language : userProviders.get(provider).getLanguage()) {
-                final ProcessBuilder processBuilder = new ProcessBuilder(SeMoDePropertyManager.getInstance().getProperty(SeMoDeProperty.BASH_LOCATION), "-c", command);
-                final String providerLanguage = provider + "-" + language;
-                final Path sourceLocation = Paths.get(this.setup.pathToSetup.toString(), "sources", providerLanguage);
-                processBuilder.directory(sourceLocation.toFile());
-                processBuilder.redirectErrorStream(true);
-                Process process = null;
-                try {
-                    process = processBuilder.start();
-                    this.writeProcessOutputToFile(process, providerLanguage + fileSuffix);
-                    final int errCode = process.waitFor();
-                    System.out
-                            .println("Executed without errors? " + (errCode == 0 ? "Yes" : "No(code=" + errCode + ")"));
-                } catch (final IOException | InterruptedException e) {
-                    e.printStackTrace();
-                    process.destroy();
-                }
-            }
+    public void deployFunctions() throws SeMoDeException {
+        for (final BenchmarkMethods benchmark : this.userConfigHandler.createBenchmarkMethodsFromConfig(this.setup.name)) {
+            benchmark.deploy();
         }
     }
 
-    private void writeProcessOutputToFile(final Process process, final String fileName) throws SeMoDeException {
-        try (final BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-             final BufferedWriter bw = new BufferedWriter(new FileWriter(new File(this.setup.pathToDeployment.resolve(fileName).toString())))) {
-
-            String line;
-            while ((line = br.readLine()) != null) {
-                System.out.println("Process output: " + line);
-                bw.write(line + System.lineSeparator());
-            }
-        } catch (final IOException e) {
-            e.printStackTrace();
-            throw new SeMoDeException("Error while writing the output of the deploymentscript to the file");
+    public void undeployBenchmark() throws SeMoDeException {
+        for (final BenchmarkMethods benchmark : this.userConfigHandler.createBenchmarkMethodsFromConfig(this.setup.name)) {
+            benchmark.undeploy();
         }
     }
 
-    private void copySource(final String provider, final String language) throws SeMoDeException {
-        final String sourceFolderName = provider + "-" + language;
-        // TODO enable other functions / folders than fibonacci
-        final File source = new File(Paths.get("fibonacci", sourceFolderName).toString());
-        final File target = new File(this.setup.pathToSources.resolve(sourceFolderName).toString());
-        try {
-            FileUtils.copyDirectory(source, target);
-        } catch (final IOException e) {
-            throw new SeMoDeException("Copying the source of " + sourceFolderName + "failed.", e);
+    /**
+     * Logs the start and end time and stores it in the user config.
+     * Needed for a later retrieval, see {@link #fetchBenchmarkData()}.
+     */
+    public void executeBenchmark() throws SeMoDeException {
+        this.userConfigHandler.logBenchmarkStartTime();
+
+        final BenchmarkExecutor benchmarkExecutor = new BenchmarkExecutor(this.setup.pathToBenchmarkExecution, this.userConfigHandler.getBenchmarkConfig());
+        benchmarkExecutor.generateLoadPattern();
+        benchmarkExecutor.executeBenchmark(this.userConfigHandler.createBenchmarkMethodsFromConfig(this.setup.name));
+
+        this.userConfigHandler.logBenchmarkEndTime();
+    }
+
+    public void fetchBenchmarkData() throws SeMoDeException {
+        final Pair<LocalDateTime, LocalDateTime> startEndTime = this.userConfigHandler.getStartAndEndTime();
+        for (final BenchmarkMethods benchmark : this.userConfigHandler.createBenchmarkMethodsFromConfig(this.setup.name)) {
+            benchmark.writePerformanceDataToFile(this.setup.pathToBenchmarkExecution, startEndTime.getLeft(), startEndTime.getRight());
         }
     }
 
-    private void changeDeploymentParameters(final ProviderConfig providerConfig, final String language) throws SeMoDeException {
-        final String sourceFolderName = providerConfig.getName() + "-" + language;
-        final Path createDeployments = Paths.get(this.setup.pathToSources.toString(), sourceFolderName, "createDeployments");
-
-        try {
-            String content = new String(Files.readAllBytes(createDeployments));
-            content = content.replaceAll("DEPLOYMENT_SIZES", providerConfig.getDeploymentSize().stream().map(i -> i.toString()).collect(Collectors.joining(" ")));
-            content = content.replaceAll("MEMORY_SIZES", providerConfig.getMemorySize().stream().map(i -> i.toString()).collect(Collectors.joining(" ")));
-            Files.write(createDeployments, content.getBytes());
-        } catch (final IOException e) {
-            throw new SeMoDeException("File is not readable or writable: " + createDeployments.toString(), e);
-        }
-    }
-
-    public void generateEndpoints() throws SeMoDeException {
-        final EndpointExtractor endpointExtractor = new EndpointExtractor(this.setup.config.getLanguageConfigMap(), this.setup.pathToDeployment, this.setup.pathToEndpoints);
-        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
-        for (final String provider : userProviders.keySet()) {
-            for (final String language : userProviders.get(provider).getLanguage()) {
-                endpointExtractor.extractEndpoints(language, provider);
-            }
-        }
-    }
-
-    public void generateBenchmarkingCommands() throws SeMoDeException {
-        // TODO make update of values (input parameters) more robust
-        System.out.println("Insert number of threads");
-        final String numberOfThreads = PipelineSetupUtility.scanner.nextLine();
-        System.out.println("Insert a supported benchmarking mode");
-        final String benchmarkingMode = PipelineSetupUtility.scanner.nextLine();
-        System.out.println("Insert benchmarking parameters");
-        final String benchmarkingParameters = PipelineSetupUtility.scanner.nextLine();
-        System.out.println("Copy a file called 'params.json' in the 'benchmarkingCommands' folder");
-
-        final BenchmarkConfig config = new BenchmarkConfig(numberOfThreads, benchmarkingMode, benchmarkingParameters);
-        this.userConfigHandler.updateBenchmarkConfig(config);
-
-        final BenchmarkingCommandGenerator bcg = new BenchmarkingCommandGenerator(this.setup.pathToBenchmarkingCommands, this.setup.pathToEndpoints, config, this.setup.getSeMoDeJarLocation());
-
-        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
-        for (final String provider : userProviders.keySet()) {
-            for (final String language : userProviders.get(provider).getLanguage()) {
-                bcg.generateCommands(language, provider);
-            }
-        }
-    }
-
-    public void fetchPerformanceData() throws SeMoDeException {
-
-        final FetchingCommandGenerator fcg = new FetchingCommandGenerator(this.setup.pathToBenchmarkingCommands, this.setup.pathToFetchingCommands, this.setup.pathToEndpoints, this.setup.config.getLanguageConfigMap(), this.setup.getSeMoDeJarLocation());
-        final Map<String, ProviderConfig> userProviders = this.userConfigHandler.getUserConfigProviders();
-        for (final String provider : userProviders.keySet()) {
-            for (final String language : userProviders.get(provider).getLanguage()) {
-                fcg.fetchCommands(provider, language);
-            }
-        }
-    }
-
-    public void generateCalibration() throws SeMoDeException {
+    public void configureCalibration() throws SeMoDeException {
         String platform = "";
-        final List<String> validPlatforms = List.of(CalibrationPlatform.values()).stream().map(CalibrationPlatform::getText).collect(Collectors.toList());
+        final List<String> validPlatforms = List.of(SupportedPlatform.values()).stream().map(SupportedPlatform::getText).collect(Collectors.toList());
         while (!validPlatforms.contains(platform)) {
-            System.out.println("Insert a possible calibration platform. Options: " + validPlatforms);
-            platform = PipelineSetupUtility.scanner.nextLine();
+            this.setup.logger.info("Insert a possible calibration platform. Options: " + validPlatforms);
+            platform = this.scanAndLog();
         }
 
-        if (platform.equals(CalibrationPlatform.LOCAL.getText())) {
-            System.out.println("Insert localSteps property or skip setting: ");
-            final String localSteps = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert numberOfLocalCalibrations property or skip setting: ");
-            final String numberOfLocalCalibrations = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert enabled property (true or false) or skip setting: ");
-            final String enabled = PipelineSetupUtility.scanner.nextLine();
+        if (platform.equals(SupportedPlatform.LOCAL.getText())) {
+            this.setup.logger.info("Insert localSteps property or skip setting: ");
+            final String localSteps = this.scanAndLog();
+            this.setup.logger.info("Insert numberOfLocalCalibrations property or skip setting: ");
+            final String numberOfLocalCalibrations = this.scanAndLog();
+            this.setup.logger.info("Insert enabled property (true or false) or skip setting: ");
+            final String enabled = this.scanAndLog();
 
             this.userConfigHandler.updateLocalConfig(localSteps, numberOfLocalCalibrations, enabled);
 
-        } else if (platform.equals(CalibrationPlatform.AWS.getText())) {
-            System.out.println("Insert current region or skip setting: ");
-            final String region = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert runtime for calibration or skip setting: ");
-            final String runtime = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert function execution role (AWS IAM ARN) or skip setting: ");
-            final String awsArnRole = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert function handler here or skip setting: ");
-            final String functionHandler = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert timeout for function handler or skip setting: ");
-            final String timeout = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert true or false, if you want to deploy linpack or skip setting: ");
-            final String deployLinpack = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert current target url or skip setting: ");
-            final String targetUrl = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert current apiKey or skip setting: ");
-            final String apiKey = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert current bucketName or skip setting: ");
-            final String bucketName = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert current memorySizes (JSON Array) or skip setting: ");
-            final String memorySizes = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert current number of executions or skip setting: ");
-            final String numberOfAWSExecutions = PipelineSetupUtility.scanner.nextLine();
-            System.out.println("Insert enabled property (true or false) or skip setting: ");
-            final String enabled = PipelineSetupUtility.scanner.nextLine();
+        } else if (platform.equals(SupportedPlatform.AWS.getText())) {
+            this.setup.logger.info("Insert calibration info:");
+            this.setup.logger.info("Insert true or false, if you want to deploy linpack or skip setting: ");
+            final String deployLinpack = this.scanAndLog();
+            this.setup.logger.info("Insert current bucketName or skip setting: ");
+            final String bucketName = this.scanAndLog();
+            this.setup.logger.info("Insert current number of executions or skip setting: ");
+            final String numberOfAWSExecutions = this.scanAndLog();
+            this.setup.logger.info("Insert enabled property (true or false) or skip setting: ");
+            final String enabled = this.scanAndLog();
 
-            this.userConfigHandler.updateAWSConfig(region, runtime, awsArnRole, functionHandler, timeout, deployLinpack, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
+            this.setup.logger.info("Insert calibration function info:");
+            this.setup.logger.info("Insert current region or skip setting: ");
+            final String region = this.scanAndLog();
+            this.setup.logger.info("Insert runtime for calibration or skip setting: ");
+            final String runtime = this.scanAndLog();
+            this.setup.logger.info("Insert function execution role (AWS IAM ARN) or skip setting: ");
+            final String awsArnRole = this.scanAndLog();
+            this.setup.logger.info("Insert function handler here or skip setting: ");
+            final String functionHandler = this.scanAndLog();
+            this.setup.logger.info("Insert timeout for function handler or skip setting: ");
+            final String timeout = this.scanAndLog();
+            this.setup.logger.info("Insert current memorySizes (JSON Array) or skip setting: ");
+            final String memorySizes = this.scanAndLog();
+            this.setup.logger.info("Insert path to function source code (directory) or skip setting: ");
+            final String pathToSource = this.scanAndLog();
+
+            this.setup.logger.info("Insert additional info, otherwise these fields are automatically configured during deployment!");
+            this.setup.logger.info("Insert current target url or skip setting: ");
+            final String targetUrl = this.scanAndLog();
+            this.setup.logger.info("Insert current apiKey or skip setting: ");
+            final String apiKey = this.scanAndLog();
+
+            this.userConfigHandler.updateAWSConfig(region, runtime, awsArnRole, functionHandler, timeout, deployLinpack, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled, pathToSource);
 
         }
     }
@@ -324,7 +268,12 @@ public class PipelineSetupController {
         }
     }
 
-    public void stopCalibration() throws SeMoDeException {
+    /**
+     * Stops the calibration and undeploys the already deployed resources.
+     *
+     * @throws SeMoDeException
+     */
+    public void undeployCalibration() throws SeMoDeException {
         if (this.userConfigHandler.isLocalEnabled()) {
             this.calibration = new LocalCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getLocalConfig());
             this.calibration.stopCalibration();

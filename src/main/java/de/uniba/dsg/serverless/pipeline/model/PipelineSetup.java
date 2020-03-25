@@ -2,7 +2,9 @@ package de.uniba.dsg.serverless.pipeline.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
-import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.model.config.GlobalConfig;
+import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -26,11 +28,10 @@ import java.util.function.Predicate;
 public class PipelineSetup {
 
     public static final String SETUP_LOCATION = "setups";
-    public static final String SEPERATOR = ";";
     private static final String PIPELINE_JSON = "pipeline.json";
     private static final String SEMODE_JAR_NAME = "SeMoDe.jar";
 
-    public final Config config;
+    public final GlobalConfig globalConfig;
     // name of the pipeline setup, also name for the root folder
     public final String name;
     // global pipeline paths
@@ -38,12 +39,12 @@ public class PipelineSetup {
     public final Path pathToConfig;
     public final Path pathToSources;
     // for benchmarking
-    public final Path pathToDeployment;
-    public final Path pathToEndpoints;
-    public final Path pathToBenchmarkingCommands;
-    public final Path pathToFetchingCommands;
+    public final Path pathToBenchmarkExecution;
     // for calibration
     public final Path pathToCalibration;
+
+    // for logging the pipeline interaction
+    public final FileLogger logger;
 
     public PipelineSetup(final String name) throws SeMoDeException {
         this.name = name;
@@ -51,14 +52,9 @@ public class PipelineSetup {
         this.pathToConfig = this.pathToSetup.resolve("settings.json");
         this.pathToSources = this.pathToSetup.resolve("sources");
         this.pathToCalibration = this.pathToSetup.resolve("calibration");
-
-        final Path benchmarkPath = this.pathToSetup.resolve("benchmark");
-        this.pathToDeployment = benchmarkPath.resolve("deployments");
-        this.pathToEndpoints = benchmarkPath.resolve("endpoints");
-        this.pathToBenchmarkingCommands = benchmarkPath.resolve("benchmarkingCommands");
-        this.pathToFetchingCommands = benchmarkPath.resolve("fetchingCommands");
-
-        this.config = this.loadGlobalConfig(PIPELINE_JSON);
+        this.pathToBenchmarkExecution = this.pathToSetup.resolve("benchmark");
+        this.globalConfig = this.loadGlobalConfig(PIPELINE_JSON);
+        this.logger = new FileLogger("pipeline", this.pathToSetup.resolve("pipeline.log").toString(), false);
     }
 
 
@@ -66,10 +62,10 @@ public class PipelineSetup {
         return Files.exists(this.pathToSetup);
     }
 
-    private Config loadGlobalConfig(final String path) throws SeMoDeException {
+    private GlobalConfig loadGlobalConfig(final String path) throws SeMoDeException {
         final ObjectMapper om = new ObjectMapper();
         try {
-            return om.readValue(Resources.toString(Resources.getResource(path), StandardCharsets.UTF_8), Config.class);
+            return om.readValue(Resources.toString(Resources.getResource(path), StandardCharsets.UTF_8), GlobalConfig.class);
         } catch (final IOException e) {
             throw new SeMoDeException("Error while parsing the " + path + " file. Check the config.");
         }

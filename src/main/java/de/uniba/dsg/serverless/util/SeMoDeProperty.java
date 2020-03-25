@@ -1,7 +1,5 @@
 package de.uniba.dsg.serverless.util;
 
-import de.uniba.dsg.serverless.model.SeMoDeException;
-
 public enum SeMoDeProperty {
     // text is equivalent to the property name in the file config.properties
     BASH_LOCATION("bashExeLocation");

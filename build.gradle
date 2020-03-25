@@ -42,10 +42,6 @@ dependencies {
     compile group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.29'
     compile group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '2.29'
 
-    // log4j2
-    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.0'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.0'
-
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
 

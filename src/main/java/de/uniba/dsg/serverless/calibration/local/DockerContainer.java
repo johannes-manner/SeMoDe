@@ -6,7 +6,6 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.LogContainerCmd;
 import com.github.dockerjava.api.exception.DockerClientException;
 import com.github.dockerjava.api.exception.NotFoundException;
-import com.github.dockerjava.api.model.ContainerNetwork;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Statistics;
@@ -15,8 +14,8 @@ import com.github.dockerjava.core.InvocationBuilder.AsyncResultCallback;
 import com.github.dockerjava.core.command.BuildImageResultCallback;
 import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.github.dockerjava.core.command.WaitContainerResultCallback;
-import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.util.DockerUtil;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.io.IOUtils;
@@ -31,25 +30,23 @@ import java.util.stream.Collectors;
 
 public class DockerContainer {
 
-    private String containerId;
-    private String imageId;
-    private final List<String> logs = new ArrayList<>();
-
-    public final File dockerFile;
-    public final String imageTag;
-    private final DockerClient client;
-
     public static final long DEFAULT_CPU_PERIOD = 100000;
     public static final long CPU_QUOTA_CONST = 100000;
+    public final File dockerFile;
+    public final String imageTag;
+    private final List<String> logs = new ArrayList<>();
+    private final DockerClient client;
+    private String containerId;
+    private String imageId;
 
-    public DockerContainer(String dockerFile, String imageTag) throws SeMoDeException {
+    public DockerContainer(final String dockerFile, final String imageTag) throws SeMoDeException {
         this.imageTag = imageTag;
         this.dockerFile = new File(dockerFile);
 
         if (!this.dockerFile.exists() || !this.dockerFile.isFile()) {
             throw new SeMoDeException("Dockerfile does not exist. (" + dockerFile + ")");
         }
-        client = DockerClientBuilder.getInstance().build();
+        this.client = DockerClientBuilder.getInstance().build();
     }
 
     /**
@@ -59,7 +56,7 @@ public class DockerContainer {
      * @throws SeMoDeException build failed
      */
     public String buildContainer() throws SeMoDeException {
-        return buildContainer(".");
+        return this.buildContainer(".");
     }
 
     /**
@@ -69,17 +66,17 @@ public class DockerContainer {
      * @return image id
      * @throws SeMoDeException build failed
      */
-    public String buildContainer(String baseDirectory) throws SeMoDeException {
-        File baseDir = new File(baseDirectory);
+    public String buildContainer(final String baseDirectory) throws SeMoDeException {
+        final File baseDir = new File(baseDirectory);
         try {
-            imageId = client.buildImageCmd(dockerFile)
+            this.imageId = this.client.buildImageCmd(this.dockerFile)
                     .withBaseDirectory(baseDir)
-                    .withDockerfile(dockerFile)
-                    .withTags(Collections.singleton(imageTag))
+                    .withDockerfile(this.dockerFile)
+                    .withTags(Collections.singleton(this.imageTag))
                     .exec(new BuildImageResultCallback())
                     .awaitImageId();
-            return imageId;
-        } catch (DockerClientException e) {
+            return this.imageId;
+        } catch (final DockerClientException e) {
             throw new SeMoDeException("Failed to build docker image.", e);
         }
     }
@@ -90,7 +87,7 @@ public class DockerContainer {
      * @return container id
      */
     public String startContainer() {
-        return startContainer(Collections.emptyMap(), ResourceLimit.unlimited());
+        return this.startContainer(Collections.emptyMap(), ResourceLimit.unlimited());
     }
 
 
@@ -100,8 +97,8 @@ public class DockerContainer {
      * @param limits resource limits
      * @return container id
      */
-    public String startContainer(ResourceLimit limits) {
-        return startContainer(Collections.emptyMap(), limits);
+    public String startContainer(final ResourceLimit limits) {
+        return this.startContainer(Collections.emptyMap(), limits);
     }
 
     /**
@@ -110,8 +107,8 @@ public class DockerContainer {
      * @param envParams environment parameters
      * @return container id
      */
-    public String startContainer(Map<String, String> envParams) {
-        return startContainer(envParams, ResourceLimit.unlimited());
+    public String startContainer(final Map<String, String> envParams) {
+        return this.startContainer(envParams, ResourceLimit.unlimited());
     }
 
     /**
@@ -121,16 +118,16 @@ public class DockerContainer {
      * @param envParams environment parameters
      * @return container id
      */
-    public String startContainer(Map<String, String> envParams, ResourceLimit limits) {
-        CreateContainerResponse container = client
-                .createContainerCmd(imageTag)
+    public String startContainer(final Map<String, String> envParams, final ResourceLimit limits) {
+        final CreateContainerResponse container = this.client
+                .createContainerCmd(this.imageTag)
                 .withEnv(envParams.entrySet().stream().map(a -> a.getKey() + "=" + a.getValue()).collect(Collectors.toList()))
-                .withHostConfig(getHostConfig(limits))
+                .withHostConfig(this.getHostConfig(limits))
                 .withAttachStdin(true)
                 .exec();
-        containerId = container.getId();
-        client.startContainerCmd(containerId).exec();
-        return containerId;
+        this.containerId = container.getId();
+        this.client.startContainerCmd(this.containerId).exec();
+        return this.containerId;
     }
 
 
@@ -140,8 +137,8 @@ public class DockerContainer {
      * @return status code
      */
     public int awaitTermination() {
-        return client
-                .waitContainerCmd(containerId)
+        return this.client
+                .waitContainerCmd(this.containerId)
                 .exec(new WaitContainerResultCallback())
                 .awaitStatusCode();
     }
@@ -153,11 +150,11 @@ public class DockerContainer {
      * @return host config based on limit
      * @see <a href="https://github.com/docker-java/docker-java/issues/1008">https://github.com/docker-java/docker-java/issues/1008</a>
      */
-    private HostConfig getHostConfig(ResourceLimit limit) {
-        HostConfig config = new HostConfig();
+    private HostConfig getHostConfig(final ResourceLimit limit) {
+        final HostConfig config = new HostConfig();
 
         if (limit.cpuLimit > 0.0) {
-            long cpuQuota = (long) (limit.cpuLimit * CPU_QUOTA_CONST);
+            final long cpuQuota = (long) (limit.cpuLimit * CPU_QUOTA_CONST);
             config.withCpuQuota(cpuQuota).withCpuPeriod(DEFAULT_CPU_PERIOD);
         }
         if (limit.memoryLimit > 0L) {
@@ -172,7 +169,7 @@ public class DockerContainer {
 
     // TODO any use for this?
     public long getStartedAt() throws SeMoDeException {
-        String startedAt = client.inspectContainerCmd(containerId)
+        final String startedAt = this.client.inspectContainerCmd(this.containerId)
                 .exec()
                 .getState()
                 .getStartedAt();
@@ -186,12 +183,12 @@ public class DockerContainer {
      * @throws SeMoDeException When the Thread is interrupted or
      */
     public List<Statistics> logStatistics() throws SeMoDeException {
-        List<Statistics> statistics = new ArrayList<>();
-        Optional<Statistics> nextRead = getNextStatistics();
+        final List<Statistics> statistics = new ArrayList<>();
+        Optional<Statistics> nextRead = this.getNextStatistics();
         while (nextRead.isPresent()) {
-            Statistics next = nextRead.get();
+            final Statistics next = nextRead.get();
             statistics.add(next);
-            nextRead = getNextStatistics();
+            nextRead = this.getNextStatistics();
         }
         return statistics;
     }
@@ -204,8 +201,8 @@ public class DockerContainer {
      */
     public InspectContainerResponse inspectContainer() throws SeMoDeException {
         try {
-            return client.inspectContainerCmd(containerId).exec();
-        } catch (NotFoundException e) {
+            return this.client.inspectContainerCmd(this.containerId).exec();
+        } catch (final NotFoundException e) {
             throw new SeMoDeException(e);
         }
     }
@@ -217,13 +214,13 @@ public class DockerContainer {
      * @throws SeMoDeException Exception in callback termination.
      */
     public Optional<Statistics> getNextStatistics() throws SeMoDeException {
-        AsyncResultCallback<Statistics> callback = new AsyncResultCallback<>();
-        client.statsCmd(containerId).exec(callback);
-        Statistics s;
+        final AsyncResultCallback<Statistics> callback = new AsyncResultCallback<>();
+        this.client.statsCmd(this.containerId).exec(callback);
+        final Statistics s;
         try {
             s = callback.awaitResult();
             callback.close();
-        } catch (RuntimeException | IOException e) {
+        } catch (final RuntimeException | IOException e) {
             throw new SeMoDeException(e);
         }
         if (s.getMemoryStats() == null || s.getMemoryStats().getUsage() == null) {
@@ -235,25 +232,26 @@ public class DockerContainer {
 
     /**
      * Returns
+     *
      * @return
      * @throws SeMoDeException
      */
     public List<String> getLogs() throws SeMoDeException {
-        LogContainerCmd logContainerCmd = client.logContainerCmd(containerId);
+        final LogContainerCmd logContainerCmd = this.client.logContainerCmd(this.containerId);
         logContainerCmd.withStdOut(true).withStdErr(true);
         logContainerCmd.withTimestamps(true);
 
         try {
-            List<String> logs = new ArrayList<>();
+            final List<String> logs = new ArrayList<>();
             logContainerCmd.exec(new LogContainerResultCallback() {
                 @Override
-                public void onNext(Frame item) {
+                public void onNext(final Frame item) {
                     logs.add(item.toString());
                 }
             }).awaitCompletion();
             return logs;
-        } catch (InterruptedException e) {
-            throw new SeMoDeException("Could not get logs from container " + containerId + ".", e);
+        } catch (final InterruptedException e) {
+            throw new SeMoDeException("Could not get logs from container " + this.containerId + ".", e);
         }
     }
 
@@ -267,11 +265,11 @@ public class DockerContainer {
      * @param localFolder     path to folder for resulting file(s)
      * @throws SeMoDeException
      */
-    public void getFilesFromContainer(String containerFolder, Path localFolder) throws SeMoDeException {
-        try (TarArchiveInputStream tarStream = new TarArchiveInputStream(
-                client.copyArchiveFromContainerCmd(containerId, containerFolder).exec())) {
-            unTar(tarStream, localFolder);
-        } catch (IOException e) {
+    public void getFilesFromContainer(final String containerFolder, final Path localFolder) throws SeMoDeException {
+        try (final TarArchiveInputStream tarStream = new TarArchiveInputStream(
+                this.client.copyArchiveFromContainerCmd(this.containerId, containerFolder).exec())) {
+            this.unTar(tarStream, localFolder);
+        } catch (final IOException e) {
             throw new SeMoDeException("Copying file(s) failed.", e);
         }
     }
@@ -285,13 +283,13 @@ public class DockerContainer {
      * @throws IOException
      * @see <a href="https://github.com/docker-java/docker-java/issues/991">https://github.com/docker-java/docker-java/issues/991</a>
      */
-    private void unTar(TarArchiveInputStream tarInputStream, Path destinationFolder) throws IOException {
+    private void unTar(final TarArchiveInputStream tarInputStream, final Path destinationFolder) throws IOException {
         TarArchiveEntry tarEntry;
         while ((tarEntry = tarInputStream.getNextTarEntry()) != null) {
             if (tarEntry.isFile()) {
-                Path filePath = destinationFolder.resolve(tarEntry.getName());
+                final Path filePath = destinationFolder.resolve(tarEntry.getName());
                 Files.createDirectories(filePath.getParent());
-                try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
+                try (final FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
                     IOUtils.copy(tarInputStream, fos);
                 }
             }

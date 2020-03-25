@@ -1,12 +1,12 @@
 package de.uniba.dsg.serverless.calibration.local;
 
+import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.calibration.Calibration;
-import de.uniba.dsg.serverless.calibration.CalibrationMethods;
-import de.uniba.dsg.serverless.calibration.CalibrationPlatform;
 import de.uniba.dsg.serverless.calibration.LinpackParser;
-import de.uniba.dsg.serverless.model.SeMoDeException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
+import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
+import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,7 +22,7 @@ import java.util.stream.IntStream;
 
 public class LocalCalibration implements CalibrationMethods {
 
-    private static final Logger logger = LogManager.getLogger(LocalCalibration.class.getName());
+    private static final FileLogger logger = ArgumentProcessor.logger;
     private static final String CONTAINER_RESULT_FOLDER = "/usr/src/linpack/output/"; // specified by linpack benchmark container
     private static final String LINPACK_DOCKERFILE = "linpack/local/Dockerfile";
     private static final String LINPACK_IMAGE = "semode/linpack";
@@ -33,7 +33,7 @@ public class LocalCalibration implements CalibrationMethods {
 
     // used for CLI feature
     public LocalCalibration(final String name, final LocalCalibrationConfig config) throws SeMoDeException {
-        this.calibration = new Calibration(name, CalibrationPlatform.LOCAL);
+        this.calibration = new Calibration(name, SupportedPlatform.LOCAL);
         this.temporaryLog = this.calibration.calibrationLogs.resolve("output").resolve("out.txt");
         // TODO change CLI feature here - for now - default value
         // this.steps = 0.1;
@@ -42,7 +42,7 @@ public class LocalCalibration implements CalibrationMethods {
 
     // used within pipeline
     public LocalCalibration(final String name, final Path calibrationFolder, final LocalCalibrationConfig config) throws SeMoDeException {
-        this.calibration = new Calibration(name, CalibrationPlatform.LOCAL, calibrationFolder);
+        this.calibration = new Calibration(name, SupportedPlatform.LOCAL, calibrationFolder);
         this.temporaryLog = this.calibration.calibrationLogs.resolve("output").resolve("out.txt");
         this.config = config;
     }
@@ -92,7 +92,7 @@ public class LocalCalibration implements CalibrationMethods {
 
     @Override
     public void stopCalibration() {
-        System.err.println("Not able to stop the local calibration!");
+        logger.warning("Not able to stop the local calibration!");
     }
 
     private List<Double> performCalibration(final int i, final List<Double> quotas, final DockerContainer linpackContainer) throws SeMoDeException {

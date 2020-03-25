@@ -2,16 +2,25 @@ package de.uniba.dsg.serverless.pipeline.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.GsonBuilder;
-import de.uniba.dsg.serverless.calibration.aws.AWSCalibrationConfig;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
-import de.uniba.dsg.serverless.model.SeMoDeException;
-import de.uniba.dsg.serverless.pipeline.model.*;
+import de.uniba.dsg.serverless.pipeline.benchmark.methods.AWSBenchmark;
+import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
+import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.GlobalConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.UserConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
+import de.uniba.dsg.serverless.util.SeMoDeException;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Wrapper to change the attributes of the user config class.
@@ -25,9 +34,9 @@ public class UserConfigHandler {
         this.userConfig = new UserConfig();
     }
 
-    public void updateAWSConfig(final String region, final String runtime, final String awsArnRole, final String functionHandler, final String timeout, final String deployLinpack, final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled) throws SeMoDeException {
+    public void updateAWSConfig(final String region, final String runtime, final String awsArnRole, final String functionHandler, final String timeout, final String deployLinpack, final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled, final String pathToSource) throws SeMoDeException {
         try {
-            this.userConfig.getCalibrationConfig().getAwsConfig().update(region, runtime, awsArnRole, functionHandler, timeout, deployLinpack, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled);
+            this.userConfig.getCalibrationConfig().getAwsCalibrationConfig().update(region, runtime, awsArnRole, functionHandler, timeout, deployLinpack, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled, pathToSource);
         } catch (final IOException e) {
             throw new SeMoDeException("Error during memory Size parsing");
         }
@@ -38,7 +47,7 @@ public class UserConfigHandler {
     }
 
     public AWSCalibrationConfig getAWSConfig() {
-        return this.userConfig.getCalibrationConfig().getAwsConfig();
+        return this.userConfig.getCalibrationConfig().getAwsCalibrationConfig();
     }
 
     public LocalCalibrationConfig getLocalConfig() {
@@ -50,7 +59,7 @@ public class UserConfigHandler {
     }
 
     public boolean isAWSEnabled() {
-        return this.userConfig.getCalibrationConfig().getAwsConfig().enabled;
+        return this.userConfig.getCalibrationConfig().getAwsCalibrationConfig().enabled;
     }
 
     public double getLocalSteps() {
@@ -72,27 +81,8 @@ public class UserConfigHandler {
         }
     }
 
-    public void initializeCalibrationFromGlobal(final Config globalConfig) {
+    public void initializeCalibrationFromGlobal(final GlobalConfig globalConfig) {
         this.userConfig.setCalibrationConfig(new CalibrationConfig(globalConfig.getCalibrationConfig()));
-    }
-
-    public void addOrChangeProviderConfig(final Map<String, ProviderConfig> providerConfigMap, final String provider, final String memorySize, final String language, final String deploymentSize) throws IOException, SeMoDeException {
-        boolean providerMissingInList = true;
-
-        for (final ProviderConfig providerConfig : this.userConfig.getProviderConfigs()) {
-            if (providerConfig.getName().equals(provider)) {
-                providerConfig.validateAndUpdate(providerConfigMap, memorySize, language, deploymentSize);
-                providerMissingInList = false;
-                break;
-            }
-        }
-
-        if (providerMissingInList) {
-            final ProviderConfig config = new ProviderConfig();
-            config.validateAndCreate(providerConfigMap, provider, memorySize, language, deploymentSize);
-            this.userConfig.getProviderConfigs().add(config);
-        }
-
     }
 
     public void saveUserConfigToFile(final Path pathToConfig) throws SeMoDeException {
@@ -108,15 +98,55 @@ public class UserConfigHandler {
         return new GsonBuilder().setPrettyPrinting().create().toJson(this.userConfig);
     }
 
-    public void updateBenchmarkConfig(final BenchmarkConfig config) {
-        this.userConfig.setBenchmarkConfig(config);
+    public void updateAWSFunctionBenchmarkConfig(final String region, final String runtime, final String awsArnRole, final String functionHandler,
+                                                 final String timeout, final String memorySizes, final String pathToSource, final String targetUrl,
+                                                 final String apiKey) throws SeMoDeException {
+        try {
+            this.userConfig.getBenchmarkConfig().getAwsBenchmarkConfig().getFunctionConfig().update(region, runtime, awsArnRole, functionHandler, timeout, targetUrl, apiKey, memorySizes, pathToSource);
+        } catch (final IOException e) {
+            throw new SeMoDeException("Error during memory Size parsing");
+        }
     }
 
-    public Map<String, ProviderConfig> getUserConfigProviders() {
-        final Map<String, ProviderConfig> temp = new HashMap<>();
-        for (final ProviderConfig config : this.userConfig.getProviderConfigs()) {
-            temp.put(config.getName(), config);
+    /**
+     * Creates a list of all benchmark configs, which are enabled.
+     * Currently only AWS is enabled.
+     *
+     * @param setupName
+     * @return
+     */
+    public List<BenchmarkMethods> createBenchmarkMethodsFromConfig(final String setupName) throws SeMoDeException {
+        final List<BenchmarkMethods> benchmarkMethods = new ArrayList<>();
+        // if this is the case, the benchmark config was initialized, see function above
+        if (this.userConfig.getBenchmarkConfig().awsBenchmarkConfig != null) {
+            benchmarkMethods.add(new AWSBenchmark(setupName, this.userConfig.getBenchmarkConfig().awsBenchmarkConfig));
         }
-        return temp;
+        return benchmarkMethods;
+    }
+
+    public void updateGlobalBenchmarkParameters(final String numberOfThreads, final String benchmarkingMode, final String benchmarkingParameters, final String postArgument) {
+        this.userConfig.getBenchmarkConfig().update(numberOfThreads, benchmarkingMode, benchmarkingParameters, postArgument);
+    }
+
+    public BenchmarkConfig getBenchmarkConfig() {
+        return this.userConfig.getBenchmarkConfig();
+    }
+
+    public void logBenchmarkStartTime() {
+        this.userConfig.getBenchmarkConfig().logBenchmarkStartTime();
+    }
+
+    public void logBenchmarkEndTime() {
+        this.userConfig.getBenchmarkConfig().logBenchmarkEndTime();
+    }
+
+    public Pair<LocalDateTime, LocalDateTime> getStartAndEndTime() throws SeMoDeException {
+        try {
+            return new ImmutablePair<>(LocalDateTime.parse(this.userConfig.getBenchmarkConfig().startTime),
+                    LocalDateTime.parse(this.userConfig.getBenchmarkConfig().endTime));
+        } catch (final DateTimeParseException e) {
+            throw new SeMoDeException("Start or end time not parsable: start: " + this.userConfig.getBenchmarkConfig().startTime
+                    + " end: " + this.userConfig.getBenchmarkConfig().endTime);
+        }
     }
 }

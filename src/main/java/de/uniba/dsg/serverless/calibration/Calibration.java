@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.calibration;
 
-import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,7 +24,7 @@ public class Calibration {
      * @param platform platform which is tackled (used for storing the logs and the final result)
      * @throws SeMoDeException
      */
-    public Calibration(final String name, final CalibrationPlatform platform) throws SeMoDeException {
+    public Calibration(final String name, final SupportedPlatform platform) throws SeMoDeException {
         this.calibrationFolder = Paths.get("calibration");
         this.name = name;
         this.calibrationFile = this.calibrationFolder.resolve(platform.getText()).resolve(name + ".csv");
@@ -39,7 +40,7 @@ public class Calibration {
      * @param calibrationFolder folder of the calibration files
      * @throws SeMoDeException
      */
-    public Calibration(final String name, final CalibrationPlatform platform, final Path calibrationFolder) throws SeMoDeException {
+    public Calibration(final String name, final SupportedPlatform platform, final Path calibrationFolder) throws SeMoDeException {
         this.name = name;
         this.calibrationFolder = calibrationFolder;
         this.calibrationFile = calibrationFolder.resolve(platform.getText()).resolve(name + ".csv");

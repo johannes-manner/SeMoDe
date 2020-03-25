@@ -1,41 +1,35 @@
 package de.uniba.dsg.serverless.cli;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import de.uniba.dsg.serverless.cli.performance.AWSPerformanceDataUtility;
 import de.uniba.dsg.serverless.cli.performance.AzurePerformanceDataUtility;
 import de.uniba.dsg.serverless.cli.performance.GooglePerformanceDataUtility;
 import de.uniba.dsg.serverless.cli.performance.IBMOpenWhiskPerformanceDataUtility;
 import de.uniba.dsg.serverless.simulation.load.SimulationUtility;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
 public class UtilityFactory {
 
-	private static List<CustomUtility> utilityList = Arrays.asList(
-			
-			// fetcher for performance data
-			new AWSPerformanceDataUtility("awsPerformanceData"),
-			new AzurePerformanceDataUtility("azurePerformanceData"),
-			new IBMOpenWhiskPerformanceDataUtility("openWhiskPerformanceData"),
-			new GooglePerformanceDataUtility("googlePerformanceData"),
-			
-			// parts of benchmarking
-			new PipelineSetupUtility("pipelineSetup"),
-			new BenchmarkUtility("benchmark"),
-			new DeploymentSizeUtility("deploymentSize"),
-			
-			// automated test generation
-			new SeMoDeUtility("awsSeMoDe"),		
-			
-			// simulation
-			new SimulationUtility("loadSimulation"),
+    private static final List<CustomUtility> utilityList = Arrays.asList(
 
-			// calibration
-			new CalibrationUtility("calibration")
-	);
+            // fetcher for performance data
+            new AzurePerformanceDataUtility("azurePerformanceData"),
+            new IBMOpenWhiskPerformanceDataUtility("openWhiskPerformanceData"),
+            new GooglePerformanceDataUtility("googlePerformanceData"),
 
-	public static Optional<CustomUtility> getUtilityClass(String name) {
-		return utilityList.stream().filter(c -> c.getName().equals(name)).findFirst();
-	}
+            // parts of benchmarking
+            new PipelineSetupUtility("pipelineSetup"),
+            new DeploymentSizeUtility("deploymentSize"),
+
+            // simulation
+            new SimulationUtility("loadSimulation"),
+
+            // calibration
+            new CalibrationUtility("calibration")
+    );
+
+    public static Optional<CustomUtility> getUtilityClass(final String name) {
+        return utilityList.stream().filter(c -> c.getName().equals(name)).findFirst();
+    }
 }

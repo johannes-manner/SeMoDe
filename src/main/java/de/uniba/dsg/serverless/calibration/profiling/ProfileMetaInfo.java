@@ -2,7 +2,7 @@ package de.uniba.dsg.serverless.calibration.profiling;
 
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.HostConfig;
-import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 public class ProfileMetaInfo {
 
@@ -13,20 +13,20 @@ public class ProfileMetaInfo {
     public final long durationMS;
     public final long averageMemoryUsage;
 
-    public ProfileMetaInfo(Profile profile) throws SeMoDeException {
-        InspectContainerResponse additional = profile.additional;
-        created = additional.getCreated();
-        hostConfig = additional.getHostConfig();
-        imageId = additional.getImageId();
-        state = additional.getState();
-        durationMS = ContainerMetrics.timeDifference(state.getStartedAt(), state.getFinishedAt());
-        averageMemoryUsage = getAverageMemoryUtilization(profile);
+    public ProfileMetaInfo(final Profile profile) throws SeMoDeException {
+        final InspectContainerResponse additional = profile.additional;
+        this.created = additional.getCreated();
+        this.hostConfig = additional.getHostConfig();
+        this.imageId = additional.getImageId();
+        this.state = additional.getState();
+        this.durationMS = ContainerMetrics.timeDifference(this.state.getStartedAt(), this.state.getFinishedAt());
+        this.averageMemoryUsage = this.getAverageMemoryUtilization(profile);
     }
 
 
-    private long getAverageMemoryUtilization(Profile profile) throws SeMoDeException {
+    private long getAverageMemoryUtilization(final Profile profile) throws SeMoDeException {
         long memoryUsage = 0;
-        for (ContainerMetrics entry : profile.metrics) {
+        for (final ContainerMetrics entry : profile.metrics) {
             memoryUsage += entry.getMetric("memory_usage");
         }
         return memoryUsage / profile.metrics.size();

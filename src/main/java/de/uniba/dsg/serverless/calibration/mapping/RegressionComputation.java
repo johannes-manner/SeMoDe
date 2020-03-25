@@ -1,12 +1,12 @@
 package de.uniba.dsg.serverless.calibration.mapping;
 
-import de.uniba.dsg.serverless.model.SeMoDeException;
+import de.uniba.dsg.serverless.ArgumentProcessor;
+import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class RegressionComputation {
 
-    private static final Logger logger = LogManager.getLogger(RegressionComputation.class.getName());
+    private static final FileLogger logger = ArgumentProcessor.logger;
 
     private final Path calibrationFile;
     private final SimpleRegression regression;
