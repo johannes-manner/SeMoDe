@@ -6,7 +6,6 @@ import de.uniba.dsg.serverless.benchmark.BenchmarkMode;
 import de.uniba.dsg.serverless.calibration.CalibrationMethods;
 import de.uniba.dsg.serverless.calibration.aws.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
-import de.uniba.dsg.serverless.cli.PipelineSetupUtility;
 import de.uniba.dsg.serverless.model.SeMoDeException;
 import de.uniba.dsg.serverless.pipeline.model.PipelineSetup;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
@@ -14,6 +13,7 @@ import de.uniba.dsg.serverless.pipeline.model.config.ProviderConfig;
 import de.uniba.dsg.serverless.pipeline.utils.BenchmarkingCommandGenerator;
 import de.uniba.dsg.serverless.pipeline.utils.EndpointExtractor;
 import de.uniba.dsg.serverless.pipeline.utils.FetchingCommandGenerator;
+import de.uniba.dsg.serverless.util.FileLogger;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 public class PipelineSetupController {
@@ -30,12 +31,24 @@ public class PipelineSetupController {
     private final PipelineSetup setup;
     // wrapper/handler to access the user config
     private final UserConfigHandler userConfigHandler;
+    private final Scanner scanner;
     private CalibrationMethods calibration;
 
     public PipelineSetupController(final PipelineSetup setup) {
         this.setup = setup;
         this.om = new ObjectMapper();
         this.userConfigHandler = new UserConfigHandler();
+        this.scanner = new Scanner(System.in);
+    }
+
+    public FileLogger getPipelineLogger() {
+        return this.setup.logger;
+    }
+
+    private String scanAndLog() {
+        final String enteredString = this.scanner.nextLine();
+        this.setup.logger.info("Entered String: " + enteredString);
+        return enteredString;
     }
 
     /**
@@ -88,7 +101,7 @@ public class PipelineSetupController {
         final Map<String, ProviderConfig> validProviders = this.setup.globalConfig.getProviderConfigMap();
         while (!validProviders.containsKey(provider)) {
             this.setup.logger.info("Insert a valid provider: " + validProviders.keySet().toString());
-            provider = PipelineSetupUtility.scanner.nextLine();
+            provider = this.scanAndLog();
         }
 
         // the provider is already natively supported via its SDK supported.
@@ -96,25 +109,25 @@ public class PipelineSetupController {
 
             this.setup.logger.info("Insert aws function info:");
             this.setup.logger.info("Insert current region or skip setting: ");
-            final String region = PipelineSetupUtility.scanner.nextLine();
+            final String region = this.scanAndLog();
             this.setup.logger.info("Insert runtime for benchmarking or skip setting: ");
-            final String runtime = PipelineSetupUtility.scanner.nextLine();
+            final String runtime = this.scanAndLog();
             this.setup.logger.info("Insert function execution role (AWS IAM ARN) or skip setting: ");
-            final String awsArnRole = PipelineSetupUtility.scanner.nextLine();
+            final String awsArnRole = this.scanAndLog();
             this.setup.logger.info("Insert function handler here or skip setting: ");
-            final String functionHandler = PipelineSetupUtility.scanner.nextLine();
+            final String functionHandler = this.scanAndLog();
             this.setup.logger.info("Insert timeout for function handler or skip setting: ");
-            final String timeout = PipelineSetupUtility.scanner.nextLine();
+            final String timeout = this.scanAndLog();
             this.setup.logger.info("Insert current memorySizes (JSON Array) or skip setting: ");
-            final String memorySizes = PipelineSetupUtility.scanner.nextLine();
+            final String memorySizes = this.scanAndLog();
             this.setup.logger.info("Insert path to function source code (directory) or skip setting: ");
-            final String pathToSource = PipelineSetupUtility.scanner.nextLine();
+            final String pathToSource = this.scanAndLog();
 
             this.setup.logger.info("Insert additional info, otherwise these fields are automatically configured during deployment!");
             this.setup.logger.info("Insert current target url or skip setting: ");
-            final String targetUrl = PipelineSetupUtility.scanner.nextLine();
+            final String targetUrl = this.scanAndLog();
             this.setup.logger.info("Insert current apiKey or skip setting: ");
-            final String apiKey = PipelineSetupUtility.scanner.nextLine();
+            final String apiKey = this.scanAndLog();
 
             this.userConfigHandler.updateAWSFunctionBenchmarkConfig(region, runtime, awsArnRole, functionHandler, timeout, memorySizes, pathToSource, targetUrl, apiKey);
 
@@ -122,11 +135,11 @@ public class PipelineSetupController {
             // TODO change all providers to native sdks - legacy code
             try {
                 this.setup.logger.info("Insert memory sizes (JSON Array) or skip setting: ");
-                final String memorySize = PipelineSetupUtility.scanner.nextLine();
+                final String memorySize = this.scanAndLog();
                 this.setup.logger.info("Insert languages (JSON Array), e.g. [\"java\"] or skip setting: ");
-                final String language = PipelineSetupUtility.scanner.nextLine();
+                final String language = this.scanAndLog();
                 this.setup.logger.info("Insert deployment sizes (JSON Array) or skip setting: ");
-                final String deploymentSize = PipelineSetupUtility.scanner.nextLine();
+                final String deploymentSize = this.scanAndLog();
 
                 this.userConfigHandler.addOrChangeProviderConfig(this.setup.globalConfig.getProviderConfigMap(), provider, memorySize, language, deploymentSize);
             } catch (final IOException e) {
@@ -140,7 +153,7 @@ public class PipelineSetupController {
         // TODO check if this is really needed - check the notes
         this.setup.logger.info("Global benchmarking parameters:");
         this.setup.logger.info("Insert number of threads or skip setting:");
-        final String numberOfThreads = PipelineSetupUtility.scanner.nextLine();
+        final String numberOfThreads = this.scanAndLog();
         this.setup.logger.info("Insert a supported benchmarking mode or skip setting. Options: "
                 + List.of(BenchmarkMode.values()).stream().map(BenchmarkMode::getText).collect(Collectors.toList()));
         this.setup.logger.info("Usage for each mode:\n"
@@ -151,11 +164,11 @@ public class PipelineSetupController {
                 + "\tsequentialChangingInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS (DELAY)+\n"
                 + "\tsequentialChangingWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS (DELAY)+\n"
                 + "\tarbitraryLoadPattern NUMBER_OF_THREADS FILE.csv");
-        final String benchmarkingMode = PipelineSetupUtility.scanner.nextLine();
+        final String benchmarkingMode = this.scanAndLog();
         this.setup.logger.info("Insert benchmarking parameters or skip setting:");
-        final String benchmarkingParameters = PipelineSetupUtility.scanner.nextLine();
+        final String benchmarkingParameters = this.scanAndLog();
         this.setup.logger.info("Insert a static value (POST argument for the http call) for benchmarking the function or skip setting:");
-        final String postArgument = PipelineSetupUtility.scanner.nextLine();
+        final String postArgument = this.scanAndLog();
 
         this.userConfigHandler.updateGlobalBenchmarkParameters(numberOfThreads, benchmarkingMode, benchmarkingParameters, postArgument);
 
@@ -233,51 +246,51 @@ public class PipelineSetupController {
         final List<String> validPlatforms = List.of(SupportedPlatform.values()).stream().map(SupportedPlatform::getText).collect(Collectors.toList());
         while (!validPlatforms.contains(platform)) {
             this.setup.logger.info("Insert a possible calibration platform. Options: " + validPlatforms);
-            platform = PipelineSetupUtility.scanner.nextLine();
+            platform = this.scanAndLog();
         }
 
         if (platform.equals(SupportedPlatform.LOCAL.getText())) {
             this.setup.logger.info("Insert localSteps property or skip setting: ");
-            final String localSteps = PipelineSetupUtility.scanner.nextLine();
+            final String localSteps = this.scanAndLog();
             this.setup.logger.info("Insert numberOfLocalCalibrations property or skip setting: ");
-            final String numberOfLocalCalibrations = PipelineSetupUtility.scanner.nextLine();
+            final String numberOfLocalCalibrations = this.scanAndLog();
             this.setup.logger.info("Insert enabled property (true or false) or skip setting: ");
-            final String enabled = PipelineSetupUtility.scanner.nextLine();
+            final String enabled = this.scanAndLog();
 
             this.userConfigHandler.updateLocalConfig(localSteps, numberOfLocalCalibrations, enabled);
 
         } else if (platform.equals(SupportedPlatform.AWS.getText())) {
             this.setup.logger.info("Insert calibration info:");
             this.setup.logger.info("Insert true or false, if you want to deploy linpack or skip setting: ");
-            final String deployLinpack = PipelineSetupUtility.scanner.nextLine();
+            final String deployLinpack = this.scanAndLog();
             this.setup.logger.info("Insert current bucketName or skip setting: ");
-            final String bucketName = PipelineSetupUtility.scanner.nextLine();
+            final String bucketName = this.scanAndLog();
             this.setup.logger.info("Insert current number of executions or skip setting: ");
-            final String numberOfAWSExecutions = PipelineSetupUtility.scanner.nextLine();
+            final String numberOfAWSExecutions = this.scanAndLog();
             this.setup.logger.info("Insert enabled property (true or false) or skip setting: ");
-            final String enabled = PipelineSetupUtility.scanner.nextLine();
+            final String enabled = this.scanAndLog();
 
             this.setup.logger.info("Insert calibration function info:");
             this.setup.logger.info("Insert current region or skip setting: ");
-            final String region = PipelineSetupUtility.scanner.nextLine();
+            final String region = this.scanAndLog();
             this.setup.logger.info("Insert runtime for calibration or skip setting: ");
-            final String runtime = PipelineSetupUtility.scanner.nextLine();
+            final String runtime = this.scanAndLog();
             this.setup.logger.info("Insert function execution role (AWS IAM ARN) or skip setting: ");
-            final String awsArnRole = PipelineSetupUtility.scanner.nextLine();
+            final String awsArnRole = this.scanAndLog();
             this.setup.logger.info("Insert function handler here or skip setting: ");
-            final String functionHandler = PipelineSetupUtility.scanner.nextLine();
+            final String functionHandler = this.scanAndLog();
             this.setup.logger.info("Insert timeout for function handler or skip setting: ");
-            final String timeout = PipelineSetupUtility.scanner.nextLine();
+            final String timeout = this.scanAndLog();
             this.setup.logger.info("Insert current memorySizes (JSON Array) or skip setting: ");
-            final String memorySizes = PipelineSetupUtility.scanner.nextLine();
+            final String memorySizes = this.scanAndLog();
             this.setup.logger.info("Insert path to function source code (directory) or skip setting: ");
-            final String pathToSource = PipelineSetupUtility.scanner.nextLine();
+            final String pathToSource = this.scanAndLog();
 
             this.setup.logger.info("Insert additional info, otherwise these fields are automatically configured during deployment!");
             this.setup.logger.info("Insert current target url or skip setting: ");
-            final String targetUrl = PipelineSetupUtility.scanner.nextLine();
+            final String targetUrl = this.scanAndLog();
             this.setup.logger.info("Insert current apiKey or skip setting: ");
-            final String apiKey = PipelineSetupUtility.scanner.nextLine();
+            final String apiKey = this.scanAndLog();
 
             this.userConfigHandler.updateAWSConfig(region, runtime, awsArnRole, functionHandler, timeout, deployLinpack, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled, pathToSource);
 
