@@ -69,7 +69,7 @@ public class AWSCalibration implements CalibrationMethods {
     @Override
     public void performCalibration() throws SeMoDeException {
         if (Files.exists(this.calibration.calibrationFile)) {
-            System.out.println("Provider calibration already performed.");
+            logger.info("Provider calibration already performed.");
             return;
         }
 

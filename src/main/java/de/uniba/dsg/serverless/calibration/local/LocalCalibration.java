@@ -92,7 +92,7 @@ public class LocalCalibration implements CalibrationMethods {
 
     @Override
     public void stopCalibration() {
-        System.err.println("Not able to stop the local calibration!");
+        logger.warning("Not able to stop the local calibration!");
     }
 
     private List<Double> performCalibration(final int i, final List<Double> quotas, final DockerContainer linpackContainer) throws SeMoDeException {

@@ -23,13 +23,13 @@ public class PipelineSetupUtility extends CustomUtility {
     @Override
     public void start(final List<String> args) {
         if (args.size() < 1) {
-            System.err.println("Wrong parameter size: " + "\nUSAGE: SETUP_NAME");
+            this.logger.warning("Wrong parameter size: " + "\nUSAGE: SETUP_NAME");
             return;
         }
         try {
             this.loadOrInitSetup(args.get(0));
         } catch (final SeMoDeException e) {
-            System.err.println(e);
+            this.logger.warning(e.getMessage());
             return;
         }
         this.printRunCommandUsage();
@@ -39,7 +39,7 @@ public class PipelineSetupUtility extends CustomUtility {
             try {
                 this.executeRunCommand(command);
             } catch (final SeMoDeException e) {
-                System.err.println(e);
+                this.logger.warning(e.getMessage());
             }
             this.printRunCommandUsage();
             command = scanner.nextLine();

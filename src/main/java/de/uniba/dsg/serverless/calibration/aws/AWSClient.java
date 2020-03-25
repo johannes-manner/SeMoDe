@@ -159,7 +159,7 @@ public class AWSClient {
                 throw new SeMoDeException("Can't deploy lambda function. Inspect it: " + createFunctionRequest.toString());
             }
         } catch (final ResourceConflictException e) {
-            System.err.println("Lambda function already exists! Check if you need an update!");
+            logger.warning("Lambda function already exists! Check if you need an update!");
         }
     }
 
@@ -374,12 +374,12 @@ public class AWSClient {
 
         try {
             final AddPermissionResult result = this.amazonLambdaClient.addPermission(addPermissionRequest);
-            System.out.println("update lambda permission: " + result.getSdkHttpMetadata().getHttpStatusCode());
+            logger.info("update lambda permission: " + result.getSdkHttpMetadata().getHttpStatusCode());
             if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
-                System.err.println("Lambda function already exists! Permission update was not possible! Probably already there!");
+                logger.warning("Lambda function already exists! Permission update was not possible! Probably already there!");
             }
         } catch (final ResourceConflictException e) {
-            System.err.println("Lambda function permission already exists! Check if you need an update!");
+            logger.warning("Lambda function permission already exists! Check if you need an update!");
         }
 
     }
@@ -391,10 +391,10 @@ public class AWSClient {
         try {
             final DeleteFunctionResult result = this.amazonLambdaClient.deleteFunction(deleteFunctionRequest);
             if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                System.out.println("AWS Lambda function " + functionName + " deleted");
+                logger.info("AWS Lambda function " + functionName + " deleted");
             }
         } catch (final ResourceNotFoundException e) {
-            System.err.println("AWS Lambda function " + functionName + " deleted or not present!");
+            logger.warning("AWS Lambda function " + functionName + " deleted or not present!");
         }
     }
 
@@ -405,10 +405,10 @@ public class AWSClient {
         try {
             final DeleteApiKeyResult result = this.amazonApiGatewayClient.deleteApiKey(deleteApiKeyRequest);
             if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_ACCEPTED) {
-                System.out.println("Amazon Api Gateway key " + apiKeyId + " deleted");
+                logger.info("Amazon Api Gateway key " + apiKeyId + " deleted");
             }
         } catch (final NotFoundException e) {
-            System.err.println("Amazon Api Gateway key " + apiKeyId + " deleted or not present!");
+            logger.warning("Amazon Api Gateway key " + apiKeyId + " deleted or not present!");
         }
     }
 
@@ -419,10 +419,10 @@ public class AWSClient {
         try {
             final DeleteRestApiResult result = this.amazonApiGatewayClient.deleteRestApi(deleteRestApiRequest);
             if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_ACCEPTED) {
-                System.out.println("Amazon Api Gateway rest api " + restApiId + " deleted");
+                logger.info("Amazon Api Gateway rest api " + restApiId + " deleted");
             }
         } catch (final NotFoundException e) {
-            System.err.println("Amazon Api Gateway rest api " + restApiId + "deleted or not present!");
+            logger.warning("Amazon Api Gateway rest api " + restApiId + "deleted or not present!");
         }
     }
 
@@ -433,10 +433,10 @@ public class AWSClient {
         try {
             final DeleteUsagePlanResult result = this.amazonApiGatewayClient.deleteUsagePlan(deleteUsagePlanRequest);
             if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_ACCEPTED) {
-                System.out.println("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted");
+                logger.info("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted");
             }
         } catch (final NotFoundException e) {
-            System.err.println("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted or not present!");
+            logger.warning("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted or not present!");
         }
     }
 
@@ -452,7 +452,7 @@ public class AWSClient {
                 functionConfig.functionHandler, functionConfig.timeout, memorySize,
                 Paths.get(functionConfig.pathToSource + "/function.zip"));
 
-        System.out.println("Function deployment successfully completed for " + memorySize + " MB! (AWS Lambda)");
+        logger.info("Function deployment successfully completed for " + memorySize + " MB! (AWS Lambda)");
     }
 
     /**
@@ -472,7 +472,7 @@ public class AWSClient {
         try {
             process = processBuilder.start();
             final int errCode = process.waitFor();
-            System.out.println("Command " + command + " executed without errors? " + (errCode == 0 ? "Yes" : "No(code=" + errCode + ")"));
+            logger.info("Command " + command + " executed without errors? " + (errCode == 0 ? "Yes" : "No(code=" + errCode + ")"));
         } catch (final IOException | InterruptedException e) {
             e.printStackTrace();
             process.destroy();
@@ -484,7 +484,7 @@ public class AWSClient {
         final String deploymentId = this.createStage(restApiId, stageName);
         final Pair<String, String> keyPair = this.createApiKey(setupName + "_key", restApiId, stageName);
         final String usagePlanId = this.createUsagePlanAndUsagePlanKey(setupName + "_plan", restApiId, stageName, keyPair.getKey());
-        System.out.println("API Gateway deployment successfully completed!");
+        logger.info("API Gateway deployment successfully completed!");
 
         // store x-api-key and targetUrl in pipeline configuration
         functionConfig.targetUrl = "https://" + restApiId + ".execute-api." + functionConfig.region + ".amazonaws.com/" + setupName + "_stage";
@@ -516,7 +516,7 @@ public class AWSClient {
                 this.updateLambdaPermission(f.getLeft(), restApiId, functionConfig.region);
             }
 
-            System.out.println("Deployment successfully completed!");
+            logger.info("Deployment successfully completed!");
         } catch (final SeMoDeException e) {
             this.removeAllDeployedResources(functionConfigs, deploymentInternals);
         }
