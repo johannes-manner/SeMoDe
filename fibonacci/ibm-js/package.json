@@ -1,9 +1,0 @@
-{
-  "name": "fibonacci",
-  "version": "1.0.0",
-  "description": "Fibonacci benchmarking dependencies",
-  "main": "fibonacci.js",
-  "dependencies":{
-   "uuid" : "3.2.1"
-  }
-}
