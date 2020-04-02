@@ -10,8 +10,15 @@ repositories {
     jcenter()
 }
 
+configurations {
+    umlDoclet
+}
+
 dependencies {
     testImplementation 'junit:junit:4.12'
+
+    // for java doc generation
+    umlDoclet "nl.talsmasoftware:umldoclet:2.0.8"
 
     compile group: 'com.google.guava', name: 'guava', version: '28.1-jre'
 
@@ -68,6 +75,13 @@ jar {
     // azure lib causes a java.lang.SecurityException: Invalid signature file digest for Manifest main attributes
     // see discussion: https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
     exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+}
+
+javadoc {
+    source = sourceSets.main.allJava
+    options.memberLevel = JavadocMemberLevel.PRIVATE
+    options.docletpath = configurations.umlDoclet.files.asType(List)
+    options.doclet = "nl.talsmasoftware.umldoclet.UMLDoclet"
 }
 
 mainClassName = "de.uniba.dsg.serverless.ArgumentProcessor"
