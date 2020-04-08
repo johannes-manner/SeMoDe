@@ -43,6 +43,7 @@ public class CalibrationUtility extends CustomUtility {
     private ResourceLimit limits;
     private int numberOfProfiles;
 
+    @Deprecated
     public CalibrationUtility(final String name) {
         super(name);
     }
@@ -55,9 +56,9 @@ public class CalibrationUtility extends CustomUtility {
                 case PERFORM_CALIBRATION:
                     if (this.platform == SupportedPlatform.LOCAL) {
                         // TODO make this configurable for CLI usage + document it
-                        new LocalCalibration(this.calibrationName, new LocalCalibrationConfig(0.1, 1, true)).performCalibration();
+                        new LocalCalibration(this.calibrationName, new LocalCalibrationConfig(0.1, 1, true)).startCalibration();
                     } else if (this.platform == SupportedPlatform.AWS) {
-                        new AWSCalibration(this.calibrationName, this.awsConfig).performCalibration();
+                        new AWSCalibration(this.calibrationName, this.awsConfig).deployCalibration(); // start is missing
                     }
                     break;
                 case MAPPING:

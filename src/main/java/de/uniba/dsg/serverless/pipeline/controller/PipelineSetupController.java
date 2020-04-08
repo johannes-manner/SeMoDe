@@ -37,7 +37,7 @@ public class PipelineSetupController {
     }
 
     public FileLogger getPipelineLogger() {
-        return this.setup.logger;
+        return this.setup.createLogger();
     }
 
     private String scanAndLog() {
@@ -258,13 +258,23 @@ public class PipelineSetupController {
      *
      * @throws SeMoDeException
      */
+    public void deployCalibration() throws SeMoDeException {
+        if (this.userConfigHandler.isLocalEnabled()) {
+            this.calibration = new LocalCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getLocalConfig());
+            this.calibration.deployCalibration();
+        } else if (this.userConfigHandler.isAWSEnabled()) {
+            this.calibration = new AWSCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getAWSConfig());
+            this.calibration.deployCalibration();
+        }
+    }
+
     public void startCalibration() throws SeMoDeException {
         if (this.userConfigHandler.isLocalEnabled()) {
             this.calibration = new LocalCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getLocalConfig());
-            this.calibration.performCalibration();
+            this.calibration.startCalibration();
         } else if (this.userConfigHandler.isAWSEnabled()) {
             this.calibration = new AWSCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getAWSConfig());
-            this.calibration.performCalibration();
+            this.calibration.startCalibration();
         }
     }
 

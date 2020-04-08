@@ -1,5 +1,6 @@
 package de.uniba.dsg.serverless.cli;
 
+import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.pipeline.controller.PipelineSetupController;
 import de.uniba.dsg.serverless.pipeline.model.PipelineSetup;
 import de.uniba.dsg.serverless.util.FileLogger;
@@ -18,6 +19,7 @@ public class PipelineSetupUtility extends CustomUtility {
 
     public PipelineSetupUtility(final String name) {
         super(name);
+        this.logger = ArgumentProcessor.logger;
     }
 
     @Override
@@ -32,6 +34,9 @@ public class PipelineSetupUtility extends CustomUtility {
             this.logger.warning(e.getMessage());
             return;
         }
+
+        // change to the pipeline logger
+        this.logger = this.controller.getPipelineLogger();
         this.printRunCommandUsage();
         String command = scanner.nextLine();
         this.logger.info("Entered Command: " + command);
@@ -62,7 +67,6 @@ public class PipelineSetupUtility extends CustomUtility {
         } else {
             this.controller.init();
         }
-        this.logger = this.controller.getPipelineLogger();
 
         this.logger.info("Successfully loaded benchmark setup \"" + setup.name + "\"");
     }
@@ -78,7 +82,8 @@ public class PipelineSetupUtility extends CustomUtility {
         this.logger.info(" (undeployBenchmark)   Undeploying the current cloud functions");
         this.logger.info("Simulation Options:");
         this.logger.info(" (configCalibration)   Perform a calibration (linpack)");
-        this.logger.info(" (deployCalibration)   Starts the deployment (optional) and the configured calibration");
+        this.logger.info(" (deployCalibration)   Starts the deployment (optional)");
+        this.logger.info(" (startCalibration)    Starts the calibration");
         this.logger.info(" (undeployCalibration) Undeploys the calibration");
         this.logger.info(" (mapping)             Computes the mapping between two calibrations");
         this.logger.info(" (run)                 Run container based on calibration");
@@ -110,14 +115,17 @@ public class PipelineSetupUtility extends CustomUtility {
             case "configCalibration":
                 this.controller.configureCalibration();
                 break;
-            case "startCalibration":
+            case "deployCalibration":
                 try {
-                    this.controller.startCalibration();
+                    this.controller.deployCalibration();
                 } catch (final SeMoDeException e) {
                     // store current pipeline data before exiting
                     this.controller.savePipelineSetup();
                     throw e;
                 }
+                break;
+            case "startCalibration":
+                this.controller.startCalibration();
                 break;
             case "undeployCalibration":
                 this.controller.undeployCalibration();

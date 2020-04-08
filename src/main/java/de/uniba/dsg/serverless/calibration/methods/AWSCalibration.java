@@ -60,6 +60,13 @@ public class AWSCalibration implements CalibrationMethods {
         return functionConfigs;
     }
 
+    @Override
+    public void stopCalibration() {
+        final List<Pair<String, Integer>> functionConfigs = this.generateFunctionNames();
+        this.client.removeAllDeployedResources(functionConfigs, this.config.deploymentInternals);
+        this.config.resetConfig();
+    }
+
     /**
      * Prior to the calibration, a decision is made by the user, if the linpack deployment should be executed.
      * See also {@link AWSClient#removeAllDeployedResources}, if a error occurred during deployment and remove all deployed resources from the platform.
@@ -67,7 +74,7 @@ public class AWSCalibration implements CalibrationMethods {
      * @throws SeMoDeException
      */
     @Override
-    public void performCalibration() throws SeMoDeException {
+    public void deployCalibration() throws SeMoDeException {
         if (Files.exists(this.calibration.calibrationFile)) {
             logger.info("Provider calibration already performed.");
             return;
@@ -78,17 +85,17 @@ public class AWSCalibration implements CalibrationMethods {
             final List<Pair<String, Integer>> functionConfigs = this.generateFunctionNames();
             this.client.deployFunctions(this.calibration.name, functionConfigs, this.functionConfig, this.config.deploymentInternals);
         }
-
-        // execute linpack calibration
-        this.executeLinpackCalibration(this.platformPrefix);
-
     }
 
     @Override
-    public void stopCalibration() {
-        final List<Pair<String, Integer>> functionConfigs = this.generateFunctionNames();
-        this.client.removeAllDeployedResources(functionConfigs, this.config.deploymentInternals);
-        this.config.resetConfig();
+    public void startCalibration() throws SeMoDeException {
+        if (Files.exists(this.calibration.calibrationFile)) {
+            logger.info("Provider calibration already performed.");
+            return;
+        }
+
+        // execute linpack calibration
+        this.executeLinpackCalibration(this.platformPrefix);
     }
 
     private void executeLinpackCalibration(final String platformPrefix) throws SeMoDeException {

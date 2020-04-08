@@ -37,26 +37,22 @@ public class PipelineSetup {
     // global pipeline paths
     public final Path pathToSetup;
     public final Path pathToConfig;
-    public final Path pathToSources;
     // for benchmarking
     public final Path pathToBenchmarkExecution;
     // for calibration
     public final Path pathToCalibration;
 
     // for logging the pipeline interaction
-    public final FileLogger logger;
+    public FileLogger logger;
 
     public PipelineSetup(final String name) throws SeMoDeException {
         this.name = name;
         this.pathToSetup = Paths.get(PipelineSetup.SETUP_LOCATION, name);
         this.pathToConfig = this.pathToSetup.resolve("settings.json");
-        this.pathToSources = this.pathToSetup.resolve("sources");
         this.pathToCalibration = this.pathToSetup.resolve("calibration");
         this.pathToBenchmarkExecution = this.pathToSetup.resolve("benchmark");
         this.globalConfig = this.loadGlobalConfig(PIPELINE_JSON);
-        this.logger = new FileLogger("pipeline", this.pathToSetup.resolve("pipeline.log").toString(), false);
     }
-
 
     public boolean setupAlreadyExists() {
         return Files.exists(this.pathToSetup);
@@ -99,5 +95,10 @@ public class PipelineSetup {
         } catch (final IOException e) {
             throw new SeMoDeException("Error while traversing the SeMoDe file tree", e);
         }
+    }
+
+    public FileLogger createLogger() {
+        this.logger = new FileLogger("pipeline", this.pathToSetup.resolve("pipeline.log").toString(), false);
+        return this.logger;
     }
 }

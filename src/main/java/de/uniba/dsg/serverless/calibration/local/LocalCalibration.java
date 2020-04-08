@@ -48,7 +48,17 @@ public class LocalCalibration implements CalibrationMethods {
     }
 
     @Override
-    public void performCalibration() throws SeMoDeException {
+    public void stopCalibration() {
+        logger.warning("Not able to stop the local calibration!");
+    }
+
+    @Override
+    public void deployCalibration() throws SeMoDeException {
+        logger.info("There is no deployment for local needed");
+    }
+
+    @Override
+    public void startCalibration() throws SeMoDeException {
         if (Files.exists(this.calibration.calibrationFile)) {
             logger.info("Calibration has already been performed. inspect it using \"calibrate info\"");
             return;
@@ -88,11 +98,6 @@ public class LocalCalibration implements CalibrationMethods {
         } catch (final IOException e) {
             throw new SeMoDeException("Could not write local calibration summary to " + this.calibration.calibrationFile.toString(), e);
         }
-    }
-
-    @Override
-    public void stopCalibration() {
-        logger.warning("Not able to stop the local calibration!");
     }
 
     private List<Double> performCalibration(final int i, final List<Double> quotas, final DockerContainer linpackContainer) throws SeMoDeException {

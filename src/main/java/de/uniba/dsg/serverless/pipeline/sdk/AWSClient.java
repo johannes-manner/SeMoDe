@@ -29,7 +29,9 @@ import org.glassfish.jersey.client.ClientProperties;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -80,10 +82,9 @@ public class AWSClient {
         final WebTarget lambdaTarget = ClientBuilder.newClient(configuration).target(targetUrl);
         try {
             final Response r = lambdaTarget.path(path)
-                    .queryParam("resultFileName", resultFileNameS3Bucket)
                     .request()
                     .header("x-api-key", apiKey)
-                    .get();
+                    .post(Entity.entity("{\"resultFileName\": \"" + resultFileNameS3Bucket + "\"}", MediaType.APPLICATION_JSON));
             if (r.getStatus() == 403) {
                 throw new SeMoDeException("Cannot invoke function. Forbidden (403).");
             }

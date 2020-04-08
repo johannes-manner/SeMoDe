@@ -4,7 +4,9 @@ import de.uniba.dsg.serverless.util.SeMoDeException;
 
 public interface CalibrationMethods {
 
-    public void performCalibration() throws SeMoDeException;
-
     public void stopCalibration();
+
+    public void deployCalibration() throws SeMoDeException;
+
+    public void startCalibration() throws SeMoDeException;
 }
