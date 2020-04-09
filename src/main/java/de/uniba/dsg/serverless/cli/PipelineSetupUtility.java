@@ -130,7 +130,7 @@ public class PipelineSetupUtility extends CustomUtility {
             case "undeployCalibration":
                 this.controller.undeployCalibration();
                 break;
-            case "mappging":
+            case "mapping":
                 this.controller.computeMapping();
                 break;
             case "run":

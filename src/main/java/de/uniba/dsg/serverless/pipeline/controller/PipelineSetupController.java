@@ -38,7 +38,7 @@ public class PipelineSetupController {
     }
 
     public FileLogger getPipelineLogger() {
-        return this.setup.createLogger();
+        return this.setup.getLogger();
     }
 
     private String scanAndLog() {
@@ -307,6 +307,6 @@ public class PipelineSetupController {
 
         this.userConfigHandler.updateMappingConfig(localCalibrationFile, providerCalibrationFile, memoryJSON);
 
-        new MappingMaster(this.userConfigHandler.getMappingConfig()).computeMapping();
+        new MappingMaster(this.userConfigHandler.getMappingConfig(), this.getPipelineLogger()).computeMapping();
     }
 }

@@ -5,19 +5,24 @@ import com.google.gson.annotations.Expose;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MappingCalibrationConfig {
 
     @Expose
-    public Path localCalibrationFile;
+    public String localCalibrationFile;
     @Expose
-    public Path providerCalibrationFile;
+    public String providerCalibrationFile;
     @Expose
     public List<Integer> memorySizes;
+    @Expose
+    public Map<Integer, Double> memorySizeCPUShare;
+
+    public MappingCalibrationConfig() {
+
+    }
 
     /**
      * Copy constructor.
@@ -28,14 +33,15 @@ public class MappingCalibrationConfig {
         this.providerCalibrationFile = mappingCalibrationConfig.providerCalibrationFile;
         this.localCalibrationFile = mappingCalibrationConfig.localCalibrationFile;
         this.memorySizes = List.copyOf(mappingCalibrationConfig.memorySizes);
+        this.memorySizeCPUShare = Map.copyOf(mappingCalibrationConfig.memorySizeCPUShare);
     }
 
     public void update(final String localCalibrationFile, final String providerCalibrationFile, final String memoryJSON) throws SeMoDeException {
         if (!"".equals(localCalibrationFile)) {
-            this.localCalibrationFile = Paths.get(localCalibrationFile);
+            this.localCalibrationFile = localCalibrationFile;
         }
         if (!"".equals(providerCalibrationFile)) {
-            this.providerCalibrationFile = Paths.get(providerCalibrationFile);
+            this.providerCalibrationFile = providerCalibrationFile;
         }
         if (!"".equals(memoryJSON)) {
             try {

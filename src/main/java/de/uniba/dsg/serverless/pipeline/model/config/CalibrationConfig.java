@@ -49,6 +49,9 @@ public class CalibrationConfig {
     }
 
     public MappingCalibrationConfig getMappingCalibrationConfig() {
+        if (this.mappingCalibrationConfig == null) {
+            this.mappingCalibrationConfig = new MappingCalibrationConfig();
+        }
         return this.mappingCalibrationConfig;
     }
 

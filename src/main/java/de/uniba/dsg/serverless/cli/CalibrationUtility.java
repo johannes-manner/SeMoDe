@@ -6,7 +6,6 @@ import de.uniba.dsg.serverless.calibration.CalibrationCommand;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.calibration.local.ResourceLimit;
-import de.uniba.dsg.serverless.calibration.mapping.MappingMaster;
 import de.uniba.dsg.serverless.calibration.methods.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
@@ -64,7 +63,7 @@ public class CalibrationUtility extends CustomUtility {
                     break;
                 case MAPPING:
                     // TODO remove hard-coded value here
-                    new MappingMaster(this.localCalibrationFile, this.providerCalibrationFile).computeMapping(1337.0);
+                    //new MappingMaster(null, null).computeMapping();
                     break;
                 case RUN_CONTAINER:
                     this.containerExecutor.executeLocalProfiles(this.environmentVariables, this.limits, this.numberOfProfiles);
@@ -121,14 +120,14 @@ public class CalibrationUtility extends CustomUtility {
 
                 this.localCalibrationFile = Paths.get(arguments.get(3));
                 this.providerCalibrationFile = Paths.get(arguments.get(4));
-                try {
-                    final int simulatedMemory = Integer.parseInt(arguments.get(5));
-                    final double quota = new MappingMaster(this.localCalibrationFile, this.providerCalibrationFile).computeMapping(simulatedMemory);
-                    this.limits = new ResourceLimit(quota, false, simulatedMemory);
-                    this.numberOfProfiles = Integer.parseInt(arguments.get(6));
-                } catch (final NumberFormatException e) {
-                    throw new SeMoDeException("Simulated Memory and number of profiles must be Integers.", e);
-                }
+//                try {
+//                    final int simulatedMemory = Integer.parseInt(arguments.get(5));
+//                    final double quota = new MappingMaster(this.localCalibrationFile, this.providerCalibrationFile).computeMapping(simulatedMemory);
+//                    this.limits = new ResourceLimit(quota, false, simulatedMemory);
+//                    this.numberOfProfiles = Integer.parseInt(arguments.get(6));
+//                } catch (final NumberFormatException e) {
+//                    throw new SeMoDeException("Simulated Memory and number of profiles must be Integers.", e);
+//                }
                 break;
         }
     }
