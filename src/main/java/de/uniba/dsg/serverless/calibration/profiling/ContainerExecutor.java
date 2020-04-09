@@ -2,39 +2,71 @@ package de.uniba.dsg.serverless.calibration.profiling;
 
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Statistics;
-import de.uniba.dsg.serverless.ArgumentProcessor;
+import com.google.common.collect.Maps;
 import de.uniba.dsg.serverless.calibration.MemoryUnit;
 import de.uniba.dsg.serverless.calibration.local.DockerContainer;
 import de.uniba.dsg.serverless.calibration.local.ResourceLimit;
-import de.uniba.dsg.serverless.cli.CalibrationUtility;
+import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.RunningCalibrationConfig;
 import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 public class ContainerExecutor {
 
-    private static final FileLogger logger = ArgumentProcessor.logger;
-
+    private final FileLogger logger;
+    private final Path pathToCalibration;
     private final DockerContainer container;
+    private final MappingCalibrationConfig mappingCalibrationConfig;
+    private final RunningCalibrationConfig runningCalibrationConfig;
+
+    private Map<String, String> environmentVariables;
     private List<String> logs;
 
-    public ContainerExecutor(final String containerTag, final String dockerFile, final boolean buildContainer) throws SeMoDeException {
-        // TODO maybe change so context is passed here instead of dockerfile -> Dockerfile by default
-        this.container = new DockerContainer(dockerFile, containerTag);
-        if (buildContainer) {
-            logger.info("building container " + containerTag);
-            this.container.buildContainer();
+    public ContainerExecutor(final Path pathToCalibration, final MappingCalibrationConfig mappingConfig, final RunningCalibrationConfig runningConfig, final FileLogger logger) throws SeMoDeException {
+        this.logger = logger;
+        this.pathToCalibration = pathToCalibration;
+        this.mappingCalibrationConfig = mappingConfig;
+        this.runningCalibrationConfig = runningConfig;
+        this.container = new DockerContainer(this.runningCalibrationConfig.dockerSourceFolder, "semode/local");
+        logger.info("building container semode/local " + this.runningCalibrationConfig.dockerSourceFolder);
+        this.container.buildContainer();
+        this.initEnvironmentVariables();
+    }
+
+    /**
+     * Creates environment variables from a file.
+     * Assumes that each running container has environment variables (some parameters to change the behavior).
+     */
+    private void initEnvironmentVariables() throws SeMoDeException {
+        final Path envFile = Paths.get(this.runningCalibrationConfig.environmentVariablesFile);
+        final Properties properties = new Properties();
+        final Map<String, String> environmentVariables;
+        try {
+            properties.load(new FileInputStream(envFile.toString()));
+            this.environmentVariables = Maps.fromProperties(properties);
+        } catch (final IOException e) {
+            throw new SeMoDeException("Could not load environment variables from " + this.runningCalibrationConfig.environmentVariablesFile + ".", e);
+        }
+    }
+
+    public void executeLocalProfiles() throws SeMoDeException {
+        for (final Integer memorySize : this.mappingCalibrationConfig.memorySizeCPUShare.keySet()) {
+            this.executeLocalProfiles(new ResourceLimit(this.mappingCalibrationConfig.memorySizeCPUShare.get(memorySize), false, memorySize), "" + memorySize);
         }
     }
 
@@ -42,23 +74,21 @@ public class ContainerExecutor {
      * Creates a profile of multiple container executions and aggregates them in a CSV file.<br>
      * Profiles are stored in /profiling/profiles/IMAGE_NAME/TIME_STAMP/
      *
-     * @param environmentVariables environment variables for docker container
-     * @param limits               resource limits
-     * @param n                    number of executions
+     * @param limits resource limits
      * @throws SeMoDeException
      */
-    public void executeLocalProfiles(final Map<String, String> environmentVariables, final ResourceLimit limits, final int n) throws SeMoDeException {
+    private void executeLocalProfiles(final ResourceLimit limits, final String memorySize) throws SeMoDeException {
         final List<Profile> profiles = new ArrayList<>();
         final String time = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        final Path out = CalibrationUtility.PROFILING_PATH
+        final Path out = this.pathToCalibration
                 .resolve("profiles")
-                .resolve(this.container.imageTag.split("/")[1]) // use the name of docker tag (<org>/<name> -> <name>)
+                .resolve(memorySize)
                 .resolve(time);
-        for (int i = 0; i < n; i++) {
-            final Profile p = this.runContainer(environmentVariables, limits);
-            this.saveProfile(p, out.resolve("profile_" + i));
+        for (int i = 0; i < this.runningCalibrationConfig.numberOfProfiles; i++) {
+            final Profile p = this.runContainer(this.environmentVariables, limits);
+            this.saveProfile(p, out.resolve("profile_" + i + "_" + memorySize));
             profiles.add(p);
-            logger.info("Executed and saved profile " + i);
+            this.logger.info("Executed and saved profile " + i + " for memory size " + memorySize);
         }
         final String csvOutput = out.resolve("profiles.csv").toString();
         try (final CSVPrinter printer = new CSVPrinter(new FileWriter(csvOutput, true), CSVFormat.EXCEL)) {
@@ -96,5 +126,4 @@ public class ContainerExecutor {
             throw new SeMoDeException("Exeption writing log file.", e);
         }
     }
-
 }

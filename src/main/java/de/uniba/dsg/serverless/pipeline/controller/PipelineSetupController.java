@@ -4,6 +4,7 @@ import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.calibration.mapping.MappingMaster;
 import de.uniba.dsg.serverless.calibration.methods.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
+import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
@@ -308,5 +309,21 @@ public class PipelineSetupController {
         this.userConfigHandler.updateMappingConfig(localCalibrationFile, providerCalibrationFile, memoryJSON);
 
         new MappingMaster(this.userConfigHandler.getMappingConfig(), this.getPipelineLogger()).computeMapping();
+    }
+
+    public void runLocalContainer() throws SeMoDeException {
+        this.setup.logger.info("Insert running local container info:");
+        this.setup.logger.info("Insert dockerSourceFolder property or skip setting: ");
+        final String dockerSourceFolder = this.scanAndLog();
+        this.setup.logger.info("Insert environment variables file or skip setting: ");
+        final String environmentVariablesFile = this.scanAndLog();
+        this.setup.logger.info("Insert number of profiles");
+        final String numberOfProfiles = this.scanAndLog();
+
+        this.userConfigHandler.updateRunningConfig(dockerSourceFolder, environmentVariablesFile, numberOfProfiles);
+
+
+        final ContainerExecutor containerExecutor = new ContainerExecutor(this.setup.pathToCalibration, this.userConfigHandler.getMappingConfig(), this.userConfigHandler.getRunningConfig(), this.getPipelineLogger());
+        containerExecutor.executeLocalProfiles();
     }
 }

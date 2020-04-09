@@ -154,4 +154,12 @@ public class UserConfigHandler {
     public MappingCalibrationConfig getMappingConfig() {
         return this.userConfig.getCalibrationConfig().getMappingCalibrationConfig();
     }
+
+    public void updateRunningConfig(final String dockerSourceFolder, final String environmentVariablesFile, final String numberOfProfiles) {
+        this.userConfig.getCalibrationConfig().getRunningCalibrationConfig().update(dockerSourceFolder, environmentVariablesFile, numberOfProfiles);
+    }
+
+    public RunningCalibrationConfig getRunningConfig() {
+        return this.userConfig.getCalibrationConfig().getRunningCalibrationConfig();
+    }
 }

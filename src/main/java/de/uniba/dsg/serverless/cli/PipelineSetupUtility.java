@@ -134,7 +134,7 @@ public class PipelineSetupUtility extends CustomUtility {
                 this.controller.computeMapping();
                 break;
             case "run":
-                // TODO
+                this.controller.runLocalContainer();
                 break;
             // other program options
             case "status":

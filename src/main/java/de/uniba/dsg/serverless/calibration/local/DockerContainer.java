@@ -58,18 +58,6 @@ public class DockerContainer {
      * @throws SeMoDeException build failed
      */
     public String buildContainer() throws SeMoDeException {
-        return this.buildContainer(".");
-    }
-
-    /**
-     * Build the Docker image
-     *
-     * @param baseDirectory optional, specifies the base directory
-     * @return image id
-     * @throws SeMoDeException build failed
-     */
-    public String buildContainer(final String baseDirectory) throws SeMoDeException {
-        final File baseDir = new File(baseDirectory);
         try {
             this.imageId = this.client.buildImageCmd()
                     .withBaseDirectory(new File(this.dockerSourceFolder))

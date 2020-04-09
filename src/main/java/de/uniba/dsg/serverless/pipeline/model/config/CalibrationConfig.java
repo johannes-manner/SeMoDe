@@ -14,8 +14,11 @@ public class CalibrationConfig {
     // aws parameter
     private AWSCalibrationConfig awsCalibrationConfig;
 
-    // for mappping and execution
+    // for mappping
     private MappingCalibrationConfig mappingCalibrationConfig;
+
+    // for executing
+    private RunningCalibrationConfig runningCalibrationConfig;
 
     public CalibrationConfig() {
     }
@@ -66,5 +69,12 @@ public class CalibrationConfig {
                 ", awsCalibrationConfig=" + this.awsCalibrationConfig +
                 ", mappingCalibrationConfig=" + this.mappingCalibrationConfig +
                 '}';
+    }
+
+    public RunningCalibrationConfig getRunningCalibrationConfig() {
+        if (this.runningCalibrationConfig == null) {
+            this.runningCalibrationConfig = new RunningCalibrationConfig();
+        }
+        return this.runningCalibrationConfig;
     }
 }
