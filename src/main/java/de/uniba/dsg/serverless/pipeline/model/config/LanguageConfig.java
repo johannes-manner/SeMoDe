@@ -1,5 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
+@Deprecated
 public class LanguageConfig {
 
     private String identifier;

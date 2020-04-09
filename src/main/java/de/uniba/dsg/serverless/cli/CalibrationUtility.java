@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+@Deprecated
 public class CalibrationUtility extends CustomUtility {
 
     public static final Path PROFILING_PATH = Paths.get("profiling");
@@ -43,7 +44,7 @@ public class CalibrationUtility extends CustomUtility {
     private ResourceLimit limits;
     private int numberOfProfiles;
 
-    @Deprecated
+
     public CalibrationUtility(final String name) {
         super(name);
     }
@@ -56,7 +57,7 @@ public class CalibrationUtility extends CustomUtility {
                 case PERFORM_CALIBRATION:
                     if (this.platform == SupportedPlatform.LOCAL) {
                         // TODO make this configurable for CLI usage + document it
-                        new LocalCalibration(this.calibrationName, new LocalCalibrationConfig(0.1, 1, true)).startCalibration();
+                        new LocalCalibration(this.calibrationName, new LocalCalibrationConfig(0.1, 1, true, "")).startCalibration();
                     } else if (this.platform == SupportedPlatform.AWS) {
                         new AWSCalibration(this.calibrationName, this.awsConfig).deployCalibration(); // start is missing
                     }

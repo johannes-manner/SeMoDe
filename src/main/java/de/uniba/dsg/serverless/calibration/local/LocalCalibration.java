@@ -24,7 +24,6 @@ public class LocalCalibration implements CalibrationMethods {
 
     private static final FileLogger logger = ArgumentProcessor.logger;
     private static final String CONTAINER_RESULT_FOLDER = "/usr/src/linpack/output/"; // specified by linpack benchmark container
-    private static final String LINPACK_DOCKERFILE = "linpack/local/Dockerfile";
     private static final String LINPACK_IMAGE = "semode/linpack";
     // composite
     private final Calibration calibration;
@@ -65,7 +64,7 @@ public class LocalCalibration implements CalibrationMethods {
         }
 
         // prepare calibration - build container and compute quotas based on steps
-        final DockerContainer linpackContainer = new DockerContainer(LINPACK_DOCKERFILE, LINPACK_IMAGE);
+        final DockerContainer linpackContainer = new DockerContainer(this.config.getDockerSourceFolder(), LINPACK_IMAGE);
         linpackContainer.buildContainer();
         final int physicalCores = this.getPhysicalCores();
         logger.info("Number of cores: " + physicalCores);

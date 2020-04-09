@@ -35,7 +35,8 @@
     "localConfig": {
       "localSteps": 0.1,
       "numberOfLocalCalibrations": 1,
-      "localEnabled": false
+      "localEnabled": false,
+      "dockerSourceFolder": ""
     },
     "awsCalibrationConfig": {
       "deployLinpack": false,

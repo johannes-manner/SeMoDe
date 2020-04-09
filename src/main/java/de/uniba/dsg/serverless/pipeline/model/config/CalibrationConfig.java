@@ -14,6 +14,9 @@ public class CalibrationConfig {
     // aws parameter
     private AWSCalibrationConfig awsCalibrationConfig;
 
+    // for mappping and execution
+    private MappingCalibrationConfig mappingCalibrationConfig;
+
     public CalibrationConfig() {
     }
 
@@ -26,6 +29,7 @@ public class CalibrationConfig {
     public CalibrationConfig(final CalibrationConfig calibrationConfig) {
         this.localConfig = new LocalCalibrationConfig(calibrationConfig.localConfig);
         this.awsCalibrationConfig = new AWSCalibrationConfig(calibrationConfig.awsCalibrationConfig);
+        this.mappingCalibrationConfig = new MappingCalibrationConfig(calibrationConfig.mappingCalibrationConfig);
     }
 
     public LocalCalibrationConfig getLocalConfig() {
@@ -44,11 +48,20 @@ public class CalibrationConfig {
         this.awsCalibrationConfig = awsCalibrationConfig;
     }
 
+    public MappingCalibrationConfig getMappingCalibrationConfig() {
+        return this.mappingCalibrationConfig;
+    }
+
+    public void setMappingCalibrationConfig(final MappingCalibrationConfig mappingCalibrationConfig) {
+        this.mappingCalibrationConfig = mappingCalibrationConfig;
+    }
+
     @Override
     public String toString() {
         return "CalibrationConfig{" +
-                "localCalibrationConfig=" + this.localConfig +
-                ", awsConfig=" + this.awsCalibrationConfig +
+                "localConfig=" + this.localConfig +
+                ", awsCalibrationConfig=" + this.awsCalibrationConfig +
+                ", mappingCalibrationConfig=" + this.mappingCalibrationConfig +
                 '}';
     }
 }
