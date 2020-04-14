@@ -34,10 +34,12 @@ public class RegressionComputation {
             if (records.isEmpty()) {
                 throw new SeMoDeException("Corrupt calibration input file. " + this.calibrationFile);
             }
-            final Map<String, String> measurements = records.get(0).toMap();
-            for (final String key : measurements.keySet()) {
-                this.logger.info("Add " + key + " value " + measurements.get(key) + " to linear regression.");
-                this.regression.addData(Double.parseDouble(key), Double.parseDouble(measurements.get(key)));
+            for (final CSVRecord record : records) {
+                final Map<String, String> measurements = record.toMap();
+                for (final String key : measurements.keySet()) {
+                    this.logger.info("Record : " + record.getRecordNumber() + " add quota/memory size " + key + " value " + measurements.get(key) + " to linear regression.");
+                    this.regression.addData(Double.parseDouble(key), Double.parseDouble(measurements.get(key)));
+                }
             }
             this.logger.info("Pearson r: " + this.regression.getR() + " - r²: " + this.regression.getRSquare());
             return new SimpleFunction(this.regression.getSlope(), this.regression.getIntercept());
