@@ -39,6 +39,7 @@ public class MappingMaster {
     public void computeMapping() {
         final Map<Integer, Double> memorySettingCPUShare = new HashMap<>();
         for (final Integer memorySize : this.config.memorySizes) {
+            this.logger.info("Compute CPU quota for memory size: " + memorySize);
             memorySettingCPUShare.put(memorySize, this.localRegressionFunction.computeDependentResult(this.providerRegressionFunction, memorySize));
         }
         this.config.memorySizeCPUShare = memorySettingCPUShare;

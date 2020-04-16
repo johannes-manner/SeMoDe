@@ -42,7 +42,7 @@ public class RegressionComputation {
                 }
             }
             this.logger.info("Pearson r: " + this.regression.getR() + " - r²: " + this.regression.getRSquare());
-            return new SimpleFunction(this.regression.getSlope(), this.regression.getIntercept());
+            return new SimpleFunction(this.regression.getSlope(), this.regression.getIntercept(), this.logger);
         } catch (final IOException e) {
             throw new SeMoDeException("Exception when reading " + this.calibrationFile, e);
         }

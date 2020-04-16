@@ -42,7 +42,7 @@
       "deployLinpack": false,
       "bucketName": "< replace me >",
       "numberOfAWSExecutions": 0,
-      "enabled": true,
+      "enabled": false,
       "deploymentInternals": {
         "restApiId": "no user input recommended",
         "apiKeyId": "no user input recommended",
@@ -106,6 +106,18 @@
           3008
         ]
       }
+    },
+    "mappingCalibrationConfig": {
+      "localCalibrationFile": "",
+      "providerCalibrationFile": "",
+      "memorySizes": [],
+      "memorySizeCPUShare": {
+      }
+    },
+    "runningCalibrationConfig": {
+      "dockerSourceFolder": "",
+      "environmentVariablesFile": "",
+      "numberOfProfiles": 1
     }
   }
 }

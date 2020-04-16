@@ -82,8 +82,7 @@ public class ContainerExecutor {
         final String time = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         final Path out = this.pathToCalibration
                 .resolve("profiles")
-                .resolve(memorySize)
-                .resolve(time);
+                .resolve(memorySize);
         for (int i = 0; i < this.runningCalibrationConfig.numberOfProfiles; i++) {
             final Profile p = this.runContainer(this.environmentVariables, limits);
             this.saveProfile(p, out.resolve("profile_" + i + "_" + memorySize));
