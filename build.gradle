@@ -1,10 +1,12 @@
-apply plugin: 'idea'
-apply plugin: 'eclipse'
-apply plugin: 'java'
-apply plugin: 'application'
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.4.1'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+}
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+group = 'de.uniba.dsg.serverless'
+version = '0.3'
+sourceCompatibility = '11'
 
 repositories {
     jcenter()
@@ -12,10 +14,38 @@ repositories {
 
 configurations {
     umlDoclet
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+ext {
+    awsSdkVersion = '1.11.935'
+    awsJavaCore = '1.2.1'
 }
 
 dependencies {
-    testImplementation 'junit:junit:4.12'
+
+    // spring
+    // html templating engine
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    // basic starter including tomcat as an embedded web server
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // compile time only - generating setters, getters, other utility methods
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    implementation 'com.h2database:h2'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
+
+    // testing
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+    testImplementation 'org.springframework.security:spring-security-test'
 
     // for java doc generation
     umlDoclet "nl.talsmasoftware:umldoclet:2.0.8"
@@ -23,13 +53,14 @@ dependencies {
     compile group: 'com.google.guava', name: 'guava', version: '28.1-jre'
 
     // aws
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-iam', version: '1.11.737'
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-cloudwatch', version: '1.11.737'
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-logs', version: '1.11.737'
-    compile group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.0'
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-lambda', version: '1.11.737'
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.737'
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-api-gateway', version: '1.11.737'
+    compile "com.amazonaws:aws-lambda-java-core:$awsJavaCore"
+
+    compile "com.amazonaws:aws-java-sdk-iam:$awsSdkVersion"
+    compile "com.amazonaws:aws-java-sdk-cloudwatch:$awsSdkVersion"
+    compile "com.amazonaws:aws-java-sdk-logs:$awsSdkVersion"
+    compile "com.amazonaws:aws-java-sdk-lambda:$awsSdkVersion"
+    compile "com.amazonaws:aws-java-sdk-s3:$awsSdkVersion"
+    compile "com.amazonaws:aws-java-sdk-api-gateway:$awsSdkVersion"
 
     // azure - signature problems - see jar section
     compile group: 'com.microsoft.azure', name: 'azure-core', version: '0.9.8'
@@ -37,9 +68,6 @@ dependencies {
 
     // google
     compile 'com.google.cloud:google-cloud-logging:1.89.0'
-
-    // see https://www.slf4j.org/codes.html#StaticLoggerBinder get rid of an error during logger initialization
-    compile group: 'org.slf4j', name: 'slf4j-nop', version: '1.7.21'
 
     // https://mvnrepository.com/artifact/com.github.docker-java/docker-java
     compile group: 'com.github.docker-java', name: 'docker-java', version: '3.1.2'
@@ -83,5 +111,3 @@ javadoc {
     options.docletpath = configurations.umlDoclet.files.asType(List)
     options.doclet = "nl.talsmasoftware.umldoclet.UMLDoclet"
 }
-
-mainClassName = "de.uniba.dsg.serverless.ArgumentProcessor"
