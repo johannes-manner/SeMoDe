@@ -32,20 +32,22 @@ public class DockerContainer {
 
     public static final long DEFAULT_CPU_PERIOD = 100000;
     public static final long CPU_QUOTA_CONST = 100000;
-    public final File dockerFile;
+    public final String dockerSourceFolder;
     public final String imageTag;
     private final List<String> logs = new ArrayList<>();
     private final DockerClient client;
     private String containerId;
     private String imageId;
 
-    public DockerContainer(final String dockerFile, final String imageTag) throws SeMoDeException {
+    /**
+     * @param dockerSourceFolder - folder where the docker files are included. Dockerfile has to be called "Dockerfile" in this folder.
+     * @param imageTag
+     * @throws SeMoDeException
+     */
+    public DockerContainer(final String dockerSourceFolder, final String imageTag) throws SeMoDeException {
         this.imageTag = imageTag;
-        this.dockerFile = new File(dockerFile);
+        this.dockerSourceFolder = dockerSourceFolder;
 
-        if (!this.dockerFile.exists() || !this.dockerFile.isFile()) {
-            throw new SeMoDeException("Dockerfile does not exist. (" + dockerFile + ")");
-        }
         this.client = DockerClientBuilder.getInstance().build();
     }
 
@@ -56,22 +58,10 @@ public class DockerContainer {
      * @throws SeMoDeException build failed
      */
     public String buildContainer() throws SeMoDeException {
-        return this.buildContainer(".");
-    }
-
-    /**
-     * Build the Docker image
-     *
-     * @param baseDirectory optional, specifies the base directory
-     * @return image id
-     * @throws SeMoDeException build failed
-     */
-    public String buildContainer(final String baseDirectory) throws SeMoDeException {
-        final File baseDir = new File(baseDirectory);
         try {
-            this.imageId = this.client.buildImageCmd(this.dockerFile)
-                    .withBaseDirectory(baseDir)
-                    .withDockerfile(this.dockerFile)
+            this.imageId = this.client.buildImageCmd()
+                    .withBaseDirectory(new File(this.dockerSourceFolder))
+                    .withDockerfile(new File(this.dockerSourceFolder + "/Dockerfile"))
                     .withTags(Collections.singleton(this.imageTag))
                     .exec(new BuildImageResultCallback())
                     .awaitImageId();

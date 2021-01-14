@@ -43,7 +43,7 @@ public class PipelineSetup {
     public final Path pathToCalibration;
 
     // for logging the pipeline interaction
-    public FileLogger logger;
+    public FileLogger logger = null;
 
     public PipelineSetup(final String name) throws SeMoDeException {
         this.name = name;
@@ -97,8 +97,10 @@ public class PipelineSetup {
         }
     }
 
-    public FileLogger createLogger() {
-        this.logger = new FileLogger("pipeline", this.pathToSetup.resolve("pipeline.log").toString(), false);
+    public FileLogger getLogger() {
+        if (this.logger == null) {
+            this.logger = new FileLogger("pipeline", this.pathToSetup.resolve("pipeline.log").toString(), false);
+        }
         return this.logger;
     }
 }

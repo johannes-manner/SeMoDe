@@ -1,13 +1,17 @@
 package de.uniba.dsg.serverless.calibration.mapping;
 
+import de.uniba.dsg.serverless.util.FileLogger;
+
 public class SimpleFunction {
 
     private final double slope;
     private final double intercept;
+    private final FileLogger logger;
 
-    public SimpleFunction(double slope, double intercept) {
+    public SimpleFunction(final double slope, final double intercept, final FileLogger logger) {
         this.slope = slope;
         this.intercept = intercept;
+        this.logger = logger;
     }
 
     /**
@@ -16,19 +20,19 @@ public class SimpleFunction {
      * @param x - input parameter for f(x) = m * x + t
      * @return computed value
      */
-    public double computeFunctionResult(double x){
+    public double computeFunctionResult(final double x) {
         return this.slope * x + this.intercept;
     }
 
     /**
      * Assumed that this(x) and function(y) are equal, the following method computes the value for x.
      *
-     *
      * @param function
-     * @param y input for function
+     * @param y        input for function
      * @return
      */
-    public double computeDependentResult(SimpleFunction function, double y){
+    public double computeDependentResult(final SimpleFunction function, final double y) {
+        this.logger.info("f(memorySize)= (" + function.slope + "* y + " + function.intercept + " - " + this.intercept + ") :0.001 " + this.slope);
         return (function.slope * y + function.intercept - this.intercept) / this.slope;
     }
 

@@ -24,7 +24,6 @@ public class LocalCalibration implements CalibrationMethods {
 
     private static final FileLogger logger = ArgumentProcessor.logger;
     private static final String CONTAINER_RESULT_FOLDER = "/usr/src/linpack/output/"; // specified by linpack benchmark container
-    private static final String LINPACK_DOCKERFILE = "linpack/local/Dockerfile";
     private static final String LINPACK_IMAGE = "semode/linpack";
     // composite
     private final Calibration calibration;
@@ -65,7 +64,7 @@ public class LocalCalibration implements CalibrationMethods {
         }
 
         // prepare calibration - build container and compute quotas based on steps
-        final DockerContainer linpackContainer = new DockerContainer(LINPACK_DOCKERFILE, LINPACK_IMAGE);
+        final DockerContainer linpackContainer = new DockerContainer(this.config.getDockerSourceFolder(), LINPACK_IMAGE);
         linpackContainer.buildContainer();
         final int physicalCores = this.getPhysicalCores();
         logger.info("Number of cores: " + physicalCores);
@@ -84,12 +83,10 @@ public class LocalCalibration implements CalibrationMethods {
 
         // merge results in this.calibrationFile
         final StringBuilder stringBuilder = new StringBuilder();
-        // leave first column for index of the run (for easier inspection of sub calibrations)
-        stringBuilder.append(",");
+        // add header line
         stringBuilder.append(quotas.stream().map(this.calibration.DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
         stringBuilder.append("\n");
         for (final Integer i : subResults.keySet()) {
-            stringBuilder.append("" + i + ",");
             stringBuilder.append(subResults.get(i).stream().map(String::valueOf).collect(Collectors.joining(",")));
             stringBuilder.append("\n");
         }
@@ -109,18 +106,6 @@ public class LocalCalibration implements CalibrationMethods {
         for (final double quota : quotas) {
             logger.info("Run: " + i + " running calibration using quota " + quota);
             results.add(subCalibration.executeBenchmark(linpackContainer, quota));
-        }
-        final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(quotas.stream().map(this.calibration.DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
-        stringBuilder.append("\n");
-        stringBuilder.append(results.stream().map(String::valueOf).collect(Collectors.joining(",")));
-        stringBuilder.append("\n");
-        try {
-            Files.write(subCalibration.calibration.calibrationFile, stringBuilder.toString().getBytes());
-            // logs are maybe relevant for later usage - not deleted at this point, but maybe in future releases
-//            Files.delete(temporaryLog.getParent());
-        } catch (final IOException e) {
-            throw new SeMoDeException("Could not write local calibration to " + subCalibration.calibration.calibrationFile.toString(), e);
         }
         return results;
     }

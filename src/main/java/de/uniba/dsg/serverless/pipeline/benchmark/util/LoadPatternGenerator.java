@@ -107,7 +107,7 @@ public class LoadPatternGenerator {
 
         final int[] delays = new int[parameterSplit.length - 1];
         for (int i = 1; i < parameterSplit.length; i++) {
-            delays[i] = Integer.parseInt(parameterSplit[i]);
+            delays[i - 1] = Integer.parseInt(parameterSplit[i]);
         }
 
         double time = 0.0;

@@ -23,10 +23,7 @@ public class UtilityFactory {
             new DeploymentSizeUtility("deploymentSize"),
 
             // simulation
-            new SimulationUtility("loadSimulation"),
-
-            // calibration
-            new CalibrationUtility("calibration")
+            new SimulationUtility("loadSimulation")
     );
 
     public static Optional<CustomUtility> getUtilityClass(final String name) {

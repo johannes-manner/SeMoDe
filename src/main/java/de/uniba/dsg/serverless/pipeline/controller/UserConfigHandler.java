@@ -5,10 +5,7 @@ import com.google.gson.GsonBuilder;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.AWSBenchmark;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
-import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
-import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
-import de.uniba.dsg.serverless.pipeline.model.config.GlobalConfig;
-import de.uniba.dsg.serverless.pipeline.model.config.UserConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.*;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -42,8 +39,8 @@ public class UserConfigHandler {
         }
     }
 
-    public void updateLocalConfig(final String localSteps, final String numberOfLocalCalibrations, final String enabled) {
-        this.userConfig.getCalibrationConfig().getLocalConfig().update(localSteps, numberOfLocalCalibrations, enabled);
+    public void updateLocalConfig(final String localSteps, final String numberOfLocalCalibrations, final String enabled, final String dockerSourceFolder) {
+        this.userConfig.getCalibrationConfig().getLocalConfig().update(localSteps, numberOfLocalCalibrations, enabled, dockerSourceFolder);
     }
 
     public AWSCalibrationConfig getAWSConfig() {
@@ -148,5 +145,21 @@ public class UserConfigHandler {
             throw new SeMoDeException("Start or end time not parsable: start: " + this.userConfig.getBenchmarkConfig().startTime
                     + " end: " + this.userConfig.getBenchmarkConfig().endTime);
         }
+    }
+
+    public void updateMappingConfig(final String localCalibrationFile, final String providerCalibrationFile, final String memoryJSON) throws SeMoDeException {
+        this.userConfig.getCalibrationConfig().getMappingCalibrationConfig().update(localCalibrationFile, providerCalibrationFile, memoryJSON);
+    }
+
+    public MappingCalibrationConfig getMappingConfig() {
+        return this.userConfig.getCalibrationConfig().getMappingCalibrationConfig();
+    }
+
+    public void updateRunningConfig(final String dockerSourceFolder, final String environmentVariablesFile, final String numberOfProfiles) {
+        this.userConfig.getCalibrationConfig().getRunningCalibrationConfig().update(dockerSourceFolder, environmentVariablesFile, numberOfProfiles);
+    }
+
+    public RunningCalibrationConfig getRunningConfig() {
+        return this.userConfig.getCalibrationConfig().getRunningCalibrationConfig();
     }
 }

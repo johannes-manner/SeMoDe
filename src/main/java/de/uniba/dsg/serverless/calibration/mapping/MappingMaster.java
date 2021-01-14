@@ -1,41 +1,47 @@
 package de.uniba.dsg.serverless.calibration.mapping;
 
-import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
+import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
 import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 
-import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MappingMaster {
 
-    private static final FileLogger logger = ArgumentProcessor.logger;
+    private final FileLogger logger;
 
-    private final Path localCalibrationFile;
-    private final Path providerCalibrationFile;
+    private final MappingCalibrationConfig config;
 
     private SimpleFunction localRegressionFunction;
     private SimpleFunction providerRegressionFunction;
 
 
-    public MappingMaster(final Path localCalibrationFile, final Path providerCalibrationFile) throws SeMoDeException {
-        this.localCalibrationFile = localCalibrationFile;
-        this.providerCalibrationFile = providerCalibrationFile;
+    public MappingMaster(final MappingCalibrationConfig config, final FileLogger logger) throws SeMoDeException {
+        this.config = config;
+        this.logger = logger;
         this.computeFunctions();
     }
 
 
     public void computeFunctions() throws SeMoDeException {
-        final RegressionComputation localRegression = new RegressionComputation(this.localCalibrationFile);
+        final RegressionComputation localRegression = new RegressionComputation(Paths.get(this.config.localCalibrationFile), this.logger);
         this.localRegressionFunction = localRegression.computeRegression();
-        logger.info(SupportedPlatform.LOCAL + " " + this.localRegressionFunction);
+        this.logger.info(SupportedPlatform.LOCAL + " regression: " + this.localRegressionFunction);
 
-        final RegressionComputation providerRegression = new RegressionComputation(this.providerCalibrationFile);
+        final RegressionComputation providerRegression = new RegressionComputation(Paths.get(this.config.providerCalibrationFile), this.logger);
         this.providerRegressionFunction = providerRegression.computeRegression();
-        logger.info(SupportedPlatform.AWS + " " + this.providerRegressionFunction);
+        this.logger.info("Provider regression: " + this.providerRegressionFunction);
     }
 
-    public double computeMapping(final double memorySetting) {
-        return this.localRegressionFunction.computeDependentResult(this.providerRegressionFunction, memorySetting);
+    public void computeMapping() {
+        final Map<Integer, Double> memorySettingCPUShare = new HashMap<>();
+        for (final Integer memorySize : this.config.memorySizes) {
+            this.logger.info("Compute CPU quota for memory size: " + memorySize);
+            memorySettingCPUShare.put(memorySize, this.localRegressionFunction.computeDependentResult(this.providerRegressionFunction, memorySize));
+        }
+        this.config.memorySizeCPUShare = memorySettingCPUShare;
     }
 }

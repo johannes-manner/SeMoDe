@@ -1,8 +1,10 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
+import de.uniba.dsg.serverless.calibration.mapping.MappingMaster;
 import de.uniba.dsg.serverless.calibration.methods.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
+import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
@@ -37,7 +39,7 @@ public class PipelineSetupController {
     }
 
     public FileLogger getPipelineLogger() {
-        return this.setup.createLogger();
+        return this.setup.getLogger();
     }
 
     private String scanAndLog() {
@@ -212,8 +214,10 @@ public class PipelineSetupController {
             final String numberOfLocalCalibrations = this.scanAndLog();
             this.setup.logger.info("Insert enabled property (true or false) or skip setting: ");
             final String enabled = this.scanAndLog();
+            this.setup.logger.info("Insert dockerSourceFolder property or skip setting: ");
+            final String dockerSourceFolder = this.scanAndLog();
 
-            this.userConfigHandler.updateLocalConfig(localSteps, numberOfLocalCalibrations, enabled);
+            this.userConfigHandler.updateLocalConfig(localSteps, numberOfLocalCalibrations, enabled, dockerSourceFolder);
 
         } else if (platform.equals(SupportedPlatform.AWS.getText())) {
             this.setup.logger.info("Insert calibration info:");
@@ -291,5 +295,35 @@ public class PipelineSetupController {
             this.calibration = new AWSCalibration(this.setup.name, this.setup.pathToCalibration, this.userConfigHandler.getAWSConfig());
             this.calibration.stopCalibration();
         }
+    }
+
+    public void computeMapping() throws SeMoDeException {
+        this.setup.logger.info("Insert mapping info:");
+        this.setup.logger.info("Insert local calibration.csv file path or skip setting: ");
+        final String localCalibrationFile = this.scanAndLog();
+        this.setup.logger.info("Insert provider calibration.csv file path or skip setting: ");
+        final String providerCalibrationFile = this.scanAndLog();
+        this.setup.logger.info("Insert memory settings (JSON Array) for computing the cpu share: ");
+        final String memoryJSON = this.scanAndLog();
+
+        this.userConfigHandler.updateMappingConfig(localCalibrationFile, providerCalibrationFile, memoryJSON);
+
+        new MappingMaster(this.userConfigHandler.getMappingConfig(), this.getPipelineLogger()).computeMapping();
+    }
+
+    public void runLocalContainer() throws SeMoDeException {
+        this.setup.logger.info("Insert running local container info:");
+        this.setup.logger.info("Insert dockerSourceFolder property or skip setting: ");
+        final String dockerSourceFolder = this.scanAndLog();
+        this.setup.logger.info("Insert environment variables file or skip setting: ");
+        final String environmentVariablesFile = this.scanAndLog();
+        this.setup.logger.info("Insert number of profiles");
+        final String numberOfProfiles = this.scanAndLog();
+
+        this.userConfigHandler.updateRunningConfig(dockerSourceFolder, environmentVariablesFile, numberOfProfiles);
+
+
+        final ContainerExecutor containerExecutor = new ContainerExecutor(this.setup.pathToCalibration, this.userConfigHandler.getMappingConfig(), this.userConfigHandler.getRunningConfig(), this.getPipelineLogger());
+        containerExecutor.executeLocalProfiles();
     }
 }
