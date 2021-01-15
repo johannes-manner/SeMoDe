@@ -1,13 +1,13 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.annotations.Expose;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.annotations.Expose;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 public class MappingCalibrationConfig {
 
@@ -22,18 +22,6 @@ public class MappingCalibrationConfig {
 
     public MappingCalibrationConfig() {
 
-    }
-
-    /**
-     * Copy constructor.
-     *
-     * @param mappingCalibrationConfig
-     */
-    public MappingCalibrationConfig(final MappingCalibrationConfig mappingCalibrationConfig) {
-        this.providerCalibrationFile = mappingCalibrationConfig.providerCalibrationFile;
-        this.localCalibrationFile = mappingCalibrationConfig.localCalibrationFile;
-        this.memorySizes = List.copyOf(mappingCalibrationConfig.memorySizes);
-        this.memorySizeCPUShare = Map.copyOf(mappingCalibrationConfig.memorySizeCPUShare);
     }
 
     public void update(final String localCalibrationFile, final String providerCalibrationFile, final String memoryJSON) throws SeMoDeException {

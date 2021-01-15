@@ -1,15 +1,16 @@
 package de.uniba.dsg.serverless.cli;
 
+import java.util.List;
+import java.util.Scanner;
+
 import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.pipeline.controller.PipelineSetupController;
-import de.uniba.dsg.serverless.pipeline.model.PipelineSetup;
+import de.uniba.dsg.serverless.pipeline.model.PipelineFileHandler;
 import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.lang3.NotImplementedException;
 
-import java.util.List;
-import java.util.Scanner;
-
+@Deprecated
 public class PipelineSetupUtility extends CustomUtility {
 
     private static final Scanner scanner = new Scanner(System.in);
@@ -53,20 +54,18 @@ public class PipelineSetupUtility extends CustomUtility {
     }
 
     /**
-     * Some sort of construction method since the constructor is needed for
-     * the utility creation for having the utility included in the {@link UtilityFactory}.
-     *
-     * @param name
-     * @throws SeMoDeException
+     * Some sort of construction method since the constructor is needed for the utility creation for having the utility
+     * included in the {@link UtilityFactory}.
      */
     private void loadOrInitSetup(final String name) throws SeMoDeException {
-        final PipelineSetup setup = new PipelineSetup(name);
+        // TODO
+        final PipelineFileHandler setup = new PipelineFileHandler(name, "setups");
         this.controller = new PipelineSetupController(setup);
-        if (setup.setupAlreadyExists()) {
-            this.controller.load();
-        } else {
-            this.controller.init();
-        }
+//        if (setup.setupAlreadyExists()) {
+//            this.controller.load();
+//        } else {
+//            this.controller.init();
+//        }
 
         this.logger.info("Successfully loaded benchmark setup \"" + setup.name + "\"");
     }

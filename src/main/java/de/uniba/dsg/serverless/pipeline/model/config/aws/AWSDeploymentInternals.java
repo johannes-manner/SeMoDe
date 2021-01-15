@@ -1,11 +1,15 @@
 package de.uniba.dsg.serverless.pipeline.model.config.aws;
 
 import com.google.gson.annotations.Expose;
+import lombok.Data;
 
 /**
- * Simple POJO class to store the internals during the deployment of the resources on the aws platform.
- * The data is needed for a later removal of the resources via function calls.
+ * Simple POJO class to store the internals during the deployment of the resources on the aws platform. The data is
+ * needed for a later removal of the resources via function calls.
  */
+// TODO add bean validation
+// TODO include more docu links...
+@Data
 public class AWSDeploymentInternals {
 
     @Expose
@@ -26,8 +30,7 @@ public class AWSDeploymentInternals {
     }
 
     /**
-     * Resets all the internal values, helpful for documentation purposes
-     * to not confuse the user.
+     * Resets all the internal values, helpful for documentation purposes to not confuse the user.
      */
     public void reset() {
         this.restApiId = "";

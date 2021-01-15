@@ -1,17 +1,16 @@
 package de.uniba.dsg.serverless.spring;
 
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import javax.validation.Valid;
 
+import de.uniba.dsg.serverless.pipeline.controller.SetupService;
+import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,24 +21,41 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("setups")
 public class SetupController {
 
-    @Value("${semode.setups.path}")
-    private String setups;
+    @Autowired
+    private SetupService setupService;
 
     @GetMapping
     public String getSetups(Model model) {
 
-        List<String> setupList = new ArrayList<>();
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(this.setups))) {
-            stream.forEach(p -> {
-                if (Files.isDirectory(p)) {
-                    setupList.add(p.getFileName().toString());
-                }
-            });
-        } catch (IOException e) {
-            // TODO error handling and show an error with a pop up window
+        log.info("Get all setups...");
+        model.addAttribute("setups", this.setupService.getSetupNames());
+        model.addAttribute("setupName", new String());
+
+        return "setups";
+    }
+
+    @PostMapping
+    public String createSetup(String setupName, Model model) {
+        // TODO add validation
+//        if (errors.hasErrors()) {
+//            log.info("Setup " + setupName + " already present.");
+//            model.addAttribute("setups", this.setupService.getSetupNames());
+//            return "setups";
+//        }
+
+        // create setup
+        try {
+            this.setupService.createSetup(setupName);
+        } catch (SeMoDeException e) {
+            e.printStackTrace();
         }
 
-        model.addAttribute("setups", setupList);
+        return "redirect:/setups/" + setupName;
+    }
+
+    @PostMapping("{name}/update")
+    public String updateSetup(@Valid SetupConfig setupConfig, @PathVariable("name") String setupName, Errors errors) {
+        log.info("Setup update...");
         return "setups";
     }
 
@@ -53,8 +69,17 @@ public class SetupController {
     }
 
     @GetMapping("{name}")
-    public String getSetting(@PathVariable("name") String setupName, Model model) {
+    public String getSetting(@PathVariable("name") String setupName, Model model) throws SeMoDeException {
+
+        log.info("Setup detail page...");
+
+        model.addAttribute("setupConfig", this.setupService.getSetup(setupName));
 
         return "setupDetail";
+    }
+
+    @ExceptionHandler({SeMoDeException.class})
+    public void handleCustomException(SeMoDeException e) {
+        log.warn(e.getMessage());
     }
 }

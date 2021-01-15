@@ -1,29 +1,41 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
-import com.google.common.primitives.Ints;
-import com.google.gson.annotations.Expose;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
-import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+
+import com.google.common.primitives.Ints;
+import com.google.gson.annotations.Expose;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
+import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
+import lombok.Data;
+
 /**
- * Model class for benchmark execution config and json serialization.
- * DO NOT change this class. Otherwise json serialization and deserialization does not work properly.
+ * Model class for benchmark execution config and json serialization. DO NOT change this class. Otherwise json
+ * serialization and deserialization does not work properly.
  */
+// TODO add bean validation to the class (not completed yet)
+@Data
 public class BenchmarkConfig {
 
+    // TODO remove all Expose and make fields private
+    @Expose
+    @Min(value = 1, message = "Select a positive number for the concurrent worker threads (corePoolSize of the executor service).")
     // corePoolSize for executor service
+    public Integer concurrentWorker;
     @Expose
-    public Integer numberThreads;
-    @Expose
+    @NotNull(message = "Select one of the benchmark modes")
     public String benchmarkMode;
     @Expose
+    // TODO refactor this
     public String benchmarkParameters;
     @Expose
+    // TODO check the usage here...
     public String postArgument;
+
     @Expose
     public String startTime;
     @Expose
@@ -34,18 +46,12 @@ public class BenchmarkConfig {
     public AWSBenchmarkConfig awsBenchmarkConfig;
 
     public BenchmarkConfig() {
-    }
-
-    public AWSBenchmarkConfig getAwsBenchmarkConfig() {
-        if (this.awsBenchmarkConfig == null) {
-            this.awsBenchmarkConfig = new AWSBenchmarkConfig();
-        }
-        return this.awsBenchmarkConfig;
+        this.awsBenchmarkConfig = new AWSBenchmarkConfig();
     }
 
     public void update(final String numberOfThreads, final String benchmarkingMode, final String benchmarkingParameters, final String postArgument) {
         if (!"".equals(numberOfThreads) && Ints.tryParse(numberOfThreads) != null) {
-            this.numberThreads = Ints.tryParse(numberOfThreads);
+            this.concurrentWorker = Ints.tryParse(numberOfThreads);
         }
 
         if (!"".equals(benchmarkingMode) && List.of(BenchmarkMode.values()).stream().map(BenchmarkMode::getText).collect(Collectors.toList()).contains(benchmarkingMode)) {
@@ -62,29 +68,18 @@ public class BenchmarkConfig {
     }
 
     /**
-     * Logs the start time, when the benchmark is started.
-     * Value is needed for a later retrieval of the information from the corresponding platform.
+     * Logs the start time, when the benchmark is started. Value is needed for a later retrieval of the information from
+     * the corresponding platform.
      */
     public void logBenchmarkStartTime() {
         this.startTime = LocalDateTime.now().toString();
     }
 
     /**
-     * Logs the end time, when the benchmark is finished and the last execution terminated.
-     * Value is needed for a later retrieval of the information from the corresponding platform.
+     * Logs the end time, when the benchmark is finished and the last execution terminated. Value is needed for a later
+     * retrieval of the information from the corresponding platform.
      */
     public void logBenchmarkEndTime() {
         this.endTime = LocalDateTime.now().toString();
-    }
-
-    @Override
-    public String toString() {
-        return "BenchmarkConfig{" +
-                "numberThreads=" + this.numberThreads +
-                ", benchmarkMode='" + this.benchmarkMode + '\'' +
-                ", benchmarkParameters='" + this.benchmarkParameters + '\'' +
-                ", postArgument='" + this.postArgument + '\'' +
-                ", awsBenchmarkConfig=" + this.awsBenchmarkConfig +
-                '}';
     }
 }

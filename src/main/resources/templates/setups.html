@@ -22,7 +22,7 @@
 
 <div th:replace="fragments/header :: header">...</div>
 
-<div class="table-responsive">
+<div class="table-responsive py-1 px-1">
     <table class="table table-sm">
         <thead>
         <tr>
@@ -39,17 +39,21 @@
             </a></td>
             <td>
                 <form th:action="@{/setups/{name}/delete(name=${setup})}">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
                     <button class="btn btn-dark py-0">Delete</button>
                 </form>
             </td>
         </tr>
-        <tr>
-            <th scope="row">3</th>
-            <td colspan="2">Larry the Bird</td>
-            <td>@twitter</td>
-        </tr>
         </tbody>
     </table>
+</div>
+
+<div class="py-1 px-1">
+    <form th:action="@{/setups}" method="POST">
+        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+        Setup Name: <input name="setupName" th:object="${setupName}" type="text"/>
+        <button class="btn btn-dark py-0">Create</button>
+    </form>
 </div>
 
 <div th:replace="fragments/footer :: footer">...</div>

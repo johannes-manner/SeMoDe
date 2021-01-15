@@ -23,33 +23,28 @@
 <div th:replace="fragments/header :: header">...</div>
 
 <div class="table-responsive">
-    <table class="table table-sm">
-        <thead>
-        <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Delete</th>
-            <!--<th scope="col">Last</th>-->
-            <!--<th scope="col">Handle</th>-->
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="setup : ${setups}">
-            <td><a th:href="@{/setups/{name}(name=${setup})}">
-                <div th:text="${setup}"></div>
-            </a></td>
-            <td>
-                <form th:action="@{/setups/{name}/delete(name=${setup})}">
-                    <button class="btn btn-dark py-0">Delete</button>
-                </form>
-            </td>
-        </tr>
-        <tr>
-            <th scope="row">3</th>
-            <td colspan="2">Larry the Bird</td>
-            <td>@twitter</td>
-        </tr>
-        </tbody>
-    </table>
+    <form th:action="@{/setups/{name}/update(name=${setupConfig.setupName})}" method="POST" th:object="${setupConfig}">
+        <table class="table table-sm">
+            <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">
+                    <input readonly="readonly" name="setupName" th:field="*{setupName}"/>
+                </th>
+                <!--<th scope="col">Last</th>-->
+                <!--<th scope="col">Handle</th>-->
+            </tr>
+            <h3>Benchmark Configuration</h3>
+            <tr>
+                <td>Concurrent Worker</td>
+                <td><input name="concurrentWorker" th:field="*{benchmarkConfig.concurrentWorker}"/></td>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <button class="btn btn-dark py-0">Update configuration</button>
+    </form>
 </div>
 
 <div th:replace="fragments/footer :: footer">...</div>
