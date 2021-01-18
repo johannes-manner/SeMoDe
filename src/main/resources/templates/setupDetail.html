@@ -17,6 +17,7 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
             integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
             crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
 
@@ -34,10 +35,56 @@
                 <!--<th scope="col">Last</th>-->
                 <!--<th scope="col">Handle</th>-->
             </tr>
-            <h3>Benchmark Configuration</h3>
+        </table>
+        <h3>Benchmark Configuration</h3>
+        <table class="table table-sm">
             <tr>
                 <td>Concurrent Worker</td>
                 <td><input name="concurrentWorker" th:field="*{benchmarkConfig.concurrentWorker}"/></td>
+            </tr>
+            <tr>
+                <td>Benchmarking Mode:</td>
+                <td>
+                    <select id="benchmarkingMode" th:field="*{benchmarkConfig.benchmarkMode}">
+                        <option value="">-- Select an option --</option>
+                        <option th:each="mode: ${benchmarkingModes}" th:value="${mode.text}"
+                                th:text="${mode.text}"></option>
+                    </select>
+                    <br/>
+                    <label id="benchmarkInfoLabel"></label>
+                </td>
+            </tr>
+            <tr>
+                <td><label id="benchmarkingParams">Benchmarking Parameters</label></td>
+                <td><input name="benchmarkParameters" th:field="*{benchmarkConfig.benchmarkParameters}"/></td>
+                <script type="text/javascript">
+
+                    var selectElem = document.getElementById('benchmarkingMode')
+                    var modeInfo = document.getElementById('benchmarkInfoLabel')
+                    var benchmarkingParams = document.getElementById('benchmarkingParams');
+
+                    // When a new <option> is selected
+                    selectElem.addEventListener('change', function() {
+                          var tag = selectElem.value;
+                          if(selectElem.selectedIndex > 0) {
+                              $.ajax({
+                                url: "../benchmark/mode/" + tag,
+                                success: function(result) {
+                                    modeInfo.innerHTML = result.information;
+                                    var parameters = "";
+                                    for(let i = 0 ; i < result.parameters.length; i++){
+                                        parameters = parameters + '<b>Parameter ' + i + ':</b> ' + result.parameters[i] + '<br/>';
+                                        console.log(parameters);
+                                    }
+                                    benchmarkingParams.innerHTML = parameters;
+                              }});
+                          } else {
+                              modeInfo.innerHTML = ""
+                              benchmarkingParams.innerHTML = ""
+                          }
+                    });
+
+                </script>
             </tr>
             </thead>
             <tbody>

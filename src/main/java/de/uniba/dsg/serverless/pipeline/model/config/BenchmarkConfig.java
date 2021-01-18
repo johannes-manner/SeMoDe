@@ -1,7 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.validation.constraints.Min;
@@ -54,7 +53,7 @@ public class BenchmarkConfig {
             this.concurrentWorker = Ints.tryParse(numberOfThreads);
         }
 
-        if (!"".equals(benchmarkingMode) && List.of(BenchmarkMode.values()).stream().map(BenchmarkMode::getText).collect(Collectors.toList()).contains(benchmarkingMode)) {
+        if (!"".equals(benchmarkingMode) && BenchmarkMode.availableModes.stream().map(BenchmarkMode::getText).collect(Collectors.toList()).contains(benchmarkingMode)) {
             this.benchmarkMode = benchmarkingMode;
         }
         // TODO validation difficult here . . .

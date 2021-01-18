@@ -13,7 +13,6 @@ import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
 import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.model.PipelineFileHandler;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
 import de.uniba.dsg.serverless.util.FileLogger;
@@ -124,8 +123,8 @@ public class PipelineSetupController {
         this.setup.logger.info("Global benchmarking parameters:");
         this.setup.logger.info("Insert number of threads or skip setting:");
         final String numberOfThreads = this.scanAndLog();
-        this.setup.logger.info("Insert a supported benchmarking mode or skip setting. Options: "
-                + List.of(BenchmarkMode.values()).stream().map(BenchmarkMode::getText).collect(Collectors.toList()));
+//        this.setup.logger.info("Insert a supported benchmarking mode or skip setting. Options: "
+//                + List.of(BenchmarkMode.values()).stream().map(BenchmarkMode::getText).collect(Collectors.toList()));
         this.setup.logger.info("Usage for each mode:\n"
                 + "\tconcurrent NUMBER_OF_THREADS NUMBER_OF_REQUESTS\n"
                 + "\tsequentialInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"

@@ -1,14 +1,5 @@
 package de.uniba.dsg.serverless.pipeline.benchmark;
 
-import com.google.common.primitives.Doubles;
-import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.FunctionTrigger;
-import de.uniba.dsg.serverless.pipeline.benchmark.util.LoadPatternGenerator;
-import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
-import de.uniba.dsg.serverless.util.FileLogger;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -22,6 +13,15 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import com.google.common.primitives.Doubles;
+import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.FunctionTrigger;
+import de.uniba.dsg.serverless.pipeline.benchmark.util.LoadPatternGenerator;
+import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
+import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 public class BenchmarkExecutor {
 
@@ -43,29 +43,24 @@ public class BenchmarkExecutor {
         this.loadPatternFile = this.pathToBenchmarkExecution.resolve("loadPattern.csv");
         final LoadPatternGenerator loadpatternGenerator = new LoadPatternGenerator(this.loadPatternFile);
 
-        switch (BenchmarkMode.fromString(this.benchmarkConfig.benchmarkMode)) {
-            case CONCURRENT:
-                loadpatternGenerator.generateConcurrentLoadPattern(this.benchmarkConfig.benchmarkParameters);
-                break;
-            case SEQUENTIAL_INTERVAL:
-                loadpatternGenerator.generateSequentialInterval(this.benchmarkConfig.benchmarkParameters);
-                break;
-            case SEQUENTIAL_CONCURRENT:
-                loadpatternGenerator.generateSequentialConcurrent(this.benchmarkConfig.benchmarkParameters);
-                break;
-            case SEQUENTIAL_CHANGING_INTERVAL:
-                loadpatternGenerator.generateSequentialChangingInterval(this.benchmarkConfig.benchmarkParameters);
-                break;
-            case ARBITRARY_LOAD_PATTERN:
-                loadpatternGenerator.copyArbitraryLoadPattern(this.benchmarkConfig.benchmarkParameters);
-                break;
+        String benchmarkMode = this.benchmarkConfig.benchmarkMode;
+        if (benchmarkMode.equals(BenchmarkMode.CONCURRENT)) {
+            loadpatternGenerator.generateConcurrentLoadPattern(this.benchmarkConfig.benchmarkParameters);
+        } else if (benchmarkMode.equals(BenchmarkMode.SEQUENTIAL_INTERVAL)) {
+            loadpatternGenerator.generateSequentialInterval(this.benchmarkConfig.benchmarkParameters);
+        } else if (benchmarkMode.equals(BenchmarkMode.SEQUENTIAL_CONCURRENT)) {
+            loadpatternGenerator.generateSequentialConcurrent(this.benchmarkConfig.benchmarkParameters);
+        } else if (benchmarkMode.equals(BenchmarkMode.SEQUENTIAL_CHANGING_INTERVAL)) {
+            loadpatternGenerator.generateSequentialChangingInterval(this.benchmarkConfig.benchmarkParameters);
+        } else if (benchmarkMode.equals(BenchmarkMode.ARBITRARY_LOAD_PATTERN)) {
+            loadpatternGenerator.copyArbitraryLoadPattern(this.benchmarkConfig.benchmarkParameters);
+        } else {
+            throw new SeMoDeException("Mode is unknown. Entered mode = " + benchmarkMode);
         }
     }
 
     /**
      * Currently only aws is supported - for next provider integration, rethink the architecture.
-     *
-     * @param benchmarkMethodsFromConfig
      */
     public void executeBenchmark(final List<BenchmarkMethods> benchmarkMethodsFromConfig) throws SeMoDeException {
 

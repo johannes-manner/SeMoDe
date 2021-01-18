@@ -1,7 +1,6 @@
 package de.uniba.dsg.serverless.spring;
 
-import javax.validation.Valid;
-
+import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.controller.SetupService;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.util.SeMoDeException;
@@ -54,8 +53,12 @@ public class SetupController {
     }
 
     @PostMapping("{name}/update")
-    public String updateSetup(@Valid SetupConfig setupConfig, @PathVariable("name") String setupName, Errors errors) {
+    // TODO valid
+    public String updateSetup(/*@Valid*/ SetupConfig setupConfig, @PathVariable("name") String setupName, Errors errors) {
         log.info("Setup update...");
+
+        log.info(setupConfig.toString());
+
         return "setups";
     }
 
@@ -74,6 +77,7 @@ public class SetupController {
         log.info("Setup detail page...");
 
         model.addAttribute("setupConfig", this.setupService.getSetup(setupName));
+        model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);
 
         return "setupDetail";
     }
