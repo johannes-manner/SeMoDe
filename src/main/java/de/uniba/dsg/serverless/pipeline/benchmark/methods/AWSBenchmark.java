@@ -1,5 +1,13 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.methods;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.pipeline.benchmark.log.LogHandler;
 import de.uniba.dsg.serverless.pipeline.benchmark.log.aws.AWSLogHandler;
@@ -12,14 +20,6 @@ import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class AWSBenchmark implements BenchmarkMethods {
 
@@ -40,7 +40,7 @@ public class AWSBenchmark implements BenchmarkMethods {
     @Override
     public List<Pair<String, Integer>> generateFunctionNames() {
         final List<Pair<String, Integer>> functionConfigs = new ArrayList<>();
-        for (final Integer memorySize : this.awsBenchmarkConfig.functionConfig.memorySizes) {
+        for (final Integer memorySize : this.awsBenchmarkConfig.functionConfig.getMemorySizeList()) {
             functionConfigs.add(new ImmutablePair<>(this.platformPrefix + memorySize, memorySize));
         }
         return functionConfigs;
@@ -68,10 +68,7 @@ public class AWSBenchmark implements BenchmarkMethods {
     }
 
     /**
-     * All values of the deploymentInternals are altered together,
-     * therefore a single check is sufficient.
-     *
-     * @return
+     * All values of the deploymentInternals are altered together, therefore a single check is sufficient.
      */
     @Override
     public boolean isInitialized() {

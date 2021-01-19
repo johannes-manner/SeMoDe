@@ -12,7 +12,6 @@ import de.uniba.dsg.serverless.calibration.methods.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
 import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
-import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
 import de.uniba.dsg.serverless.pipeline.model.PipelineFileHandler;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
 import de.uniba.dsg.serverless.util.FileLogger;
@@ -44,14 +43,6 @@ public class PipelineSetupController {
         return enteredString;
     }
 
-    /**
-     * Initializes the user config with some default values which are helpful, e.g. the calibration options, if some
-     * parameters should be unchanged to the global config.
-     */
-//    public void init() throws SeMoDeException {
-//        this.createBenchmarkFolderStructure();
-//        this.savePipelineSetup();
-//    }
     public void load() throws SeMoDeException {
         if (!Files.isDirectory(this.setup.pathToSetup)) {
             throw new SeMoDeException("Test setup does not exist.");
@@ -81,65 +72,65 @@ public class PipelineSetupController {
      * to this decision and other providers and open source FaaS platforms should follow.
      */
     public void configureBenchmarkSetup() throws SeMoDeException {
-        String provider = "";
-        final List<String> validPlatforms = List.of(SupportedPlatform.values()).stream().map(SupportedPlatform::getText).collect(Collectors.toList());
-        while (!validPlatforms.contains(provider)) {
-            this.setup.logger.info("Insert a valid provider: " + validPlatforms);
-            provider = this.scanAndLog();
-        }
-
-        // the provider is already natively supported via its SDK supported.
-        if (SupportedPlatform.AWS.getText().equals(provider)) {
-
-            this.setup.logger.info("Insert aws function info:");
-            this.setup.logger.info("Insert current region or skip setting: ");
-            final String region = this.scanAndLog();
-            this.setup.logger.info("Insert runtime for benchmarking or skip setting: ");
-            final String runtime = this.scanAndLog();
-            this.setup.logger.info("Insert function execution role (AWS IAM ARN) or skip setting: ");
-            final String awsArnRole = this.scanAndLog();
-            this.setup.logger.info("Insert function handler here or skip setting: ");
-            final String functionHandler = this.scanAndLog();
-            this.setup.logger.info("Insert timeout for function handler or skip setting: ");
-            final String timeout = this.scanAndLog();
-            this.setup.logger.info("Insert current memorySizes (JSON Array) or skip setting: ");
-            final String memorySizes = this.scanAndLog();
-            this.setup.logger.info("Insert path to function source code (directory) or skip setting: ");
-            final String pathToSource = this.scanAndLog();
-
-            this.setup.logger.info("Insert additional info, otherwise these fields are automatically configured during deployment!");
-            this.setup.logger.info("Insert current target url or skip setting: ");
-            final String targetUrl = this.scanAndLog();
-            this.setup.logger.info("Insert current apiKey or skip setting: ");
-            final String apiKey = this.scanAndLog();
-
-            this.setupService.updateAWSFunctionBenchmarkConfig(region, runtime, awsArnRole, functionHandler, timeout, memorySizes, pathToSource, targetUrl, apiKey);
-        } else {
-            // TODO change all providers to native sdks - legacy code
-        }
-
-        // global benchmark parameters
-        // TODO check if this is really needed - check the notes
-        this.setup.logger.info("Global benchmarking parameters:");
-        this.setup.logger.info("Insert number of threads or skip setting:");
-        final String numberOfThreads = this.scanAndLog();
-//        this.setup.logger.info("Insert a supported benchmarking mode or skip setting. Options: "
-//                + List.of(BenchmarkMode.values()).stream().map(BenchmarkMode::getText).collect(Collectors.toList()));
-        this.setup.logger.info("Usage for each mode:\n"
-                + "\tconcurrent NUMBER_OF_THREADS NUMBER_OF_REQUESTS\n"
-                + "\tsequentialInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
-                + "\tsequentialWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
-                + "\tsequentialConcurrent NUMBER_OF_THREADS NUMBER_OF_GROUPS NUMBER_OF_REQUESTS_GROUP DELAY\n"
-                + "\tsequentialChangingInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS (DELAY)+\n"
-                + "\tsequentialChangingWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS (DELAY)+\n"
-                + "\tarbitraryLoadPattern NUMBER_OF_THREADS FILE.csv");
-        final String benchmarkingMode = this.scanAndLog();
-        this.setup.logger.info("Insert benchmarking parameters or skip setting:");
-        final String benchmarkingParameters = this.scanAndLog();
-        this.setup.logger.info("Insert a static value (POST argument for the http call) for benchmarking the function or skip setting:");
-        final String postArgument = this.scanAndLog();
-
-        this.setupService.updateGlobalBenchmarkParameters(numberOfThreads, benchmarkingMode, benchmarkingParameters, postArgument);
+//        String provider = "";
+//        final List<String> validPlatforms = List.of(SupportedPlatform.values()).stream().map(SupportedPlatform::getText).collect(Collectors.toList());
+//        while (!validPlatforms.contains(provider)) {
+//            this.setup.logger.info("Insert a valid provider: " + validPlatforms);
+//            provider = this.scanAndLog();
+//        }
+//
+//        // the provider is already natively supported via its SDK supported.
+//        if (SupportedPlatform.AWS.getText().equals(provider)) {
+//
+//            this.setup.logger.info("Insert aws function info:");
+//            this.setup.logger.info("Insert current region or skip setting: ");
+//            final String region = this.scanAndLog();
+//            this.setup.logger.info("Insert runtime for benchmarking or skip setting: ");
+//            final String runtime = this.scanAndLog();
+//            this.setup.logger.info("Insert function execution role (AWS IAM ARN) or skip setting: ");
+//            final String awsArnRole = this.scanAndLog();
+//            this.setup.logger.info("Insert function handler here or skip setting: ");
+//            final String functionHandler = this.scanAndLog();
+//            this.setup.logger.info("Insert timeout for function handler or skip setting: ");
+//            final String timeout = this.scanAndLog();
+//            this.setup.logger.info("Insert current memorySizes (JSON Array) or skip setting: ");
+//            final String memorySizes = this.scanAndLog();
+//            this.setup.logger.info("Insert path to function source code (directory) or skip setting: ");
+//            final String pathToSource = this.scanAndLog();
+//
+//            this.setup.logger.info("Insert additional info, otherwise these fields are automatically configured during deployment!");
+//            this.setup.logger.info("Insert current target url or skip setting: ");
+//            final String targetUrl = this.scanAndLog();
+//            this.setup.logger.info("Insert current apiKey or skip setting: ");
+//            final String apiKey = this.scanAndLog();
+//
+//            this.setupService.updateAWSFunctionBenchmarkConfig(region, runtime, awsArnRole, functionHandler, timeout, memorySizes, pathToSource, targetUrl, apiKey);
+//        } else {
+//            // TODO change all providers to native sdks - legacy code
+//        }
+//
+//        // global benchmark parameters
+//        // TODO check if this is really needed - check the notes
+//        this.setup.logger.info("Global benchmarking parameters:");
+//        this.setup.logger.info("Insert number of threads or skip setting:");
+//        final String numberOfThreads = this.scanAndLog();
+////        this.setup.logger.info("Insert a supported benchmarking mode or skip setting. Options: "
+////                + List.of(BenchmarkMode.values()).stream().map(BenchmarkMode::getText).collect(Collectors.toList()));
+//        this.setup.logger.info("Usage for each mode:\n"
+//                + "\tconcurrent NUMBER_OF_THREADS NUMBER_OF_REQUESTS\n"
+//                + "\tsequentialInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
+//                + "\tsequentialWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS DELAY\n"
+//                + "\tsequentialConcurrent NUMBER_OF_THREADS NUMBER_OF_GROUPS NUMBER_OF_REQUESTS_GROUP DELAY\n"
+//                + "\tsequentialChangingInterval NUMBER_OF_THREADS NUMBER_OF_REQUESTS (DELAY)+\n"
+//                + "\tsequentialChangingWait NUMBER_OF_THREADS NUMBER_OF_REQUESTS (DELAY)+\n"
+//                + "\tarbitraryLoadPattern NUMBER_OF_THREADS FILE.csv");
+//        final String benchmarkingMode = this.scanAndLog();
+//        this.setup.logger.info("Insert benchmarking parameters or skip setting:");
+//        final String benchmarkingParameters = this.scanAndLog();
+//        this.setup.logger.info("Insert a static value (POST argument for the http call) for benchmarking the function or skip setting:");
+//        final String postArgument = this.scanAndLog();
+//
+//        this.setupService.updateGlobalBenchmarkParameters(numberOfThreads, benchmarkingMode, benchmarkingParameters, postArgument);
     }
 
     public void savePipelineSetup() throws SeMoDeException {
@@ -154,15 +145,15 @@ public class PipelineSetupController {
     }
 
     public void deployFunctions() throws SeMoDeException {
-        for (final BenchmarkMethods benchmark : this.setupService.createBenchmarkMethodsFromConfig(this.setup.name)) {
-            benchmark.deploy();
-        }
+//        for (final BenchmarkMethods benchmark : this.setupService.createBenchmarkMethodsFromConfig(this.setup.name)) {
+//            benchmark.deploy();
+//        }
     }
 
     public void undeployBenchmark() throws SeMoDeException {
-        for (final BenchmarkMethods benchmark : this.setupService.createBenchmarkMethodsFromConfig(this.setup.name)) {
-            benchmark.undeploy();
-        }
+//        for (final BenchmarkMethods benchmark : this.setupService.createBenchmarkMethodsFromConfig(this.setup.name)) {
+//            benchmark.undeploy();
+//        }
     }
 
     /**
@@ -174,16 +165,16 @@ public class PipelineSetupController {
 
         final BenchmarkExecutor benchmarkExecutor = new BenchmarkExecutor(this.setup.pathToBenchmarkExecution, this.setupService.getBenchmarkConfig());
         benchmarkExecutor.generateLoadPattern();
-        benchmarkExecutor.executeBenchmark(this.setupService.createBenchmarkMethodsFromConfig(this.setup.name));
+//        benchmarkExecutor.executeBenchmark(this.setupService.createBenchmarkMethodsFromConfig(this.setup.name));
 
         this.setupService.logBenchmarkEndTime();
     }
 
     public void fetchBenchmarkData() throws SeMoDeException {
         final Pair<LocalDateTime, LocalDateTime> startEndTime = this.setupService.getStartAndEndTime();
-        for (final BenchmarkMethods benchmark : this.setupService.createBenchmarkMethodsFromConfig(this.setup.name)) {
-            benchmark.writePerformanceDataToFile(this.setup.pathToBenchmarkExecution, startEndTime.getLeft(), startEndTime.getRight());
-        }
+//        for (final BenchmarkMethods benchmark : this.setupService.createBenchmarkMethodsFromConfig(this.setup.name)) {
+//            benchmark.writePerformanceDataToFile(this.setup.pathToBenchmarkExecution, startEndTime.getLeft(), startEndTime.getRight());
+//        }
     }
 
     public void configureCalibration() throws SeMoDeException {

@@ -1,5 +1,12 @@
 package de.uniba.dsg.serverless.calibration.methods;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.calibration.Calibration;
 import de.uniba.dsg.serverless.calibration.LinpackParser;
@@ -11,13 +18,6 @@ import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class AWSCalibration implements CalibrationMethods {
 
@@ -54,7 +54,7 @@ public class AWSCalibration implements CalibrationMethods {
     private List<Pair<String, Integer>> generateFunctionNames() {
         // create function names
         final List<Pair<String, Integer>> functionConfigs = new ArrayList<>();
-        for (final Integer memorySize : this.functionConfig.memorySizes) {
+        for (final Integer memorySize : this.functionConfig.getMemorySizeList()) {
             functionConfigs.add(new ImmutablePair<>(this.platformPrefix + memorySize, memorySize));
         }
         return functionConfigs;
@@ -68,10 +68,9 @@ public class AWSCalibration implements CalibrationMethods {
     }
 
     /**
-     * Prior to the calibration, a decision is made by the user, if the linpack deployment should be executed.
-     * See also {@link AWSClient#removeAllDeployedResources}, if a error occurred during deployment and remove all deployed resources from the platform.
-     *
-     * @throws SeMoDeException
+     * Prior to the calibration, a decision is made by the user, if the linpack deployment should be executed. See also
+     * {@link AWSClient#removeAllDeployedResources}, if a error occurred during deployment and remove all deployed
+     * resources from the platform.
      */
     @Override
     public void deployCalibration() throws SeMoDeException {
@@ -100,17 +99,17 @@ public class AWSCalibration implements CalibrationMethods {
 
     private void executeLinpackCalibration(final String platformPrefix) throws SeMoDeException {
         final StringBuilder sb = new StringBuilder();
-        sb.append(this.functionConfig.memorySizes.stream().map(String::valueOf).collect(Collectors.joining(",")));
+        sb.append(this.functionConfig.getMemorySizeList().stream().map(String::valueOf).collect(Collectors.joining(",")));
         sb.append("\n");
 
         for (int i = 0; i < this.config.numberOfAWSExecutions; i++) {
-            for (final int memory : this.functionConfig.memorySizes) {
+            for (final int memory : this.functionConfig.getMemorySizeList()) {
                 final String fileName = this.calibration.name + "/" + memory + "_" + i;
                 final String pathForAPIGateway = platformPrefix + memory;
                 this.client.invokeLambdaFunction(this.functionConfig.targetUrl, this.functionConfig.apiKey, pathForAPIGateway, fileName);
             }
             final List<Double> results = new ArrayList<>();
-            for (final int memory : this.functionConfig.memorySizes) {
+            for (final int memory : this.functionConfig.getMemorySizeList()) {
                 final String fileName = this.calibration.name + "/" + memory + "_" + i;
                 this.client.waitForBucketObject(this.config.bucketName, "linpack/" + fileName, 600);
                 final Path log = this.calibration.calibrationLogs.resolve(fileName);

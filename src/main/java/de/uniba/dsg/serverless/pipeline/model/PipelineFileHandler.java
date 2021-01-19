@@ -43,11 +43,9 @@ public class PipelineFileHandler {
         this.pathToConfig = this.pathToSetup.resolve("settings.json");
         this.pathToCalibration = this.pathToSetup.resolve("calibration");
         this.pathToBenchmarkExecution = this.pathToSetup.resolve("benchmark");
-
-        this.createFolderStructure();
     }
 
-    private void createFolderStructure() throws SeMoDeException {
+    public void createFolderStructure() throws SeMoDeException {
         try {
             Files.createDirectories(this.pathToSetup);
             // for benchmarking
@@ -79,6 +77,7 @@ public class PipelineFileHandler {
         }
     }
 
+    //TODO
 //    /**
 //     * This functions return the fully qualified name of the SeMoDe.jar file to enable other utilities to generate batch
 //     * files for automating the benchmarking pipeline.

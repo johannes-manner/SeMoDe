@@ -54,12 +54,13 @@ public class SetupController {
 
     @PostMapping("{name}/update")
     // TODO valid
-    public String updateSetup(/*@Valid*/ SetupConfig setupConfig, @PathVariable("name") String setupName, Errors errors) {
+    public String updateSetup(/*@Valid*/ SetupConfig setupConfig, @PathVariable("name") String setupName, Errors errors) throws SeMoDeException {
         log.info("Setup update...");
 
         log.info(setupConfig.toString());
+        this.setupService.updateSetup(setupConfig);
 
-        return "setups";
+        return "redirect:/setups/" + setupName;
     }
 
     @PostMapping("{name}/delete")
@@ -84,6 +85,8 @@ public class SetupController {
 
     @ExceptionHandler({SeMoDeException.class})
     public void handleCustomException(SeMoDeException e) {
+        // TODO show all exception messages from all stacks
+        e.printStackTrace();
         log.warn(e.getMessage());
     }
 }

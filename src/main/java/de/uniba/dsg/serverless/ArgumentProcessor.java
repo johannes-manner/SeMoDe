@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 public class ArgumentProcessor implements CommandLineRunner {
 
     // a global logger for the whole program
-    public static FileLogger logger;
+    public static FileLogger logger = new FileLogger("semode", "semode.log", true);
 
     @Override
     public void run(final String[] args) {
@@ -33,8 +33,6 @@ public class ArgumentProcessor implements CommandLineRunner {
         // TODO think about property management
         System.setProperty("java.util.logging.SimpleFormatter.format", "[;%1$tFT%1$tH:%1$tM:%1$tS.%1$tL;] [%4$-7s] %5$s %n");
         System.setProperty("CSV_SEPARATOR", ";");
-
-        logger = new FileLogger("semode", "semode.log", true);
 
         if (args == null || args.length < 2) {
             logger.warning("Please specify cli arguments. Program exited.");

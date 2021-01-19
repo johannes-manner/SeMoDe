@@ -1,18 +1,21 @@
 package de.uniba.dsg.serverless.pipeline.model.config.aws;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.primitives.Ints;
-import com.google.gson.annotations.Expose;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import com.google.common.primitives.Ints;
+import com.google.gson.annotations.Expose;
+import lombok.Data;
 
 /**
  * Configuration parameters for a single function.
  */
+@Data
 public class AWSFunctionConfig {
     @Expose
     public String region;
@@ -25,7 +28,7 @@ public class AWSFunctionConfig {
     @Expose
     public int timeout;
     @Expose
-    public List<Integer> memorySizes;
+    public String memorySizes;
     @Expose
     public String targetUrl;
     @Expose
@@ -43,7 +46,7 @@ public class AWSFunctionConfig {
         this.awsArnLambdaRole = functionConfig.awsArnLambdaRole;
         this.functionHandler = functionConfig.functionHandler;
         this.timeout = functionConfig.timeout;
-        this.memorySizes = List.copyOf(functionConfig.memorySizes);
+        this.memorySizes = functionConfig.memorySizes;
         this.targetUrl = functionConfig.targetUrl;
         this.apiKey = functionConfig.apiKey;
         this.pathToSource = functionConfig.pathToSource;
@@ -58,16 +61,26 @@ public class AWSFunctionConfig {
         if (!"".equals(targetUrl)) this.targetUrl = targetUrl;
         if (!"".equals(apiKey)) this.apiKey = apiKey;
         if (!"".equals(memorySizes)) {
-            this.memorySizes = (List<Integer>) new ObjectMapper().readValue(memorySizes, ArrayList.class);
+            this.memorySizes = memorySizes;
         }
         if (!"".equals(pathToSource) && Files.isDirectory(Paths.get(pathToSource))) {
             this.pathToSource = pathToSource;
         }
     }
 
+    public List<Integer> getMemorySizeList() {
+        if (this.memorySizes == null) {
+            return List.of();
+        }
+        return Arrays.stream(this.memorySizes.split(","))
+                     .map(String::trim)
+                     .filter(Predicate.not(String::isEmpty))
+                     .map(Integer::parseInt)
+                     .collect(Collectors.toList());
+    }
+
     /**
-     * Resets all the internal values, helpful for documentation purposes
-     * to not confuse the user.
+     * Resets all the internal values, helpful for documentation purposes to not confuse the user.
      */
     public void reset() {
         this.targetUrl = "";

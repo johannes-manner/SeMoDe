@@ -1,14 +1,69 @@
 package de.uniba.dsg.serverless.pipeline.sdk;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.apigateway.AmazonApiGateway;
 import com.amazonaws.services.apigateway.AmazonApiGatewayClientBuilder;
-import com.amazonaws.services.apigateway.model.*;
+import com.amazonaws.services.apigateway.model.ApiStage;
+import com.amazonaws.services.apigateway.model.CreateApiKeyRequest;
+import com.amazonaws.services.apigateway.model.CreateApiKeyResult;
+import com.amazonaws.services.apigateway.model.CreateDeploymentRequest;
+import com.amazonaws.services.apigateway.model.CreateDeploymentResult;
+import com.amazonaws.services.apigateway.model.CreateResourceRequest;
+import com.amazonaws.services.apigateway.model.CreateResourceResult;
+import com.amazonaws.services.apigateway.model.CreateRestApiRequest;
+import com.amazonaws.services.apigateway.model.CreateRestApiResult;
+import com.amazonaws.services.apigateway.model.CreateUsagePlanKeyRequest;
+import com.amazonaws.services.apigateway.model.CreateUsagePlanKeyResult;
+import com.amazonaws.services.apigateway.model.CreateUsagePlanRequest;
+import com.amazonaws.services.apigateway.model.CreateUsagePlanResult;
+import com.amazonaws.services.apigateway.model.DeleteApiKeyRequest;
+import com.amazonaws.services.apigateway.model.DeleteApiKeyResult;
+import com.amazonaws.services.apigateway.model.DeleteRestApiRequest;
+import com.amazonaws.services.apigateway.model.DeleteRestApiResult;
+import com.amazonaws.services.apigateway.model.DeleteUsagePlanRequest;
+import com.amazonaws.services.apigateway.model.DeleteUsagePlanResult;
+import com.amazonaws.services.apigateway.model.GetResourcesRequest;
+import com.amazonaws.services.apigateway.model.GetResourcesResult;
+import com.amazonaws.services.apigateway.model.NotFoundException;
+import com.amazonaws.services.apigateway.model.PutIntegrationRequest;
+import com.amazonaws.services.apigateway.model.PutIntegrationResponseRequest;
+import com.amazonaws.services.apigateway.model.PutIntegrationResponseResult;
+import com.amazonaws.services.apigateway.model.PutIntegrationResult;
+import com.amazonaws.services.apigateway.model.PutMethodRequest;
+import com.amazonaws.services.apigateway.model.PutMethodResponseRequest;
+import com.amazonaws.services.apigateway.model.PutMethodResponseResult;
+import com.amazonaws.services.apigateway.model.PutMethodResult;
+import com.amazonaws.services.apigateway.model.Resource;
+import com.amazonaws.services.apigateway.model.StageKey;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
-import com.amazonaws.services.lambda.model.*;
+import com.amazonaws.services.lambda.model.AddPermissionRequest;
+import com.amazonaws.services.lambda.model.AddPermissionResult;
+import com.amazonaws.services.lambda.model.CreateFunctionRequest;
+import com.amazonaws.services.lambda.model.CreateFunctionResult;
+import com.amazonaws.services.lambda.model.DeleteFunctionRequest;
+import com.amazonaws.services.lambda.model.DeleteFunctionResult;
+import com.amazonaws.services.lambda.model.FunctionCode;
+import com.amazonaws.services.lambda.model.ResourceConflictException;
+import com.amazonaws.services.lambda.model.ResourceNotFoundException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
@@ -21,27 +76,14 @@ import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 import de.uniba.dsg.serverless.util.SeMoDeProperty;
 import de.uniba.dsg.serverless.util.SeMoDePropertyManager;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
+@Slf4j
 public class AWSClient {
 
     private static final FileLogger logger = ArgumentProcessor.logger;
@@ -54,7 +96,8 @@ public class AWSClient {
     /**
      * Creates an AWSClient
      *
-     * @throws SeMoDeException if the AWS S3 Client could not be created (check credentials and resources/awsEndpointInfo.json)
+     * @throws SeMoDeException if the AWS S3 Client could not be created (check credentials and
+     *                         resources/awsEndpointInfo.json)
      */
     public AWSClient(final String region) throws SeMoDeException {
         try {
@@ -68,9 +111,8 @@ public class AWSClient {
     }
 
     /**
-     * Invokes an AWS Lambda function with respective memory.
-     * GET request, used for the calibration or for function which specify a storage location to an S3 bucket,
-     * when data is generated.
+     * Invokes an AWS Lambda function with respective memory. GET request, used for the calibration or for function
+     * which specify a storage location to an S3 bucket, when data is generated.
      *
      * @param path schema is linpack_MEMORY
      */
@@ -82,9 +124,9 @@ public class AWSClient {
         final WebTarget lambdaTarget = ClientBuilder.newClient(configuration).target(targetUrl);
         try {
             final Response r = lambdaTarget.path(path)
-                    .request()
-                    .header("x-api-key", apiKey)
-                    .post(Entity.entity("{\"resultFileName\": \"" + resultFileNameS3Bucket + "\"}", MediaType.APPLICATION_JSON));
+                                           .request()
+                                           .header("x-api-key", apiKey)
+                                           .post(Entity.entity("{\"resultFileName\": \"" + resultFileNameS3Bucket + "\"}", MediaType.APPLICATION_JSON));
             if (r.getStatus() == 403) {
                 throw new SeMoDeException("Cannot invoke function. Forbidden (403).");
             }
@@ -94,8 +136,8 @@ public class AWSClient {
     }
 
     /**
-     * Blocking function that waits for a file, if not already available, to be created in the S3 bucket.
-     * If the timeout is reached, an exception is thrown.
+     * Blocking function that waits for a file, if not already available, to be created in the S3 bucket. If the timeout
+     * is reached, an exception is thrown.
      *
      * @param keyName key of the file
      * @param timeout timeout in seconds
@@ -184,9 +226,6 @@ public class AWSClient {
 
     /**
      * Returns the parent resource ('/') of the ApiGateway RestAPI.
-     *
-     * @param restApiId
-     * @return
      */
     public String getParentResource(final String restApiId) throws SeMoDeException {
         final GetResourcesRequest getResourcesRequest = new GetResourcesRequest()
@@ -207,11 +246,6 @@ public class AWSClient {
 
     /**
      * Creates the AWS Gateway Resource.
-     *
-     * @param restApiId
-     * @param parentResourceId
-     * @param resourcePath
-     * @return
      */
     public String createRestResource(final String restApiId, final String parentResourceId, final String resourcePath) throws SeMoDeException {
         final CreateResourceRequest createResourceRequest = new CreateResourceRequest()
@@ -227,12 +261,8 @@ public class AWSClient {
     }
 
     /**
-     * Creates the method and corresponding method response.
-     * ANY method is configured at this point for simplicity reasons.
-     *
-     * @param restApiId
-     * @param resourceId
-     * @throws SeMoDeException
+     * Creates the method and corresponding method response. ANY method is configured at this point for simplicity
+     * reasons.
      */
     public void putMethodAndMethodResponse(final String restApiId, final String resourceId) throws SeMoDeException {
         this.putMethod(restApiId, resourceId);
@@ -280,7 +310,7 @@ public class AWSClient {
                 .withType("AWS")
                 .withIntegrationHttpMethod("POST")
                 .withUri("arn:aws:apigateway:" + region + ":lambda:path/2015-03-31/functions/arn:aws:lambda:" + region + ":"
-                        + this.iamClient.getUser().getUser().getUserId()
+                        + this.extractAWSAccountId()
                         + ":function:" + functionName + "/invocations")
                 .withPassthroughBehavior("WHEN_NO_MATCH");
 
@@ -289,6 +319,14 @@ public class AWSClient {
             throw new SeMoDeException("Can't create integration for api " + restApiId + " and resource " + resourceId
                     + " with uri " + putIntegrationRequest.getUri());
         }
+    }
+
+    /**
+     * The extraction here is somehow buddy, but if the user is not the root user, the user id of the subuser is not the
+     * account id
+     */
+    private String extractAWSAccountId() {
+        return this.iamClient.getUser().getUser().getArn().split(":")[4];
     }
 
     private void putIntegrationResponse(final String restApiId, final String resourceId) throws SeMoDeException {
@@ -317,7 +355,6 @@ public class AWSClient {
 
         return result.getId();
     }
-
 
     public String createUsagePlanAndUsagePlanKey(final String usagePlanName, final String restApiId, final String stageName, final String apiKeyId) throws SeMoDeException {
         final String usagePlanId = this.createUsagePlan(usagePlanName, restApiId, stageName);
@@ -370,7 +407,7 @@ public class AWSClient {
                 .withStatementId("default")
                 .withAction("lambda:InvokeFunction")
                 .withPrincipal("apigateway.amazonaws.com")
-                .withSourceArn("arn:aws:execute-api:" + region + ":" + this.iamClient.getUser().getUser().getUserId()
+                .withSourceArn("arn:aws:execute-api:" + region + ":" + this.extractAWSAccountId()
                         + ":" + restApiId + "/*/*/" + functionName);
 
         try {
@@ -382,7 +419,6 @@ public class AWSClient {
         } catch (final ResourceConflictException e) {
             logger.warning("Lambda function permission already exists! Check if you need an update!");
         }
-
     }
 
     public void deleteLambdaFunction(final String functionName) {
@@ -457,8 +493,8 @@ public class AWSClient {
     }
 
     /**
-     * Deploys an API Gateway endpoint and secures this endpoint via a x-api-key.
-     * The x-api-key is also included in the settings.json and generated by this deployment.
+     * Deploys an API Gateway endpoint and secures this endpoint via a x-api-key. The x-api-key is also included in the
+     * settings.json and generated by this deployment.
      */
     private void deployHttpMethodInRestApi(final String resourcePath, final String restApiId, final String region) throws SeMoDeException {
         final String parentResourceId = this.getParentResource(restApiId);
@@ -524,8 +560,8 @@ public class AWSClient {
     }
 
     /**
-     * Removes all resources from aws cloud platform. </br>
-     * Currently only the deployed lambda function and the api gateway, key and usage plan
+     * Removes all resources from aws cloud platform. </br> Currently only the deployed lambda function and the api
+     * gateway, key and usage plan
      */
     public void removeAllDeployedResources(final List<Pair<String, Integer>> functionConfigs, final AWSDeploymentInternals deploymentInternals) {
 

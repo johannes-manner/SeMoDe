@@ -78,7 +78,7 @@ public class PipelineSetupUtility extends CustomUtility {
         this.logger.info(" (deployBenchmark)     Starts the deployment");
         this.logger.info(" (executeBenchmark)    Executes the benchmark");
         this.logger.info(" (fetchBenchmark)      Fetch the benchmark data");
-        this.logger.info(" (undeployBenchmark)   Undeploying the current cloud functions");
+        this.logger.info(" (undeployFunctions)   Undeploying the current cloud functions");
         this.logger.info("Simulation Options:");
         this.logger.info(" (configCalibration)   Perform a calibration (linpack)");
         this.logger.info(" (deployCalibration)   Starts the deployment (optional)");
@@ -107,7 +107,7 @@ public class PipelineSetupUtility extends CustomUtility {
             case "fetchBenchmark":
                 this.controller.fetchBenchmarkData();
                 break;
-            case "undeployBenchmark":
+            case "undeployFunctions":
                 this.controller.undeployBenchmark();
                 break;
             // calibration options
@@ -145,6 +145,7 @@ public class PipelineSetupUtility extends CustomUtility {
                         new NotImplementedException(""));
         }
 
+        // TODO !!! Also safe after operations !!!
         // save after each operation
         this.controller.savePipelineSetup();
     }

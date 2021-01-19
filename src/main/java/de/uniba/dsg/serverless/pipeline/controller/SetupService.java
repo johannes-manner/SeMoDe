@@ -44,6 +44,7 @@ public class SetupService {
     public void createSetup(String setupName) throws SeMoDeException {
         this.setupConfig = new SetupConfig(setupName);
         this.fileHandler = new PipelineFileHandler(setupName, this.setups);
+        this.fileHandler.createFolderStructure();
     }
 
     public SetupConfig getSetup(String setupName) throws SeMoDeException {
@@ -64,6 +65,28 @@ public class SetupService {
             // TODO error handling and show an error with a pop up window
         }
         return setupList;
+    }
+
+    public void updateSetup(SetupConfig setupConfig) throws SeMoDeException {
+        this.setupConfig = setupConfig;
+        this.fileHandler.saveUserConfigToFile(setupConfig);
+    }
+
+    // TODO maybe DeploymentService??
+    public void deployFunctions() throws SeMoDeException {
+        for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
+            benchmark.deploy();
+            // during deployment a lot of internals are set and therefore the update here is needed
+            this.updateSetup(this.setupConfig);
+        }
+    }
+
+    public void undeployFunctions() throws SeMoDeException {
+        for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
+            benchmark.undeploy();
+            // during undeployment a lot of  internals are reset, therefore setup config must be stored again
+            this.updateSetup(this.setupConfig);
+        }
     }
 
     // Old parts...
@@ -145,11 +168,12 @@ public class SetupService {
         }
     }
 
-    @Deprecated
+    // TODO comment
+
     /**
      * Creates a list of all benchmark configs, which are enabled. Currently only AWS is enabled.
      */
-    public List<BenchmarkMethods> createBenchmarkMethodsFromConfig(final String setupName) throws SeMoDeException {
+    private List<BenchmarkMethods> createBenchmarkMethodsFromConfig(final String setupName) throws SeMoDeException {
         final List<BenchmarkMethods> benchmarkMethods = new ArrayList<>();
         // if this is the case, the benchmark config was initialized, see function above
         if (this.setupConfig.getBenchmarkConfig().awsBenchmarkConfig != null) {

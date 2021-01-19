@@ -35,6 +35,7 @@
                 <!--<th scope="col">Last</th>-->
                 <!--<th scope="col">Handle</th>-->
             </tr>
+            </thead>
         </table>
         <h3>Benchmark Configuration</h3>
         <table class="table table-sm">
@@ -84,14 +85,133 @@
                           }
                     });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 </script>
             </tr>
-            </thead>
+            <tr>
+                <td>Post Body Argument (JSON)</td>
+                <td><textarea rows="10" cols="40" th:field="*{benchmarkConfig.postArgument}"></textarea></td>
+            </tr>
             <tbody>
             </tbody>
         </table>
-        <button class="btn btn-dark py-0">Update configuration</button>
+        <h5>AWS specific Benchmark Settings - Function Configuration</h5>
+        <table class="table table-sm">
+            <tr>
+                <td>Region</td>
+                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.region}"/></td>
+            </tr>
+            <tr>
+                <td>Runtime</td>
+                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.runtime}"/></td>
+            </tr>
+            <tr>
+                <td>AWS ARN Lambda Role</td>
+                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.awsArnLambdaRole}"/></td>
+            </tr>
+            <tr>
+                <td>Handler Class Name</td>
+                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.functionHandler}"/></td>
+            </tr>
+            <tr>
+                <td>Timeout in Seconds</td>
+                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.timeout}"/></td>
+            </tr>
+            <tr>
+                <td>Memory Sizes (comma separated List)</td>
+                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.memorySizes}"/></td>
+            </tr>
+            <tr>
+                <td>Path to ZIP Source (locally on your computer)</td>
+                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.pathToSource}"/></td>
+            </tr>
+            <tr>
+                <td>Target URL (filled by the tool)</td>
+                <td><input readonly="readonly"
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.targetUrl}"/></td>
+            </tr>
+            <tr>
+                <td>API Key (filled by the tool)</td>
+                <td><input readonly="readonly" th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.apiKey}"/>
+                </td>
+            </tr>
+        </table>
+        <h5>AWS specific Benchmark Settings - Deployment Internals</h5>
+        <table class="table table-sm">
+            <tr>
+                <td>REST API ID (filled by the tool)</td>
+                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.deploymentInternals.restApiId}"/></td>
+            </tr>
+            <tr>
+                <td>API Key ID (filled by the tool)</td>
+                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.deploymentInternals.apiKeyId}"/></td>
+            </tr>
+            <tr>
+                <td>Usage Plan ID (filled by the tool)</td>
+                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.deploymentInternals.usagePlanId}"/></td>
+            </tr>
+        </table>
+        <button class="btn btn-dark py-2 px-2">Update configuration</button>
     </form>
+    <button id="deployFunction">Deploy</button>
+    <label id="deployProgress"></label>
+
+    <button id="undeployFunction">Undeploy</button>
+
+    <script type="text/javascript">
+
+                    var deployButton = document.getElementById('deployFunction')
+                    var label = document.getElementById('deployProgress')
+
+                    deployButton.addEventListener('click', function() {
+                          console.log("deploy...")
+                          var deployDecision = confirm("Do you really want to deploy the setup?")
+                          if(deployDecision == true) {
+                              $.ajax({
+                                url: "/deploy",
+                                success: function(result) {
+                                    label.innerHTML = 'Refresh page to see the infos - deployment successful'
+                              }});
+                          }
+                    });
+
+
+                    var undeployButton = document.getElementById('undeployFunction')
+                    undeployButton.addEventListener('click', function() {
+                          console.log("deploy...")
+                          var deployDecision = confirm("Do you really want to undeploy the setup?")
+                          if(deployDecision == true) {
+                              $.ajax({
+                                url: "/undeploy",
+                                success: function(result) {
+                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
+                              }});
+                          }
+                    });
+
+
+
+
+
+    </script>
 </div>
 
 <div th:replace="fragments/footer :: footer">...</div>
