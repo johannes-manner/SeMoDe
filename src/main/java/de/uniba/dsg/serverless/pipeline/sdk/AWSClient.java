@@ -74,8 +74,6 @@ import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSDeploymentInternals;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSFunctionConfig;
 import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
-import de.uniba.dsg.serverless.util.SeMoDeProperty;
-import de.uniba.dsg.serverless.util.SeMoDePropertyManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -484,10 +482,9 @@ public class AWSClient {
 
     private void deployLambdaFunction(final String functionName, final int memorySize, final AWSFunctionConfig functionConfig) throws SeMoDeException {
         // change directory to the linpack directory and zip it
-        this.executeBashCommand("cd " + functionConfig.pathToSource + "; zip -r function.zip *");
         this.deployLambdaFunction(functionName, functionConfig.runtime, functionConfig.awsArnLambdaRole,
                 functionConfig.functionHandler, functionConfig.timeout, memorySize,
-                Paths.get(functionConfig.pathToSource + "/function.zip"));
+                Paths.get(functionConfig.pathToSource));
 
         logger.info("Function deployment successfully completed for " + memorySize + " MB! (AWS Lambda)");
     }
@@ -501,19 +498,6 @@ public class AWSClient {
         final String resourceId = this.createRestResource(restApiId, parentResourceId, resourcePath);
         this.putMethodAndMethodResponse(restApiId, resourceId);
         this.putIntegrationAndIntegrationResponse(restApiId, resourceId, resourcePath, region);
-    }
-
-    private void executeBashCommand(final String command) throws SeMoDeException {
-        final ProcessBuilder processBuilder = new ProcessBuilder(SeMoDePropertyManager.getInstance().getProperty(SeMoDeProperty.BASH_LOCATION), "-c", command);
-        Process process = null;
-        try {
-            process = processBuilder.start();
-            final int errCode = process.waitFor();
-            logger.info("Command " + command + " executed without errors? " + (errCode == 0 ? "Yes" : "No(code=" + errCode + ")"));
-        } catch (final IOException | InterruptedException e) {
-            e.printStackTrace();
-            process.destroy();
-        }
     }
 
     public void enableRestApiUsage(final String restApiId, final String setupName, final AWSFunctionConfig functionConfig, final AWSDeploymentInternals deploymentInternals) throws SeMoDeException {
