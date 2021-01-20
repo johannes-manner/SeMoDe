@@ -72,11 +72,12 @@ public class SetupService {
         this.fileHandler.saveUserConfigToFile(setupConfig);
     }
 
-    // TODO maybe DeploymentService??
+    // TODO maybe DeploymentService?? handle Exception properly (cleanup)
     public void deployFunctions() throws SeMoDeException {
         for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
             benchmark.deploy();
             // during deployment a lot of internals are set and therefore the update here is needed
+            this.setupConfig.setDeployed(true);
             this.updateSetup(this.setupConfig);
         }
     }
@@ -85,6 +86,7 @@ public class SetupService {
         for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
             benchmark.undeploy();
             // during undeployment a lot of  internals are reset, therefore setup config must be stored again
+            this.setupConfig.setDeployed(false);
             this.updateSetup(this.setupConfig);
         }
     }

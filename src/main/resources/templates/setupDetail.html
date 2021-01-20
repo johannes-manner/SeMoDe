@@ -32,8 +32,10 @@
                 <th scope="col">
                     <input readonly="readonly" name="setupName" th:field="*{setupName}"/>
                 </th>
-                <!--<th scope="col">Last</th>-->
-                <!--<th scope="col">Handle</th>-->
+            </tr>
+            <tr>
+                <td>Deployed</td>
+                <td><input readonly="readonly" name="setupName" th:field="*{deployed}"/></td>
             </tr>
             </thead>
         </table>
@@ -41,12 +43,15 @@
         <table class="table table-sm">
             <tr>
                 <td>Concurrent Worker</td>
-                <td><input name="concurrentWorker" th:field="*{benchmarkConfig.concurrentWorker}"/></td>
+                <td><input
+                        th:readonly="${setupConfig.deployed}"
+                        name="concurrentWorker" th:field="*{benchmarkConfig.concurrentWorker}"/></td>
             </tr>
             <tr>
                 <td>Benchmarking Mode:</td>
                 <td>
-                    <select id="benchmarkingMode" th:field="*{benchmarkConfig.benchmarkMode}">
+                    <select th:disabled="${setupConfig.deployed}" id="benchmarkingMode"
+                            th:field="*{benchmarkConfig.benchmarkMode}">
                         <option value="">-- Select an option --</option>
                         <option th:each="mode: ${benchmarkingModes}" th:value="${mode.text}"
                                 th:text="${mode.text}"></option>
@@ -57,7 +62,8 @@
             </tr>
             <tr>
                 <td><label id="benchmarkingParams">Benchmarking Parameters</label></td>
-                <td><input name="benchmarkParameters" th:field="*{benchmarkConfig.benchmarkParameters}"/></td>
+                <td><input th:readonly="${setupConfig.deployed}" name="benchmarkParameters"
+                           th:field="*{benchmarkConfig.benchmarkParameters}"/></td>
                 <script type="text/javascript">
 
                     var selectElem = document.getElementById('benchmarkingMode')
@@ -94,21 +100,12 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
                 </script>
             </tr>
             <tr>
                 <td>Post Body Argument (JSON)</td>
-                <td><textarea rows="10" cols="40" th:field="*{benchmarkConfig.postArgument}"></textarea></td>
+                <td><textarea th:readonly="${setupConfig.deployed}" rows="10" cols="40"
+                              th:field="*{benchmarkConfig.postArgument}"></textarea></td>
             </tr>
             <tbody>
             </tbody>
@@ -117,31 +114,38 @@
         <table class="table table-sm">
             <tr>
                 <td>Region</td>
-                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.region}"/></td>
+                <td><input th:readonly="${setupConfig.deployed}"
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.region}"/></td>
             </tr>
             <tr>
                 <td>Runtime</td>
-                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.runtime}"/></td>
+                <td><input th:readonly="${setupConfig.deployed}"
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.runtime}"/></td>
             </tr>
             <tr>
                 <td>AWS ARN Lambda Role</td>
-                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.awsArnLambdaRole}"/></td>
+                <td><input th:readonly="${setupConfig.deployed}"
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.awsArnLambdaRole}"/></td>
             </tr>
             <tr>
                 <td>Handler Class Name</td>
-                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.functionHandler}"/></td>
+                <td><input th:readonly="${setupConfig.deployed}"
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.functionHandler}"/></td>
             </tr>
             <tr>
                 <td>Timeout in Seconds</td>
-                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.timeout}"/></td>
+                <td><input th:readonly="${setupConfig.deployed}"
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.timeout}"/></td>
             </tr>
             <tr>
                 <td>Memory Sizes (comma separated List)</td>
-                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.memorySizes}"/></td>
+                <td><input th:readonly="${setupConfig.deployed}"
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.memorySizes}"/></td>
             </tr>
             <tr>
                 <td>Path to ZIP Source (locally on your computer)</td>
-                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.pathToSource}"/></td>
+                <td><input th:readonly="${setupConfig.deployed}"
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.pathToSource}"/></td>
             </tr>
             <tr>
                 <td>Target URL (filled by the tool)</td>
@@ -158,15 +162,18 @@
         <table class="table table-sm">
             <tr>
                 <td>REST API ID (filled by the tool)</td>
-                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.deploymentInternals.restApiId}"/></td>
+                <td><input readonly="readonly"
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.deploymentInternals.restApiId}"/></td>
             </tr>
             <tr>
                 <td>API Key ID (filled by the tool)</td>
-                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.deploymentInternals.apiKeyId}"/></td>
+                <td><input readonly="readonly"
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.deploymentInternals.apiKeyId}"/></td>
             </tr>
             <tr>
                 <td>Usage Plan ID (filled by the tool)</td>
-                <td><input th:field="*{benchmarkConfig.awsBenchmarkConfig.deploymentInternals.usagePlanId}"/></td>
+                <td><input readonly="readonly"
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.deploymentInternals.usagePlanId}"/></td>
             </tr>
         </table>
         <button class="btn btn-dark py-2 px-2">Update configuration</button>
@@ -206,8 +213,6 @@
                               }});
                           }
                     });
-
-
 
 
 

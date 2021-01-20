@@ -17,6 +17,7 @@ import lombok.Data;
 public class SetupConfig {
 
     private String setupName;
+    private boolean deployed = false;
     private BenchmarkConfig benchmarkConfig;
     private CalibrationConfig calibrationConfig;
 
