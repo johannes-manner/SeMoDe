@@ -100,6 +100,9 @@
 
 
 
+
+
+
                 </script>
             </tr>
             <tr>
@@ -182,6 +185,7 @@
     <label id="deployProgress"></label>
 
     <button id="undeployFunction">Undeploy</button>
+    <button id="executeBenchmark">Execute Benchmark</button>
 
     <script type="text/javascript">
 
@@ -214,6 +218,17 @@
                           }
                     });
 
+                    var executeBenchmark = document.getElementById('executeBenchmark')
+                    executeBenchmark.addEventListener('click', function() {
+                          var deployDecision = confirm("Do you really want to execute benchmark?")
+                          if(deployDecision == true) {
+                              $.ajax({
+                                url: "/benchmark",
+                                success: function(result) {
+                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
+                              }});
+                          }
+                    });
 
 
     </script>

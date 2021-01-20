@@ -13,6 +13,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.GsonBuilder;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
+import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.AWSBenchmark;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
 import de.uniba.dsg.serverless.pipeline.model.PipelineFileHandler;
@@ -89,6 +90,31 @@ public class SetupService {
             this.setupConfig.setDeployed(false);
             this.updateSetup(this.setupConfig);
         }
+    }
+
+    // TODO Execution service?
+    // TODO comment
+
+    /**
+     * Creates a list of all benchmark configs, which are enabled. Currently only AWS is enabled.
+     */
+    private List<BenchmarkMethods> createBenchmarkMethodsFromConfig(final String setupName) throws SeMoDeException {
+        final List<BenchmarkMethods> benchmarkMethods = new ArrayList<>();
+        // if this is the case, the benchmark config was initialized, see function above
+        if (this.setupConfig.getBenchmarkConfig().awsBenchmarkConfig != null) {
+            benchmarkMethods.add(new AWSBenchmark(setupName, this.setupConfig.getBenchmarkConfig().awsBenchmarkConfig));
+        }
+        return benchmarkMethods;
+    }
+
+    public void executeBenchmark() throws SeMoDeException {
+        this.setupConfig.getBenchmarkConfig().logBenchmarkStartTime();
+
+        final BenchmarkExecutor benchmarkExecutor = new BenchmarkExecutor(this.fileHandler.pathToBenchmarkExecution, this.setupConfig.getBenchmarkConfig());
+        benchmarkExecutor.generateLoadPattern();
+        benchmarkExecutor.executeBenchmark(this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName()));
+
+        this.setupConfig.getBenchmarkConfig().logBenchmarkEndTime();
     }
 
     // Old parts...
@@ -168,20 +194,6 @@ public class SetupService {
         } catch (final IOException e) {
             throw new SeMoDeException("Error during memory Size parsing");
         }
-    }
-
-    // TODO comment
-
-    /**
-     * Creates a list of all benchmark configs, which are enabled. Currently only AWS is enabled.
-     */
-    private List<BenchmarkMethods> createBenchmarkMethodsFromConfig(final String setupName) throws SeMoDeException {
-        final List<BenchmarkMethods> benchmarkMethods = new ArrayList<>();
-        // if this is the case, the benchmark config was initialized, see function above
-        if (this.setupConfig.getBenchmarkConfig().awsBenchmarkConfig != null) {
-            benchmarkMethods.add(new AWSBenchmark(setupName, this.setupConfig.getBenchmarkConfig().awsBenchmarkConfig));
-        }
-        return benchmarkMethods;
     }
 
     @Deprecated

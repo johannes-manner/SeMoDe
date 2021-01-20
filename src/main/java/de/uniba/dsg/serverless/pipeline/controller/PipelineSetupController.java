@@ -11,7 +11,6 @@ import de.uniba.dsg.serverless.calibration.mapping.MappingMaster;
 import de.uniba.dsg.serverless.calibration.methods.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
 import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
-import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
 import de.uniba.dsg.serverless.pipeline.model.PipelineFileHandler;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
 import de.uniba.dsg.serverless.util.FileLogger;
@@ -155,13 +154,13 @@ public class PipelineSetupController {
      * #fetchBenchmarkData()}.
      */
     public void executeBenchmark() throws SeMoDeException {
-        this.setupService.logBenchmarkStartTime();
-
-        final BenchmarkExecutor benchmarkExecutor = new BenchmarkExecutor(this.setup.pathToBenchmarkExecution, this.setupService.getBenchmarkConfig());
-        benchmarkExecutor.generateLoadPattern();
+//        this.setupService.logBenchmarkStartTime();
+//
+//        final BenchmarkExecutor benchmarkExecutor = new BenchmarkExecutor(this.setup.pathToBenchmarkExecution, this.setupService.getBenchmarkConfig());
+//        benchmarkExecutor.generateLoadPattern();
 //        benchmarkExecutor.executeBenchmark(this.setupService.createBenchmarkMethodsFromConfig(this.setup.name));
-
-        this.setupService.logBenchmarkEndTime();
+//
+//        this.setupService.logBenchmarkEndTime();
     }
 
     public void fetchBenchmarkData() throws SeMoDeException {

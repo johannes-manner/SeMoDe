@@ -34,4 +34,10 @@ public class AsynchronousController {
         this.service.undeployFunctions();
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("benchmark")
+    public ResponseEntity benchmark() throws SeMoDeException {
+        this.service.executeBenchmark();
+        return ResponseEntity.ok().build();
+    }
 }
