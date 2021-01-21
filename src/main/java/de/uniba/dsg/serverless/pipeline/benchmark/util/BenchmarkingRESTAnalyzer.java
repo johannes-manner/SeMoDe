@@ -1,11 +1,5 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.util;
 
-import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.LocalRESTEvent;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.WritableEvent;
-import de.uniba.dsg.serverless.util.FileLogger;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,6 +11,13 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import de.uniba.dsg.serverless.ArgumentProcessor;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.LocalRESTEvent;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.WritableEvent;
+import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
+
+// TODO remove methods, maybe the whole class
 public class BenchmarkingRESTAnalyzer {
 
     private static final FileLogger logger = ArgumentProcessor.logger;
@@ -30,15 +31,12 @@ public class BenchmarkingRESTAnalyzer {
     }
 
     /**
-     * Extract the REST events from the local execution of the benchmarking utility
-     * and returns a map, where the key is the platformId and the value is a
-     * comprehensive local REST event. <br/>
+     * Extract the REST events from the local execution of the benchmarking utility and returns a map, where the key is
+     * the platformId and the value is a comprehensive local REST event. <br/>
      * <p>
-     * The local uuid is used to get consistent events and the platform id is used
-     * as the key of the returned map to match the platform values.
+     * The local uuid is used to get consistent events and the platform id is used as the key of the returned map to
+     * match the platform values.
      *
-     * @return
-     * @throws SeMoDeException
      * @see {@link LocalRESTEvent}
      */
     public Map<String, WritableEvent> extractRESTEvents() throws SeMoDeException {
@@ -71,16 +69,16 @@ public class BenchmarkingRESTAnalyzer {
                         event.setEndTime(LocalDateTime.parse(s[1]));
                     } else if ("ERROR".equals(key)) {
                         event.setErroneous(true);
-                    } else if ("PLATFORMID".equals(key)) {
-                        event.setPlatformId(s[6]);
-                    } else if ("CONTAINERID".equals(key)) {
-                        event.setContainerId(s[6]);
-                    } else if ("VMIDENTIFICATION".equals(key)) {
-                        event.setVmIdentification(s[6]);
-                    } else if ("CPUMODEL".equals(key)) {
-                        event.setCpuModel(s[6]);
-                    } else if ("CPUMODELNAME".equals(key)) {
-                        event.setCpuModelName(s[6]);
+//                    } else if ("PLATFORMID".equals(key)) {
+//                        event.setPlatformId(s[6]);
+//                    } else if ("CONTAINERID".equals(key)) {
+//                        event.setContainerId(s[6]);
+//                    } else if ("VMIDENTIFICATION".equals(key)) {
+//                        event.setVmIdentification(s[6]);
+//                    } else if ("CPUMODEL".equals(key)) {
+//                        event.setCpuModel(s[6]);
+//                    } else if ("CPUMODELNAME".equals(key)) {
+//                        event.setCpuModelName(s[6]);
                     } else {
                         logger.warning("The following key is no REST event property: " + key);
                     }
@@ -91,15 +89,14 @@ public class BenchmarkingRESTAnalyzer {
             };
 
             lines.stream().filter(isNotEmpty).map(String::trim).map(splitLine).filter(correctPlatform).forEach(insertEvent);
-
         } catch (final IOException e) {
             throw new SeMoDeException("Error while reading the file " + this.benchmarkingFile.toString(), e);
         }
 
         final Map<String, WritableEvent> result = new HashMap<>();
         for (final String uuid : extractedEvents.keySet()) {
-            final WritableEvent value = extractedEvents.get(uuid);
-            result.put(value.getPlatformId(), value);
+//            final WritableEvent value = extractedEvents.get(uuid);
+//            result.put(value.getPlatformId(), value);
         }
         return result;
     }

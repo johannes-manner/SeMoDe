@@ -1,14 +1,14 @@
-package de.uniba.dsg.serverless.pipeline.benchmark.model;
-
-import com.amazonaws.services.logs.model.OutputLogEvent;
+package de.uniba.dsg.serverless.pipeline.benchmark.log.aws;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import com.amazonaws.services.logs.model.OutputLogEvent;
+
 /**
- * This class is a model for all log and related data, like start time, end time and consumption of
- * time and memory. Because of the string based nature of log data in AmazonCloudWatch, this model class groups
- * all data associated to a single function execution to get a cohesive data structure for log events.
+ * This class is a model for all log and related data, like start time, end time and consumption of time and memory.
+ * Because of the string based nature of log data in AmazonCloudWatch, this model class groups all data associated to a
+ * single function execution to get a cohesive data structure for log events.
  *
  * @author Johannes Manner
  * @version 1.0
@@ -21,11 +21,7 @@ public final class FunctionExecutionEvent {
     private final String requestId;
 
     /**
-     * Constructor of a function execution event.
-     * Consists of a function name and a request Id.
-     *
-     * @param functionName
-     * @param requestId
+     * Constructor of a function execution event. Consists of a function name and a request Id.
      */
     public FunctionExecutionEvent(final String functionName, final String logStream, final String requestId) {
         this.events = new ArrayList<>();
@@ -36,8 +32,6 @@ public final class FunctionExecutionEvent {
 
     /**
      * Adds a single event (log message) to the execution event.
-     *
-     * @param event
      */
     public void addLogEvent(final OutputLogEvent event) {
         this.events.add(event);
@@ -54,8 +48,6 @@ public final class FunctionExecutionEvent {
 
     /**
      * Getter for the {@link OutputLogEvent}s.
-     *
-     * @return
      */
     public List<OutputLogEvent> getEvents() {
         return this.events;
@@ -66,8 +58,8 @@ public final class FunctionExecutionEvent {
     }
 
     /**
-     * Generates a unique file name for the naming of the java test classes.
-     * "-" are a problem for the class names. Therefore the "-" are replaced with "_".
+     * Generates a unique file name for the naming of the java test classes. "-" are a problem for the class names.
+     * Therefore the "-" are replaced with "_".
      *
      * @return a unique filename based on the function name and request Id
      */
@@ -88,9 +80,7 @@ public final class FunctionExecutionEvent {
     /**
      * Test, if the log data, encapsulated in the message part of the {@link OutputLogEvent}s.
      *
-     * @param searchString
-     * @return true, if a single message contains the search string <br/>
-     * false, otherwise
+     * @return true, if a single message contains the search string <br/> false, otherwise
      */
     public boolean containsSearchString(final String searchString) {
 
@@ -105,5 +95,4 @@ public final class FunctionExecutionEvent {
         }
         return false;
     }
-
 }

@@ -1,12 +1,13 @@
 package de.uniba.dsg.serverless.util;
 
-import de.uniba.dsg.serverless.ArgumentProcessor;
-
 import java.io.IOException;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import de.uniba.dsg.serverless.ArgumentProcessor;
+
+// TODO remove it
 public class FileLogger {
 
     protected final FileHandler fileHandler;

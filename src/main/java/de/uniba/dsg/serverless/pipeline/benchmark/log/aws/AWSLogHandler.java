@@ -1,16 +1,5 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.log.aws;
 
-import com.amazonaws.SdkClientException;
-import com.amazonaws.services.logs.AWSLogs;
-import com.amazonaws.services.logs.AWSLogsClientBuilder;
-import com.amazonaws.services.logs.model.*;
-import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.pipeline.benchmark.log.LogHandler;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.FunctionExecutionEvent;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.WritableEvent;
-import de.uniba.dsg.serverless.util.FileLogger;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -20,10 +9,25 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.amazonaws.SdkClientException;
+import com.amazonaws.services.logs.AWSLogs;
+import com.amazonaws.services.logs.AWSLogsClientBuilder;
+import com.amazonaws.services.logs.model.DescribeLogStreamsRequest;
+import com.amazonaws.services.logs.model.DescribeLogStreamsResult;
+import com.amazonaws.services.logs.model.GetLogEventsRequest;
+import com.amazonaws.services.logs.model.GetLogEventsResult;
+import com.amazonaws.services.logs.model.LogStream;
+import com.amazonaws.services.logs.model.OutputLogEvent;
+import com.amazonaws.services.logs.model.ResourceNotFoundException;
+import de.uniba.dsg.serverless.ArgumentProcessor;
+import de.uniba.dsg.serverless.pipeline.benchmark.log.LogHandler;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.WritableEvent;
+import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
+
 /**
- * This class starts the analysis of the log streams of the specified log group.
- * It introduces a grouping of single log message in AmazonCloudWatch to
- * cohesive log events, which expresses a single function execution.
+ * This class starts the analysis of the log streams of the specified log group. It introduces a grouping of single log
+ * message in AmazonCloudWatch to cohesive log events, which expresses a single function execution.
  *
  * @author Johannes Manner
  * @version 1.0
@@ -40,11 +44,9 @@ public final class AWSLogHandler implements LogHandler {
     private final AWSLogs amazonCloudLogs;
 
     /**
-     * Constructs an object with the three configuration parameters region, log
-     * group name and search string.
+     * Constructs an object with the three configuration parameters region, log group name and search string.
      *
-     * @param region       - the AWS region as a string representation, e.g. "eu-west-1" for
-     *                     Ireland
+     * @param region       - the AWS region as a string representation, e.g. "eu-west-1" for Ireland
      * @param logGroupName - the complete log group name
      */
     public AWSLogHandler(final String region, final String logGroupName, final LocalDateTime startTime, final LocalDateTime endTime) {
@@ -59,8 +61,6 @@ public final class AWSLogHandler implements LogHandler {
 
     /**
      * Builds a client for accessing the log data
-     *
-     * @return
      */
     private AWSLogs buildAmazonCloudLogsClient() {
         final AWSLogsClientBuilder logsBuilder = AWSLogsClientBuilder.standard();
@@ -87,26 +87,21 @@ public final class AWSLogHandler implements LogHandler {
     }
 
     /**
-     * This method computes function execution events out of the plain text
-     * messages from the logging service.
+     * This method computes function execution events out of the plain text messages from the logging service.
      *
      * @return a list of function execution events
-     * @throws SeMoDeException
      */
     public List<FunctionExecutionEvent> getLogEventList() throws SeMoDeException {
         return this.prepareLogEventList();
     }
 
     /**
-     * This method returns a list of log streams based on the logGroupName attribute
-     * of the object.
+     * This method returns a list of log streams based on the logGroupName attribute of the object.
      * <p/>
-     * There is a problem with the API of cloudwatch. The limit for retrieving
-     * log stream is 50 for a single DescribeLogStreamsResult. Therefore, the function has
-     * to specify
+     * There is a problem with the API of cloudwatch. The limit for retrieving log stream is 50 for a single
+     * DescribeLogStreamsResult. Therefore, the function has to specify
      *
      * @return List of {@link LogStream}
-     * @throws SeMoDeException
      */
     private List<LogStream> getLogStreams() throws SeMoDeException {
         try {
@@ -132,7 +127,6 @@ public final class AWSLogHandler implements LogHandler {
                 } else {
                     streams.addAll(logResponse.getLogStreams());
                 }
-
             } while (furtherLogRequest);//logResponse.getLogStreams().size() > 0);
 
             logger.info("Number of Log streams: " + streams.size());
@@ -147,9 +141,6 @@ public final class AWSLogHandler implements LogHandler {
 
     /**
      * Filters the log streams, based on the start and end time specified in this class.
-     *
-     * @param logStreams
-     * @return
      */
     private List<LogStream> filterLogStreams(final List<LogStream> logStreams) {
 
@@ -167,15 +158,13 @@ public final class AWSLogHandler implements LogHandler {
     }
 
     /**
-     * This class generates a list of output log events based on the logGroupName
-     * attribute of the object and the given logStreamName. The return value is a
-     * list of individual events, which consists of the ingestion time the message
-     * etc. Important to mention is, that the list contains several cohesive events
-     * generated by a function execution. </br>
+     * This class generates a list of output log events based on the logGroupName attribute of the object and the given
+     * logStreamName. The return value is a list of individual events, which consists of the ingestion time the message
+     * etc. Important to mention is, that the list contains several cohesive events generated by a function execution.
      * </br>
-     * An example illustrates this problem: 2 function executions generate log
-     * events. Assuming, that each execution generates 12 log statements, the
-     * returned list contains 24 elements, which are ordered but not grouped to the
+     * </br>
+     * An example illustrates this problem: 2 function executions generate log events. Assuming, that each execution
+     * generates 12 log statements, the returned list contains 24 elements, which are ordered but not grouped to the
      * function executions.
      *
      * @param logStreamName - Name of the logStream
@@ -200,5 +189,4 @@ public final class AWSLogHandler implements LogHandler {
 
         return performanceData;
     }
-
 }

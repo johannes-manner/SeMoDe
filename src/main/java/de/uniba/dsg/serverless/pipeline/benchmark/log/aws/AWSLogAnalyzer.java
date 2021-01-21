@@ -1,11 +1,5 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.log.aws;
 
-import com.amazonaws.services.logs.model.OutputLogEvent;
-import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.FunctionExecutionEvent;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
-import de.uniba.dsg.serverless.util.FileLogger;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -13,11 +7,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 
+import com.amazonaws.services.logs.model.OutputLogEvent;
+import de.uniba.dsg.serverless.ArgumentProcessor;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
+import de.uniba.dsg.serverless.util.FileLogger;
+
 /**
- * {@code LogAnaylzer} is an utility class for analyzing log data and a basket
- * for all public static final string values for the search and replace
- * functionality of the test file generation based on a template in the resource
- * part of the jar file.
+ * {@code LogAnaylzer} is an utility class for analyzing log data and a basket for all public static final string values
+ * for the search and replace functionality of the test file generation based on a template in the resource part of the
+ * jar file.
  *
  * @author Johannes Manner
  * @version 1.0
@@ -34,13 +32,12 @@ public final class AWSLogAnalyzer {
     public static final String ERROR_OBJECT_VALUE = "JsonError";
     public static final String OUTPUT_JSON = "OUTPUTJSON";
     /**
-     * The troubleshoot prefix is used in the logged data to identify the
-     * instrumentation messages
+     * The troubleshoot prefix is used in the logged data to identify the instrumentation messages
      */
     public static final String TROUBLESHOOT_PREFIX = "TroubleshootLambda::handleRequest";
     /**
-     * Pattern is used for splitting the instrumentation messages in their parts and
-     * getting the content of these messages.
+     * Pattern is used for splitting the instrumentation messages in their parts and getting the content of these
+     * messages.
      */
     public static final String TROUBLESHOOT_SPLIT_PATTERN = "::";
     private static final String EVENT_MESSAGE_START = "START";
@@ -51,26 +48,19 @@ public final class AWSLogAnalyzer {
      */
     private static final String AWS_GROUP_SPLIT_PATTERN = "/";
     /**
-     * Number of strings in an report message (AWS Cloud Watch), when splitting
-     * with a blank.
+     * Number of strings in an report message (AWS Cloud Watch), when splitting with a blank.
      */
     private static final int STRING_IN_END_MESSAGE = 15;
     /**
-     * Number of strings in a report message (AWS Cloud Watch), when splitting
-     * with a blank. It's the first message, where the init duration is
-     * also included.
+     * Number of strings in a report message (AWS Cloud Watch), when splitting with a blank. It's the first message,
+     * where the init duration is also included.
      */
     private static final int STRING_IN_END_MESSAGE_FIRST_LOG_MESSAGE = 18;
 
     /**
-     * Generates a list of cohesive elements out of the log messages in the
-     * OutputLogEvent list. Each FunctionExecutionEvent in the returned list
-     * consists of a list of OutputLogEvents which represents a single function
-     * execution and is therefore in itself consistent.
-     *
-     * @param logEvents
-     * @param logGroupName
-     * @return
+     * Generates a list of cohesive elements out of the log messages in the OutputLogEvent list. Each
+     * FunctionExecutionEvent in the returned list consists of a list of OutputLogEvents which represents a single
+     * function execution and is therefore in itself consistent.
      */
     public static List<FunctionExecutionEvent> generateEventList(final List<OutputLogEvent> logEvents, final String logGroupName, final String logStream) {
 
@@ -95,11 +85,7 @@ public final class AWSLogAnalyzer {
     }
 
     /**
-     * Extracts the function name from the log group name. The function name is the
-     * last element in the log group name.
-     *
-     * @param logGroupName
-     * @return
+     * Extracts the function name from the log group name. The function name is the last element in the log group name.
      */
     private static String extractFunctionName(final String logGroupName) {
         String functionName = "default";
@@ -111,10 +97,8 @@ public final class AWSLogAnalyzer {
     }
 
     /**
-     * This method extracts the request id to generate unique files without a naming
-     * collision.</br>
-     * An example for a start message is:</br>
-     * {@code "START RequestId: 8999e97a-f879-11e7-b329-35e05c633669 Version: $LATEST"}</br>
+     * This method extracts the request id to generate unique files without a naming collision.</br> An example for a
+     * start message is:</br> {@code "START RequestId: 8999e97a-f879-11e7-b329-35e05c633669 Version: $LATEST"}</br>
      *
      * @param message the start message of the log data
      * @return the altered request id
@@ -130,19 +114,14 @@ public final class AWSLogAnalyzer {
     }
 
     /**
-     * Transforms the JSON, because the ObjectMapper#read-methods interpret the
-     * string as string and " indicates start or end of a message. When transforming
-     * " into \" the json reader interprets the json right.
-     *
-     * @param json
-     * @return
+     * Transforms the JSON, because the ObjectMapper#read-methods interpret the string as string and " indicates start
+     * or end of a message. When transforming " into \" the json reader interprets the json right.
      */
     private static String transformIntoJsonString(final String json) {
         String jsonResult = json.replaceAll("\"", Matcher.quoteReplacement("\\\""));
         jsonResult = "\"" + jsonResult + "\"";
         return jsonResult;
     }
-
 
     public static PerformanceData extractInformation(final FunctionExecutionEvent event) {
 

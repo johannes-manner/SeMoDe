@@ -28,7 +28,7 @@ public class PipelineSetupController {
 
     public PipelineSetupController(final PipelineFileHandler setup) {
         this.setup = setup;
-        this.setupService = new SetupService();
+        this.setupService = null;
         this.scanner = new Scanner(System.in);
     }
 

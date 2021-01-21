@@ -2,6 +2,7 @@ package de.uniba.dsg.serverless.pipeline.benchmark.model;
 
 import java.time.LocalDateTime;
 
+// TODO refactor to entity - remove writable event
 public class PerformanceData implements WritableEvent {
 
     private final String functionName;
@@ -79,5 +80,4 @@ public class PerformanceData implements WritableEvent {
     public String getPlatformId() {
         return this.requestId;
     }
-
 }

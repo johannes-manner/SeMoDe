@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -18,9 +19,9 @@ import com.google.common.primitives.Doubles;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.FunctionTrigger;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.LocalRESTEvent;
 import de.uniba.dsg.serverless.pipeline.benchmark.util.LoadPatternGenerator;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
-import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 
 public class BenchmarkExecutor {
@@ -28,15 +29,11 @@ public class BenchmarkExecutor {
     private final Path pathToBenchmarkExecution;
     private final BenchmarkConfig benchmarkConfig;
 
-    // for logging benchmark execution
-    private final FileLogger logger;
-
     private Path loadPatternFile;
 
     public BenchmarkExecutor(final Path pathToBenchmarkExecution, final BenchmarkConfig benchmarkConfig) throws SeMoDeException {
         this.pathToBenchmarkExecution = pathToBenchmarkExecution;
         this.benchmarkConfig = benchmarkConfig;
-        this.logger = new FileLogger("benchmarkLogger", pathToBenchmarkExecution.resolve("execution.log").toString(), false);
     }
 
     public void generateLoadPattern() throws SeMoDeException {
@@ -59,17 +56,19 @@ public class BenchmarkExecutor {
         }
     }
 
+    // TODO document here
+
     /**
      * Currently only aws is supported - for next provider integration, rethink the architecture.
      */
-    public void executeBenchmark(final List<BenchmarkMethods> benchmarkMethodsFromConfig) throws SeMoDeException {
+    public List<LocalRESTEvent> executeBenchmark(final List<BenchmarkMethods> benchmarkMethodsFromConfig) throws SeMoDeException {
 
         final List<Double> timestamps = this.loadLoadPatternFromFile();
 
         // TODO think about a more sophisticated way to compute number of threads
         // TODO number of threads really needed?
         final ScheduledExecutorService executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
-        final List<Future<String>> responses = new ArrayList<>();
+        final List<Future<LocalRESTEvent>> responses = new ArrayList<>();
 
         long tmpTimestamp = 0;
         // for each provider
@@ -83,13 +82,25 @@ public class BenchmarkExecutor {
                         try {
                             // 1 second time before the processing starts to get the processing of the functions triggers done
                             tmpTimestamp = (long) (1000 + timestamp * 1000);
-                            final FunctionTrigger f = new FunctionTrigger(benchmarkMethods.getPlatform(), this.benchmarkConfig.postArgument, new URL(functionEndpoint), headerParameters, this.logger);
+                            final FunctionTrigger f = new FunctionTrigger(benchmarkMethods.getPlatform(), this.benchmarkConfig.postArgument, new URL(functionEndpoint), headerParameters);
                             responses.add(executor.schedule(f, tmpTimestamp, TimeUnit.MILLISECONDS));
                         } catch (final MalformedURLException e) {
                             throw new SeMoDeException("URL was malformed: " + functionEndpoint, e);
                         }
                     }
                 }
+            }
+        }
+
+        // TODO document here, why get is made here
+        List<LocalRESTEvent> events = new ArrayList<>();
+        for (Future<LocalRESTEvent> futureEvent : responses) {
+            try {
+                events.add(futureEvent.get());
+            } catch (InterruptedException e) {
+                // do not use interruption mechanism for termination
+            } catch (ExecutionException e) {
+                throw new SeMoDeException(e);
             }
         }
 
@@ -104,6 +115,8 @@ public class BenchmarkExecutor {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
+
+        return events;
     }
 
     private List<Double> loadLoadPatternFromFile() throws SeMoDeException {

@@ -16,15 +16,19 @@ import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.AWSBenchmark;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.LocalRESTEvent;
 import de.uniba.dsg.serverless.pipeline.model.PipelineFileHandler;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.RunningCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
+import de.uniba.dsg.serverless.spring.repo.LocalRESTEventRepository;
 import de.uniba.dsg.serverless.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +36,7 @@ import org.springframework.stereotype.Service;
  * Wrapper to change the attributes of the user config class. If the changes are made directly in the model classes,
  * there occur json parsing errors.
  */
+@Slf4j
 @Service
 public class SetupService {
 
@@ -41,6 +46,13 @@ public class SetupService {
 
     @Value("${semode.setups.path}")
     private String setups;
+
+    private final LocalRESTEventRepository repository;
+
+    @Autowired
+    public SetupService(LocalRESTEventRepository repository) {
+        this.repository = repository;
+    }
 
     public void createSetup(String setupName) throws SeMoDeException {
         this.setupConfig = new SetupConfig(setupName);
@@ -112,7 +124,9 @@ public class SetupService {
 
         final BenchmarkExecutor benchmarkExecutor = new BenchmarkExecutor(this.fileHandler.pathToBenchmarkExecution, this.setupConfig.getBenchmarkConfig());
         benchmarkExecutor.generateLoadPattern();
-        benchmarkExecutor.executeBenchmark(this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName()));
+        List<LocalRESTEvent> events = benchmarkExecutor.executeBenchmark(this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName()));
+        this.repository.saveAll(events);
+        log.info("Sucessfully stored " + events.size() + " events!");
 
         this.setupConfig.getBenchmarkConfig().logBenchmarkEndTime();
     }

@@ -3,6 +3,7 @@ package de.uniba.dsg.serverless.pipeline.benchmark.model;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+// TODO remove it . . .
 public interface WritableEvent {
 
     public static final String CSV_SEPARATOR = System.getProperty("CSV_SEPARATOR");
