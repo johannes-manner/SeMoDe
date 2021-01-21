@@ -3,9 +3,7 @@ package de.uniba.dsg.serverless.pipeline.benchmark.log.aws;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -21,7 +19,7 @@ import com.amazonaws.services.logs.model.OutputLogEvent;
 import com.amazonaws.services.logs.model.ResourceNotFoundException;
 import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.pipeline.benchmark.log.LogHandler;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.WritableEvent;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
 import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 
@@ -144,8 +142,8 @@ public final class AWSLogHandler implements LogHandler {
      */
     private List<LogStream> filterLogStreams(final List<LogStream> logStreams) {
 
-        final long startMillis = this.startTime.toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli();
-        final long endMillis = this.endTime.toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli();
+        final long startMillis = this.startTime.atZone(ZoneOffset.UTC.normalized()).toInstant().toEpochMilli();
+        final long endMillis = this.endTime.atZone(ZoneOffset.UTC.normalized()).toInstant().toEpochMilli();
 
         final Predicate<LogStream> startEndFilter = (LogStream stream) -> {
             if (stream.getLastIngestionTime() == null || stream.getFirstEventTimestamp() == null) {
@@ -179,12 +177,12 @@ public final class AWSLogHandler implements LogHandler {
     }
 
     @Override
-    public Map<String, WritableEvent> getPerformanceData() throws SeMoDeException {
-        final Map<String, WritableEvent> performanceData = new HashMap<>();
+    public List<PerformanceData> getPerformanceData() throws SeMoDeException {
+        final List<PerformanceData> performanceData = new ArrayList<>();
 
         final List<FunctionExecutionEvent> eventList = this.getLogEventList();
         for (final FunctionExecutionEvent e : eventList) {
-            performanceData.put(e.getRequestId(), AWSLogAnalyzer.extractInformation(e));
+            performanceData.add(AWSLogAnalyzer.extractInformation(e));
         }
 
         return performanceData;

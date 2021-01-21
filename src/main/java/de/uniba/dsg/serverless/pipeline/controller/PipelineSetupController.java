@@ -166,7 +166,7 @@ public class PipelineSetupController {
     public void fetchBenchmarkData() throws SeMoDeException {
         final Pair<LocalDateTime, LocalDateTime> startEndTime = this.setupService.getStartAndEndTime();
 //        for (final BenchmarkMethods benchmark : this.setupService.createBenchmarkMethodsFromConfig(this.setup.name)) {
-//            benchmark.writePerformanceDataToFile(this.setup.pathToBenchmarkExecution, startEndTime.getLeft(), startEndTime.getRight());
+//            benchmark.getPerformanceDataFromPlatform(this.setup.pathToBenchmarkExecution, startEndTime.getLeft(), startEndTime.getRight());
 //        }
     }
 

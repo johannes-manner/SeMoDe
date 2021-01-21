@@ -35,6 +35,7 @@ public class BenchmarkConfig {
     // TODO check the usage here...
     public String postArgument;
 
+    // TODO i don't know why Local Date Time is a problem - might be json parsing problem
     @Expose
     public String startTime;
     @Expose

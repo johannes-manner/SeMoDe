@@ -6,9 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.GsonBuilder;
@@ -17,6 +17,8 @@ import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.AWSBenchmark;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.LocalRESTEvent;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.ProviderEvent;
 import de.uniba.dsg.serverless.pipeline.model.PipelineFileHandler;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
@@ -24,9 +26,9 @@ import de.uniba.dsg.serverless.pipeline.model.config.RunningCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
 import de.uniba.dsg.serverless.spring.repo.LocalRESTEventRepository;
+import de.uniba.dsg.serverless.spring.repo.ProviderEventRepository;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,11 +49,13 @@ public class SetupService {
     @Value("${semode.setups.path}")
     private String setups;
 
-    private final LocalRESTEventRepository repository;
+    private final LocalRESTEventRepository localRESTEventRepository;
+    private final ProviderEventRepository providerEventRepository;
 
     @Autowired
-    public SetupService(LocalRESTEventRepository repository) {
-        this.repository = repository;
+    public SetupService(LocalRESTEventRepository localRESTEventRepository, ProviderEventRepository providerEventRepository) {
+        this.localRESTEventRepository = localRESTEventRepository;
+        this.providerEventRepository = providerEventRepository;
     }
 
     public void createSetup(String setupName) throws SeMoDeException {
@@ -125,15 +129,37 @@ public class SetupService {
         final BenchmarkExecutor benchmarkExecutor = new BenchmarkExecutor(this.fileHandler.pathToBenchmarkExecution, this.setupConfig.getBenchmarkConfig());
         benchmarkExecutor.generateLoadPattern();
         List<LocalRESTEvent> events = benchmarkExecutor.executeBenchmark(this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName()));
-        this.repository.saveAll(events);
+        this.localRESTEventRepository.saveAll(events);
         log.info("Sucessfully stored " + events.size() + " events!");
 
         this.setupConfig.getBenchmarkConfig().logBenchmarkEndTime();
+        this.updateSetup(this.setupConfig);
+    }
+
+    // TODO document
+    public void fetchPerformanceData() throws SeMoDeException {
+        for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
+            log.info("Fetch performance data for " + benchmark.getPlatform());
+            List<PerformanceData> data = benchmark.getPerformanceDataFromPlatform(LocalDateTime.parse(this.setupConfig.getBenchmarkConfig().startTime), LocalDateTime.parse(this.setupConfig.getBenchmarkConfig().endTime));
+            for (PerformanceData performanceData : data) {
+                Optional<ProviderEvent> event = this.providerEventRepository.findByPlatformId(performanceData.getPlatformId());
+                if (event.isPresent()) {
+                    ProviderEvent e = event.get();
+                    e.setPerformanceData(performanceData);
+                    this.providerEventRepository.save(e);
+                } else {
+                    throw new SeMoDeException("Matching element was not found. Platform ID is " + performanceData.getPlatformId() + " for function " + performanceData.getFunctionName());
+                }
+            }
+        }
     }
 
     // Old parts...
     @Deprecated
-    public void updateAWSConfig(final String region, final String runtime, final String awsArnRole, final String functionHandler, final String timeout, final String deployLinpack, final String targetUrl, final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled, final String pathToSource) throws SeMoDeException {
+    public void updateAWSConfig(final String region, final String runtime, final String awsArnRole,
+                                final String functionHandler, final String timeout, final String deployLinpack, final String targetUrl,
+                                final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions,
+                                final String enabled, final String pathToSource) throws SeMoDeException {
         try {
             this.setupConfig.getCalibrationConfig().getAwsCalibrationConfig().update(region, runtime, awsArnRole, functionHandler, timeout, deployLinpack, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled, pathToSource);
         } catch (final IOException e) {
@@ -142,7 +168,8 @@ public class SetupService {
     }
 
     @Deprecated
-    public void updateLocalConfig(final String localSteps, final String numberOfLocalCalibrations, final String enabled, final String dockerSourceFolder) {
+    public void updateLocalConfig(final String localSteps, final String numberOfLocalCalibrations,
+                                  final String enabled, final String dockerSourceFolder) {
         this.setupConfig.getCalibrationConfig().getLocalConfig().update(localSteps, numberOfLocalCalibrations, enabled, dockerSourceFolder);
     }
 
@@ -200,7 +227,8 @@ public class SetupService {
     }
 
     @Deprecated
-    public void updateAWSFunctionBenchmarkConfig(final String region, final String runtime, final String awsArnRole, final String functionHandler,
+    public void updateAWSFunctionBenchmarkConfig(final String region, final String runtime,
+                                                 final String awsArnRole, final String functionHandler,
                                                  final String timeout, final String memorySizes, final String pathToSource, final String targetUrl,
                                                  final String apiKey) throws SeMoDeException {
         try {
@@ -211,7 +239,8 @@ public class SetupService {
     }
 
     @Deprecated
-    public void updateGlobalBenchmarkParameters(final String numberOfThreads, final String benchmarkingMode, final String benchmarkingParameters, final String postArgument) {
+    public void updateGlobalBenchmarkParameters(final String numberOfThreads, final String benchmarkingMode,
+                                                final String benchmarkingParameters, final String postArgument) {
         this.setupConfig.getBenchmarkConfig().update(numberOfThreads, benchmarkingMode, benchmarkingParameters, postArgument);
     }
 
@@ -232,17 +261,18 @@ public class SetupService {
 
     @Deprecated
     public Pair<LocalDateTime, LocalDateTime> getStartAndEndTime() throws SeMoDeException {
-        try {
-            return new ImmutablePair<>(LocalDateTime.parse(this.setupConfig.getBenchmarkConfig().startTime),
-                    LocalDateTime.parse(this.setupConfig.getBenchmarkConfig().endTime));
-        } catch (final DateTimeParseException e) {
-            throw new SeMoDeException("Start or end time not parsable: start: " + this.setupConfig.getBenchmarkConfig().startTime
-                    + " end: " + this.setupConfig.getBenchmarkConfig().endTime);
-        }
+//        try {
+//            return new ImmutablePair<>(this.setupConfig.getBenchmarkConfig().startTime,
+//                    this.setupConfig.getBenchmarkConfig().endTime);
+//        } catch (final DateTimeParseException e) {
+        throw new SeMoDeException("Start or end time not parsable: start: " + this.setupConfig.getBenchmarkConfig().startTime
+                + " end: " + this.setupConfig.getBenchmarkConfig().endTime);
+//        }
     }
 
     @Deprecated
-    public void updateMappingConfig(final String localCalibrationFile, final String providerCalibrationFile, final String memoryJSON) throws SeMoDeException {
+    public void updateMappingConfig(final String localCalibrationFile, final String providerCalibrationFile,
+                                    final String memoryJSON) throws SeMoDeException {
         this.setupConfig.getCalibrationConfig().getMappingCalibrationConfig().update(localCalibrationFile, providerCalibrationFile, memoryJSON);
     }
 
@@ -252,7 +282,8 @@ public class SetupService {
     }
 
     @Deprecated
-    public void updateRunningConfig(final String dockerSourceFolder, final String environmentVariablesFile, final String numberOfProfiles) {
+    public void updateRunningConfig(final String dockerSourceFolder, final String environmentVariablesFile,
+                                    final String numberOfProfiles) {
         this.setupConfig.getCalibrationConfig().getRunningCalibrationConfig().update(dockerSourceFolder, environmentVariablesFile, numberOfProfiles);
     }
 

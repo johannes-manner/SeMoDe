@@ -1,9 +1,11 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.model;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 
 import lombok.Data;
 
@@ -29,4 +31,7 @@ public class ProviderEvent {
     private String vmIdentification;
     private String cpuModel;
     private String cpuModelName;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    private PerformanceData performanceData;
 }

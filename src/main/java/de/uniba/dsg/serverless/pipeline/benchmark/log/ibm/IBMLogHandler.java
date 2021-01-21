@@ -1,36 +1,33 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.log.ibm;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import de.uniba.dsg.serverless.pipeline.benchmark.log.LogHandler;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.WritableEvent;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import de.uniba.dsg.serverless.pipeline.benchmark.log.LogHandler;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 /**
- * There is no Java SDK for OpenWhisk and there is also no other support. But
- * there is a REST Api which support fundamental management utilities.
+ * There is no Java SDK for OpenWhisk and there is also no other support. But there is a REST Api which support
+ * fundamental management utilities.
  * <p/>
- * Configuration: install cli, add the plugin cloud-functions, get the
- * authorization value by calling a function's REST interface in the verbose
- * mode.
+ * Configuration: install cli, add the plugin cloud-functions, get the authorization value by calling a function's REST
+ * interface in the verbose mode.
  *
- * @see <a href=
- * "http://petstore.swagger.io/?url=https://raw.githubusercontent.com/openwhisk/openwhisk/master/core/controller/src/main/resources/apiv1swagger.json#/">
+ * @see <a href= "http://petstore.swagger.io/?url=https://raw.githubusercontent.com/openwhisk/openwhisk/master/core/controller/src/main/resources/apiv1swagger.json#/">
  * REST Api of OpenWhisk</a>
  */
+@Deprecated(since = "January 2021")
 public class IBMLogHandler implements LogHandler {
 
     private final String namespace;
@@ -49,15 +46,16 @@ public class IBMLogHandler implements LogHandler {
     }
 
     @Override
-    public Map<String, WritableEvent> getPerformanceData() throws SeMoDeException {
-        final List<JsonNode> activationsArray = this.getActivations();
-        final List<PerformanceData> performanceDataList = this.extractPerformanceData(activationsArray);
-
-        final Map<String, WritableEvent> eventMap = new HashMap<>();
-        for (final PerformanceData data : performanceDataList) {
-            eventMap.put(data.getRequestId(), data);
-        }
-        return eventMap;
+    public List<PerformanceData> getPerformanceData() throws SeMoDeException {
+//        final List<JsonNode> activationsArray = this.getActivations();
+//        final List<PerformanceData> performanceDataList = this.extractPerformanceData(activationsArray);
+//
+//        final Map<String, WritableEvent> eventMap = new HashMap<>();
+//        for (final PerformanceData data : performanceDataList) {
+//            eventMap.put(data.getPlatformId(), data);
+//        }
+//        return eventMap;
+        return List.of();
     }
 
     private List<PerformanceData> extractPerformanceData(final List<JsonNode> activationsArray) {
@@ -91,15 +89,12 @@ public class IBMLogHandler implements LogHandler {
     }
 
     /**
-     * OpenWhisk offers no sdk for java developers and also other sdk
-     * implementations are in its infancy. The method here returns all activations
-     * and uses a default limit of 200 activations. Are there more than 200
-     * activations in the specified time span, additional REST calls are made to get
-     * all these activations.
+     * OpenWhisk offers no sdk for java developers and also other sdk implementations are in its infancy. The method
+     * here returns all activations and uses a default limit of 200 activations. Are there more than 200 activations in
+     * the specified time span, additional REST calls are made to get all these activations.
      * <p/>
      *
-     * @see <a href=
-     * "http://petstore.swagger.io/?url=https://raw.githubusercontent.com/openwhisk/openwhisk/master/core/controller/src/main/resources/apiv1swagger.json#/Activations">Activations
+     * @see <a href= "http://petstore.swagger.io/?url=https://raw.githubusercontent.com/openwhisk/openwhisk/master/core/controller/src/main/resources/apiv1swagger.json#/Activations">Activations
      * in API</a>
      */
     private List<JsonNode> getActivations() throws SeMoDeException {
@@ -113,14 +108,14 @@ public class IBMLogHandler implements LogHandler {
         do {
             final Client client = ClientBuilder.newClient();
             final Response response = client.target("https://openwhisk.eu-gb.bluemix.net")
-                    .path("/api/v1/namespaces/" + this.namespace + "/activations")
-                    .queryParam("limit", limit)
-                    .queryParam("name", this.functionName)
-                    .queryParam("since", this.startTime.toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli())
-                    .queryParam("upto", endMillis)
-                    .queryParam("docs", "true")
-                    .request(MediaType.APPLICATION_JSON_TYPE)
-                    .header("Authorization", this.authorizationToken).get();
+                                            .path("/api/v1/namespaces/" + this.namespace + "/activations")
+                                            .queryParam("limit", limit)
+                                            .queryParam("name", this.functionName)
+                                            .queryParam("since", this.startTime.toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli())
+                                            .queryParam("upto", endMillis)
+                                            .queryParam("docs", "true")
+                                            .request(MediaType.APPLICATION_JSON_TYPE)
+                                            .header("Authorization", this.authorizationToken).get();
 
             if (response.getStatus() == 200) {
                 final JsonNode arrayNode = response.readEntity(JsonNode.class);

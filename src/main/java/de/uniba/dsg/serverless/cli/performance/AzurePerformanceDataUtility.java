@@ -1,26 +1,25 @@
 package de.uniba.dsg.serverless.cli.performance;
 
-import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.cli.CustomUtility;
-import de.uniba.dsg.serverless.pipeline.benchmark.log.azure.AzureLogHandler;
-import de.uniba.dsg.serverless.pipeline.benchmark.util.PerformanceDataWriter;
-import de.uniba.dsg.serverless.util.FileLogger;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import de.uniba.dsg.serverless.ArgumentProcessor;
+import de.uniba.dsg.serverless.cli.CustomUtility;
+import de.uniba.dsg.serverless.pipeline.benchmark.log.azure.AzureLogHandler;
+import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 @Deprecated
 public final class AzurePerformanceDataUtility extends CustomUtility {
 
     private static final FileLogger logger = ArgumentProcessor.logger;
 
-    private final PerformanceDataWriter fetcher;
+//    private final PerformanceDataWriter fetcher;
 
     public AzurePerformanceDataUtility(final String name) {
         super(name);
-        this.fetcher = new PerformanceDataWriter();
+//        this.fetcher = new PerformanceDataWriter();
     }
 
     @Override
@@ -55,7 +54,7 @@ public final class AzurePerformanceDataUtility extends CustomUtility {
                 restFile = Optional.empty();
             }
 
-//            this.fetcher.writePerformanceDataToFile("azure", azureLogHandler, serviceName, restFile);
+//            this.fetcher.getPerformanceDataFromPlatform("azure", azureLogHandler, serviceName, restFile);
         } catch (final SeMoDeException e) {
             logger.warning(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!" : e.getCause().getMessage()));
         }

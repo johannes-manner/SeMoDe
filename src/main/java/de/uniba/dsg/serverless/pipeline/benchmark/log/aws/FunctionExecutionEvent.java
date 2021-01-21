@@ -38,7 +38,8 @@ public final class FunctionExecutionEvent {
     }
 
     /**
-     * Getter for the request Id (function execution request from AmazonCloudWatch)
+     * Getter for the request Id (function execution request from AmazonCloudWatch). This request Id is renamed in our
+     * application to platform id!
      *
      * @return the request of the function execution.
      */

@@ -1,29 +1,24 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.methods;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.pipeline.benchmark.log.LogHandler;
 import de.uniba.dsg.serverless.pipeline.benchmark.log.aws.AWSLogHandler;
-import de.uniba.dsg.serverless.pipeline.benchmark.util.BenchmarkingRESTAnalyzer;
-import de.uniba.dsg.serverless.pipeline.benchmark.util.PerformanceDataWriter;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
 import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.sdk.AWSClient;
-import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+@Slf4j
 public class AWSBenchmark implements BenchmarkMethods {
-
-    private static final FileLogger logger = ArgumentProcessor.logger;
 
     private final String setupName;
     private final AWSBenchmarkConfig awsBenchmarkConfig;
@@ -80,16 +75,17 @@ public class AWSBenchmark implements BenchmarkMethods {
     }
 
     @Override
-    public void writePerformanceDataToFile(final Path path, final LocalDateTime startTime, final LocalDateTime endTime) throws SeMoDeException {
-        final PerformanceDataWriter writer = new PerformanceDataWriter();
+    public List<PerformanceData> getPerformanceDataFromPlatform(final LocalDateTime startTime, final LocalDateTime endTime) throws SeMoDeException {
 
+        List<PerformanceData> performanceDataList = new ArrayList<>();
         for (final Pair<String, Integer> functionName : this.generateFunctionNames()) {
             final LogHandler logHandler = new AWSLogHandler(this.awsBenchmarkConfig.functionConfig.region, "/aws/lambda/" + functionName.getLeft(), startTime, endTime);
-            // TODO change REST FILE
-            logger.info("Fetch data for " + functionName.getLeft() + " from " + startTime + " to " + endTime);
-            final BenchmarkingRESTAnalyzer restHandler = new BenchmarkingRESTAnalyzer(SupportedPlatform.AWS.getText(), Paths.get(path.toString(), "execution.log"));
-            writer.writePerformanceDataToFile(path.resolve(SupportedPlatform.AWS.getText() + "_" + functionName.getLeft() + ".csv"), logHandler, restHandler);
+
+            log.info("Fetch data for " + functionName.getLeft() + " from " + startTime + " to " + endTime);
+            performanceDataList.addAll(logHandler.getPerformanceData());
         }
+
+        return performanceDataList;
     }
 
     @Override

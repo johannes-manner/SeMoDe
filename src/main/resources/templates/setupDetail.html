@@ -103,6 +103,9 @@
 
 
 
+
+
+
                 </script>
             </tr>
             <tr>
@@ -186,6 +189,7 @@
 
     <button id="undeployFunction">Undeploy</button>
     <button id="executeBenchmark">Execute Benchmark</button>
+    <button id="fetchData">Fetch Data</button>
 
     <script type="text/javascript">
 
@@ -229,6 +233,19 @@
                               }});
                           }
                     });
+
+                    var fetchData = document.getElementById('fetchData')
+                    fetchData.addEventListener('click', function() {
+                          var deployDecision = confirm("Do you really want to fetch benchmark?")
+                          if(deployDecision == true) {
+                              $.ajax({
+                                url: "/fetch",
+                                success: function(result) {
+                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
+                              }});
+                          }
+                    });
+
 
 
     </script>

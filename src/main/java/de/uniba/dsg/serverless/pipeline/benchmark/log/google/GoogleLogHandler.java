@@ -1,5 +1,16 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.log.google;
 
+import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.gax.paging.Page;
@@ -11,20 +22,13 @@ import com.google.cloud.logging.Payload;
 import com.google.cloud.logging.Payload.StringPayload;
 import de.uniba.dsg.serverless.pipeline.benchmark.log.LogHandler;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.WritableEvent;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 
-import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-
 /**
- * Provide your Credentials to use the GoogleLogHandler via the Google Cloud SDK
- * command <i>gcloud auth application-default login</i>.
+ * Provide your Credentials to use the GoogleLogHandler via the Google Cloud SDK command <i>gcloud auth
+ * application-default login</i>.
  */
+@Deprecated(since = "January 2021")
 public class GoogleLogHandler implements LogHandler {
 
     private static final String GOOGLE_FUNCTION_EXECUTION_SUMMARY_LOG_REGEX = " ";
@@ -59,9 +63,8 @@ public class GoogleLogHandler implements LogHandler {
     }
 
     /**
-     * Executes an API call throw the Google Functions SDK to get the log entries.
-     * A custom filter is applied with the function name and the start and end time, where
-     * logs should be fetched.
+     * Executes an API call throw the Google Functions SDK to get the log entries. A custom filter is applied with the
+     * function name and the start and end time, where logs should be fetched.
      * <p>
      * Consider the UTC time.
      */
@@ -90,39 +93,39 @@ public class GoogleLogHandler implements LogHandler {
     }
 
     /**
-     * Different as on AWS and Azure. The key in the returned map is typically the
-     * platform execution id. At google's platform, this key is not accessible and
-     * therefore a self-assigned key within the cloud function in form of a uuid is
-     * used to achieve the mapping from platform executions and local REST calls.
+     * Different as on AWS and Azure. The key in the returned map is typically the platform execution id. At google's
+     * platform, this key is not accessible and therefore a self-assigned key within the cloud function in form of a
+     * uuid is used to achieve the mapping from platform executions and local REST calls.
      */
     @Override
-    public Map<String, WritableEvent> getPerformanceData() throws SeMoDeException {
+    public List<PerformanceData> getPerformanceData() throws SeMoDeException {
 
-        final List<LogEntry> logEntries = this.executeListLogEntries();
-
-        final Map<String, List<LogEntry>> eventMap = this.generateEventMapByExecutionId(logEntries);
-
-        return this.generatePerformanceDataMap(eventMap);
+//        final List<LogEntry> logEntries = this.executeListLogEntries();
+//
+//        final Map<String, List<LogEntry>> eventMap = this.generateEventMapByExecutionId(logEntries);
+//
+//        return this.generatePerformanceDataMap(eventMap);
+        return List.of();
     }
 
-    private Map<String, WritableEvent> generatePerformanceDataMap(final Map<String, List<LogEntry>> eventMap) throws SeMoDeException {
-
-        final Map<String, WritableEvent> performanceMap = new HashMap<>();
-
-        for (final String executionId : eventMap.keySet()) {
-            final List<LogEntry> cohesiveEvent = eventMap.get(executionId);
-            final Optional<PerformanceData> data = this.extractPerformanceData(cohesiveEvent);
-            if (data.isPresent()) {
-                performanceMap.put(data.get().getRequestId(), data.get());
-            }
-        }
-
-        return performanceMap;
-    }
+//    private Map<String, WritableEvent> generatePerformanceDataMap(final Map<String, List<LogEntry>> eventMap) throws SeMoDeException {
+//
+//        final Map<String, WritableEvent> performanceMap = new HashMap<>();
+//
+//        for (final String executionId : eventMap.keySet()) {
+//            final List<LogEntry> cohesiveEvent = eventMap.get(executionId);
+//            final Optional<PerformanceData> data = this.extractPerformanceData(cohesiveEvent);
+//            if (data.isPresent()) {
+//                performanceMap.put(data.get().getPlatformId(), data.get());
+//            }
+//        }
+//
+//        return performanceMap;
+//    }
 
     /**
-     * Extracts the relevant information from a list of log entries, which represent a cohesive event.
-     * A PerformanceData object is created from the extracted information and returned.
+     * Extracts the relevant information from a list of log entries, which represent a cohesive event. A PerformanceData
+     * object is created from the extracted information and returned.
      */
     private Optional<PerformanceData> extractPerformanceData(final List<LogEntry> cohesiveEvent) throws SeMoDeException {
 
@@ -156,7 +159,6 @@ public class GoogleLogHandler implements LogHandler {
                 // these payloads are not relevant for the handling functionality.
                 return Optional.empty();
             }
-
         }
 
         final PerformanceData data = new PerformanceData(this.functionName,
@@ -174,8 +176,7 @@ public class GoogleLogHandler implements LogHandler {
     }
 
     /**
-     * Creates a map to group the log entries returned by the Stackdriver API.
-     * The key is the platform's execution_id.
+     * Creates a map to group the log entries returned by the Stackdriver API. The key is the platform's execution_id.
      */
     private Map<String, List<LogEntry>> generateEventMapByExecutionId(final List<LogEntry> logEntries) {
         final Map<String, List<LogEntry>> eventMap = new HashMap<>();

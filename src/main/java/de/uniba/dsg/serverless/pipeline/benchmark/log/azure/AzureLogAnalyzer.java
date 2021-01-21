@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Deprecated(since = "January 2021")
 public class AzureLogAnalyzer {
 
     private static final String HOST_STARTED_DURATION_REGEX = "Host started \\(([0-9]+)ms\\)";
@@ -36,5 +37,4 @@ public class AzureLogAnalyzer {
             throw new IllegalArgumentException("Log Message Corrupted. No host startup duration found.");
         }
     }
-
 }
