@@ -1,20 +1,18 @@
 package de.uniba.dsg.serverless.calibration;
 
-import de.uniba.dsg.serverless.util.SeMoDeException;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import de.uniba.dsg.serverless.util.SeMoDeException;
+
 /**
- * Class to only parse the Linpack results locally and on providers' platfrom.
- * See {@link #parseLinpack()}.
+ * Class to only parse the Linpack results locally and on providers' platfrom. See {@link #parseLinpack()}.
  *
  * @author mendress
  */
 public class LinpackParser {
-    public static final String BENCHMARK_NAME = "benchmark.json";
 
     private final Path linpackCalibrationPath;
 
@@ -41,5 +39,4 @@ public class LinpackParser {
             throw new SeMoDeException("Could not read file. ", e);
         }
     }
-
 }

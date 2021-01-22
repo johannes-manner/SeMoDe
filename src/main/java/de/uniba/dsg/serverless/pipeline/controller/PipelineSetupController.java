@@ -11,8 +11,8 @@ import de.uniba.dsg.serverless.calibration.mapping.MappingMaster;
 import de.uniba.dsg.serverless.calibration.methods.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
 import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
+import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.PipelineFileHandler;
-import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
 import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.lang3.tuple.Pair;
@@ -66,14 +66,14 @@ public class PipelineSetupController {
 
     public void configureBenchmarkSetup() throws SeMoDeException {
 //        String provider = "";
-//        final List<String> validPlatforms = List.of(SupportedPlatform.values()).stream().map(SupportedPlatform::getText).collect(Collectors.toList());
+//        final List<String> validPlatforms = List.of(CalibrationPlatform.values()).stream().map(CalibrationPlatform::getText).collect(Collectors.toList());
 //        while (!validPlatforms.contains(provider)) {
 //            this.setup.logger.info("Insert a valid provider: " + validPlatforms);
 //            provider = this.scanAndLog();
 //        }
 //
 //        // the provider is already natively supported via its SDK supported.
-//        if (SupportedPlatform.AWS.getText().equals(provider)) {
+//        if (CalibrationPlatform.AWS.getText().equals(provider)) {
 //
 //            this.setup.logger.info("Insert aws function info:");
 //            this.setup.logger.info("Insert current region or skip setting: ");
@@ -172,13 +172,13 @@ public class PipelineSetupController {
 
     public void configureCalibration() throws SeMoDeException {
         String platform = "";
-        final List<String> validPlatforms = List.of(SupportedPlatform.values()).stream().map(SupportedPlatform::getText).collect(Collectors.toList());
+        final List<String> validPlatforms = List.of(CalibrationPlatform.values()).stream().map(CalibrationPlatform::getText).collect(Collectors.toList());
         while (!validPlatforms.contains(platform)) {
             this.setup.logger.info("Insert a possible calibration platform. Options: " + validPlatforms);
             platform = this.scanAndLog();
         }
 
-        if (platform.equals(SupportedPlatform.LOCAL.getText())) {
+        if (platform.equals(CalibrationPlatform.LOCAL.getText())) {
             this.setup.logger.info("Insert localSteps property or skip setting: ");
             final String localSteps = this.scanAndLog();
             this.setup.logger.info("Insert numberOfLocalCalibrations property or skip setting: ");
@@ -189,7 +189,7 @@ public class PipelineSetupController {
             final String dockerSourceFolder = this.scanAndLog();
 
             this.setupService.updateLocalConfig(localSteps, numberOfLocalCalibrations, enabled, dockerSourceFolder);
-        } else if (platform.equals(SupportedPlatform.AWS.getText())) {
+        } else if (platform.equals(CalibrationPlatform.AWS.getText())) {
             this.setup.logger.info("Insert calibration info:");
             this.setup.logger.info("Insert true or false, if you want to deploy linpack or skip setting: ");
             final String deployLinpack = this.scanAndLog();

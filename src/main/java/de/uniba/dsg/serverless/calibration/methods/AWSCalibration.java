@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.calibration.Calibration;
 import de.uniba.dsg.serverless.calibration.LinpackParser;
-import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
+import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSFunctionConfig;
 import de.uniba.dsg.serverless.pipeline.sdk.AWSClient;
@@ -35,7 +35,7 @@ public class AWSCalibration implements CalibrationMethods {
 
     // used for CLI feature
     public AWSCalibration(final String name, final AWSCalibrationConfig config) throws SeMoDeException {
-        this.calibration = new Calibration(name + "_calibration", SupportedPlatform.AWS);
+        this.calibration = new Calibration(name + "_calibration", CalibrationPlatform.AWS);
         this.config = config;
         this.functionConfig = config.functionConfig;
         this.client = new AWSClient(this.functionConfig.region);
@@ -44,7 +44,7 @@ public class AWSCalibration implements CalibrationMethods {
 
     // used within pipeline
     public AWSCalibration(final String name, final Path calibrationFolder, final AWSCalibrationConfig config) throws SeMoDeException {
-        this.calibration = new Calibration(name + "_calibration", SupportedPlatform.AWS, calibrationFolder);
+        this.calibration = new Calibration(name + "_calibration", CalibrationPlatform.AWS, calibrationFolder);
         this.config = config;
         this.functionConfig = config.functionConfig;
         this.client = new AWSClient(this.functionConfig.region);

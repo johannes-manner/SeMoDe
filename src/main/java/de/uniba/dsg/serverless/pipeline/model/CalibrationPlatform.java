@@ -2,24 +2,21 @@ package de.uniba.dsg.serverless.pipeline.model;
 
 import de.uniba.dsg.serverless.util.SeMoDeException;
 
-public enum SupportedPlatform {
+public enum CalibrationPlatform {
 
     LOCAL("local"), AWS("aws");
 
     private final String text;
 
-    SupportedPlatform(final String text) {
+    CalibrationPlatform(final String text) {
         this.text = text;
     }
 
     /**
-     * Returns the {@link SupportedPlatform} associated to the given tag.
-     *
-     * @param tag
-     * @return
+     * Returns the {@link CalibrationPlatform} associated to the given tag.
      */
-    public static SupportedPlatform fromString(final String tag) throws SeMoDeException {
-        for (final SupportedPlatform mode : SupportedPlatform.values()) {
+    public static CalibrationPlatform fromString(final String tag) throws SeMoDeException {
+        for (final CalibrationPlatform mode : CalibrationPlatform.values()) {
             if (mode.text.equalsIgnoreCase(tag)) {
                 return mode;
             }

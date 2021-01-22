@@ -12,13 +12,16 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.GsonBuilder;
+import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
+import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.AWSBenchmark;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.LocalRESTEvent;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.ProviderEvent;
+import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.PipelineFileHandler;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
@@ -85,6 +88,9 @@ public class SetupService {
     }
 
     public void updateSetup(SetupConfig setupConfig) throws SeMoDeException {
+        if (setupConfig != null && setupConfig.isDeployed() && setupConfig.getBenchmarkConfig().benchmarkMode == null) {
+            setupConfig.getBenchmarkConfig().setBenchmarkMode(this.setupConfig.getBenchmarkConfig().getBenchmarkMode());
+        }
         this.setupConfig = setupConfig;
         this.fileHandler.saveUserConfigToFile(setupConfig);
     }
@@ -130,15 +136,29 @@ public class SetupService {
         benchmarkExecutor.generateLoadPattern();
         List<LocalRESTEvent> events = benchmarkExecutor.executeBenchmark(this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName()));
         this.localRESTEventRepository.saveAll(events);
-        log.info("Sucessfully stored " + events.size() + " events!");
+        log.info("Sucessfully stored " + events.size() + " benchmark execution events!");
 
         this.setupConfig.getBenchmarkConfig().logBenchmarkEndTime();
         this.updateSetup(this.setupConfig);
     }
 
+    // TODO calibration features
+
+    public void startCalibration(String platform) throws SeMoDeException {
+        CalibrationMethods calibration = null;
+        if (CalibrationPlatform.LOCAL.getText().equals(platform)) {
+            calibration = new LocalCalibration(this.setupConfig.getSetupName(), this.fileHandler.pathToCalibration, this.setupConfig.getCalibrationConfig().getLocalConfig());
+        }
+
+        if (calibration != null) {
+            calibration.startCalibration();
+        }
+    }
+
     // TODO document
     public void fetchPerformanceData() throws SeMoDeException {
         for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
+            int numberOfPerformanceDataMappings = 0;
             log.info("Fetch performance data for " + benchmark.getPlatform());
             List<PerformanceData> data = benchmark.getPerformanceDataFromPlatform(LocalDateTime.parse(this.setupConfig.getBenchmarkConfig().startTime), LocalDateTime.parse(this.setupConfig.getBenchmarkConfig().endTime));
             for (PerformanceData performanceData : data) {
@@ -148,9 +168,11 @@ public class SetupService {
                     if (e.getPerformanceData() == null) {
                         e.setPerformanceData(performanceData);
                         this.providerEventRepository.save(e);
+                        numberOfPerformanceDataMappings++;
                     }
                 }
             }
+            log.info("Successfully stored " + numberOfPerformanceDataMappings + " performance data to local benchmarking events");
         }
     }
 

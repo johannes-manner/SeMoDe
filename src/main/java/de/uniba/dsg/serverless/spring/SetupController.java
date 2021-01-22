@@ -2,6 +2,7 @@ package de.uniba.dsg.serverless.spring;
 
 import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.controller.SetupService;
+import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
@@ -79,6 +80,7 @@ public class SetupController {
 
         model.addAttribute("setupConfig", this.setupService.getSetup(setupName));
         model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);
+        model.addAttribute("calibrationPlatforms", CalibrationPlatform.values());
 
         return "setupDetail";
     }

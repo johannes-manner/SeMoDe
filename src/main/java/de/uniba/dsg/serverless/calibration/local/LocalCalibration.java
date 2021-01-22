@@ -1,13 +1,5 @@
 package de.uniba.dsg.serverless.calibration.local;
 
-import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.calibration.Calibration;
-import de.uniba.dsg.serverless.calibration.LinpackParser;
-import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
-import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
-import de.uniba.dsg.serverless.util.FileLogger;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -19,6 +11,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import de.uniba.dsg.serverless.ArgumentProcessor;
+import de.uniba.dsg.serverless.calibration.Calibration;
+import de.uniba.dsg.serverless.calibration.LinpackParser;
+import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
+import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
+import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 public class LocalCalibration implements CalibrationMethods {
 
@@ -32,16 +32,14 @@ public class LocalCalibration implements CalibrationMethods {
 
     // used for CLI feature
     public LocalCalibration(final String name, final LocalCalibrationConfig config) throws SeMoDeException {
-        this.calibration = new Calibration(name, SupportedPlatform.LOCAL);
+        this.calibration = new Calibration(name, CalibrationPlatform.LOCAL);
         this.temporaryLog = this.calibration.calibrationLogs.resolve("output").resolve("out.txt");
-        // TODO change CLI feature here - for now - default value
-        // this.steps = 0.1;
         this.config = config;
     }
 
     // used within pipeline
     public LocalCalibration(final String name, final Path calibrationFolder, final LocalCalibrationConfig config) throws SeMoDeException {
-        this.calibration = new Calibration(name, SupportedPlatform.LOCAL, calibrationFolder);
+        this.calibration = new Calibration(name, CalibrationPlatform.LOCAL, calibrationFolder);
         this.temporaryLog = this.calibration.calibrationLogs.resolve("output").resolve("out.txt");
         this.config = config;
     }
@@ -116,7 +114,6 @@ public class LocalCalibration implements CalibrationMethods {
      * @param linpackContainer container
      * @param cpuLimit         todo change
      * @return average performance of linpack in GFLOPS
-     * @throws SeMoDeException
      */
     private double executeBenchmark(final DockerContainer linpackContainer, final double cpuLimit) throws SeMoDeException {
         linpackContainer.startContainer(new ResourceLimit(cpuLimit, false, 0));

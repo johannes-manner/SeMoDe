@@ -64,49 +64,6 @@
                 <td><label id="benchmarkingParams">Benchmarking Parameters</label></td>
                 <td><input th:readonly="${setupConfig.deployed}" name="benchmarkParameters"
                            th:field="*{benchmarkConfig.benchmarkParameters}"/></td>
-                <script type="text/javascript">
-
-                    var selectElem = document.getElementById('benchmarkingMode')
-                    var modeInfo = document.getElementById('benchmarkInfoLabel')
-                    var benchmarkingParams = document.getElementById('benchmarkingParams');
-
-                    // When a new <option> is selected
-                    selectElem.addEventListener('change', function() {
-                          var tag = selectElem.value;
-                          if(selectElem.selectedIndex > 0) {
-                              $.ajax({
-                                url: "../benchmark/mode/" + tag,
-                                success: function(result) {
-                                    modeInfo.innerHTML = result.information;
-                                    var parameters = "";
-                                    for(let i = 0 ; i < result.parameters.length; i++){
-                                        parameters = parameters + '<b>Parameter ' + i + ':</b> ' + result.parameters[i] + '<br/>';
-                                        console.log(parameters);
-                                    }
-                                    benchmarkingParams.innerHTML = parameters;
-                              }});
-                          } else {
-                              modeInfo.innerHTML = ""
-                              benchmarkingParams.innerHTML = ""
-                          }
-                    });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                </script>
             </tr>
             <tr>
                 <td>Post Body Argument (JSON)</td>
@@ -182,16 +139,71 @@
                            th:field="*{benchmarkConfig.awsBenchmarkConfig.deploymentInternals.usagePlanId}"/></td>
             </tr>
         </table>
-        <button class="btn btn-dark py-2 px-2">Update configuration</button>
+
+        <h3>Calibration Configuration</h3>
+        <h5>Local Configuration</h5>
+        <table class="table table-sm">
+            <div id="calibrationLocalSettings">
+                <tr>
+                    <td>Local Steps in which CPU share is increased (e.g. 0.1)</td>
+                    <td><input th:field="*{calibrationConfig.localConfig.localSteps}"/></td>
+                </tr>
+                <tr>
+                    <td>Number of local calibrations</td>
+                    <td><input th:field="*{calibrationConfig.localConfig.numberOfLocalCalibrations}"/></td>
+                </tr>
+                <tr>
+                    <td>Enable local calibration</td>
+                    <td><input th:field="*{calibrationConfig.localConfig.localEnabled}" type="checkbox"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Enable local calibration</td>
+                    <td><input th:field="*{calibrationConfig.localConfig.dockerSourceFolder}"/></td>
+                </tr>
+            </div>
+        </table>
+        <h5>AWS Configuration</h5>
+        <div class="py-1 px-1">
+            <button class="btn btn-dark py-1 px-1">Update configuration</button>
+        </div>
     </form>
-    <button id="deployFunction">Deploy</button>
-    <label id="deployProgress"></label>
+</div>
 
-    <button id="undeployFunction">Undeploy</button>
-    <button id="executeBenchmark">Execute Benchmark</button>
-    <button id="fetchData">Fetch Data</button>
+<button id="deployFunction">Deploy</button>
+<label id="deployProgress"></label>
 
-    <script type="text/javascript">
+<button id="undeployFunction">Undeploy</button>
+<button id="executeBenchmark">Execute Benchmark</button>
+<button id="fetchData">Fetch Data</button>
+<button id="startLocalCalibration">Start Local Calibration</button>
+<script type="text/javascript">
+
+                    var selectElem = document.getElementById('benchmarkingMode')
+                    var modeInfo = document.getElementById('benchmarkInfoLabel')
+                    var benchmarkingParams = document.getElementById('benchmarkingParams');
+
+                    // When a new <option> is selected
+                    selectElem.addEventListener('change', function() {
+                          var tag = selectElem.value;
+                          if(selectElem.selectedIndex > 0) {
+                              $.ajax({
+                                url: "../benchmark/mode/" + tag,
+                                success: function(result) {
+                                    modeInfo.innerHTML = result.information;
+                                    var parameters = "";
+                                    for(let i = 0 ; i < result.parameters.length; i++){
+                                        parameters = parameters + '<b>Parameter ' + i + ':</b> ' + result.parameters[i] + '<br/>';
+                                        console.log(parameters);
+                                    }
+                                    benchmarkingParams.innerHTML = parameters;
+                              }});
+                          } else {
+                              modeInfo.innerHTML = ""
+                              benchmarkingParams.innerHTML = ""
+                          }
+                    });
+
 
                     var deployButton = document.getElementById('deployFunction')
                     var label = document.getElementById('deployProgress')
@@ -247,9 +259,22 @@
                     });
 
 
+var startLocalCalibration = document.getElementById('startLocalCalibration')
+                    startLocalCalibration.addEventListener('click', function() {
+                          var deployDecision = confirm("Do you really want to fetch benchmark?")
+                          if(deployDecision == true) {
+                              $.ajax({
+                                url: "/calibration/start/local",
+                                success: function(result) {
+                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
+                              }});
+                          }
+                    });
 
-    </script>
-</div>
+
+
+
+</script>
 
 <div th:replace="fragments/footer :: footer">...</div>
 </body>

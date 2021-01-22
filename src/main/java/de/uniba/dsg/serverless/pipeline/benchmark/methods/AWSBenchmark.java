@@ -9,7 +9,7 @@ import java.util.Map;
 import de.uniba.dsg.serverless.pipeline.benchmark.log.LogHandler;
 import de.uniba.dsg.serverless.pipeline.benchmark.log.aws.AWSLogHandler;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
-import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
+import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.sdk.AWSClient;
 import de.uniba.dsg.serverless.util.SeMoDeException;
@@ -59,7 +59,7 @@ public class AWSBenchmark implements BenchmarkMethods {
 
     @Override
     public String getPlatform() {
-        return SupportedPlatform.AWS.getText();
+        return CalibrationPlatform.AWS.getText();
     }
 
     /**

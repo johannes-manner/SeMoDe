@@ -1,13 +1,13 @@
 package de.uniba.dsg.serverless.calibration;
 
-import de.uniba.dsg.serverless.pipeline.model.SupportedPlatform;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
+
+import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
+import de.uniba.dsg.serverless.util.SeMoDeException;
 
 public class Calibration {
 
@@ -22,9 +22,8 @@ public class Calibration {
      *
      * @param name     of the subfolder
      * @param platform platform which is tackled (used for storing the logs and the final result)
-     * @throws SeMoDeException
      */
-    public Calibration(final String name, final SupportedPlatform platform) throws SeMoDeException {
+    public Calibration(final String name, final CalibrationPlatform platform) throws SeMoDeException {
         this.calibrationFolder = Paths.get("calibration");
         this.name = name;
         this.calibrationFile = this.calibrationFolder.resolve(platform.getText()).resolve(name + ".csv");
@@ -36,11 +35,9 @@ public class Calibration {
      * Constructor used for pipeline setup. (files are available under SeMoDe/setupName/calibration/name)
      *
      * @param name              of the subfolder
-     * @param platform
      * @param calibrationFolder folder of the calibration files
-     * @throws SeMoDeException
      */
-    public Calibration(final String name, final SupportedPlatform platform, final Path calibrationFolder) throws SeMoDeException {
+    public Calibration(final String name, final CalibrationPlatform platform, final Path calibrationFolder) throws SeMoDeException {
         this.name = name;
         this.calibrationFolder = calibrationFolder;
         this.calibrationFile = calibrationFolder.resolve(platform.getText()).resolve(name + ".csv");
