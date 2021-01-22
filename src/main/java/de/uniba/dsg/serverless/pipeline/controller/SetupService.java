@@ -145,10 +145,10 @@ public class SetupService {
                 Optional<ProviderEvent> event = this.providerEventRepository.findByPlatformId(performanceData.getPlatformId());
                 if (event.isPresent()) {
                     ProviderEvent e = event.get();
-                    e.setPerformanceData(performanceData);
-                    this.providerEventRepository.save(e);
-                } else {
-                    throw new SeMoDeException("Matching element was not found. Platform ID is " + performanceData.getPlatformId() + " for function " + performanceData.getFunctionName());
+                    if (e.getPerformanceData() == null) {
+                        e.setPerformanceData(performanceData);
+                        this.providerEventRepository.save(e);
+                    }
                 }
             }
         }

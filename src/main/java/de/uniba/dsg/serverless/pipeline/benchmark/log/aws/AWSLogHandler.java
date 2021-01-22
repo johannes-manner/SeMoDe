@@ -142,8 +142,8 @@ public final class AWSLogHandler implements LogHandler {
      */
     private List<LogStream> filterLogStreams(final List<LogStream> logStreams) {
 
-        final long startMillis = this.startTime.atZone(ZoneOffset.UTC.normalized()).toInstant().toEpochMilli();
-        final long endMillis = this.endTime.atZone(ZoneOffset.UTC.normalized()).toInstant().toEpochMilli();
+        final long startMillis = this.startTime.minusDays(1).atZone(ZoneOffset.UTC.normalized()).toInstant().toEpochMilli();
+        final long endMillis = this.endTime.plusDays(1).atZone(ZoneOffset.UTC.normalized()).toInstant().toEpochMilli();
 
         final Predicate<LogStream> startEndFilter = (LogStream stream) -> {
             if (stream.getLastIngestionTime() == null || stream.getFirstEventTimestamp() == null) {
