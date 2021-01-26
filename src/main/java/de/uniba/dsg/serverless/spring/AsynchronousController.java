@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+
+// TODO refactor this controller!!!
 @Slf4j
 @RestController
 public class AsynchronousController {
@@ -56,6 +58,12 @@ public class AsynchronousController {
     @GetMapping("/calibration/deploy/{platform}")
     public ResponseEntity deployCalibration(@PathVariable("platform") String platform) throws SeMoDeException {
         this.service.deployCalibration(platform);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/mapping")
+    public ResponseEntity mapping() throws SeMoDeException {
+        this.service.computeMapping();
         return ResponseEntity.ok().build();
     }
 }

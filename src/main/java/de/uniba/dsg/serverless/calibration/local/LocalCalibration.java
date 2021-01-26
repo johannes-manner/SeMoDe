@@ -3,7 +3,7 @@ package de.uniba.dsg.serverless.calibration.local;
 import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.calibration.Calibration;
 import de.uniba.dsg.serverless.calibration.LinpackParser;
-import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
+import de.uniba.dsg.serverless.calibration.provider.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
@@ -38,14 +38,14 @@ public class LocalCalibration implements CalibrationMethods {
     }
 
     // used within pipeline
-    public LocalCalibration(final String name, final Path calibrationFolder, final LocalCalibrationConfig config) throws SeMoDeException {
+    public LocalCalibration(final String name, final Path calibrationFolder, final LocalCalibrationConfig config) {
         this.calibration = new Calibration(name, CalibrationPlatform.LOCAL, calibrationFolder);
         this.temporaryLog = this.calibration.calibrationLogs.resolve("output").resolve("out.txt");
         this.config = config;
     }
 
     @Override
-    public void stopCalibration() {
+    public void undeployCalibration() {
         logger.warning("Not able to stop the local calibration!");
     }
 

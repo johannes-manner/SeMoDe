@@ -1,17 +1,16 @@
 package de.uniba.dsg.serverless.calibration.mapping;
 
-import de.uniba.dsg.serverless.util.FileLogger;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class SimpleFunction {
 
     private final double slope;
     private final double intercept;
-    private final FileLogger logger;
 
-    public SimpleFunction(final double slope, final double intercept, final FileLogger logger) {
+    public SimpleFunction(final double slope, final double intercept) {
         this.slope = slope;
         this.intercept = intercept;
-        this.logger = logger;
     }
 
     /**
@@ -32,7 +31,7 @@ public class SimpleFunction {
      * @return
      */
     public double computeDependentResult(final SimpleFunction function, final double y) {
-        this.logger.info("f(memorySize)= (" + function.slope + "* y + " + function.intercept + " - " + this.intercept + ") :0.001 " + this.slope);
+        log.info("f(memorySize)= (" + function.slope + "* y + " + function.intercept + " - " + this.intercept + ") :0.001 " + this.slope);
         return (function.slope * y + function.intercept - this.intercept) / this.slope;
     }
 

@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.calibration.methods;
+package de.uniba.dsg.serverless.calibration.provider;
 
 import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.calibration.Calibration;
@@ -62,7 +62,7 @@ public class AWSCalibration implements CalibrationMethods {
     }
 
     @Override
-    public void stopCalibration() {
+    public void undeployCalibration() {
         final List<Pair<String, Integer>> functionConfigs = this.generateFunctionNames();
         this.client.removeAllDeployedResources(functionConfigs, this.config.deploymentInternals);
         this.config.resetConfig();

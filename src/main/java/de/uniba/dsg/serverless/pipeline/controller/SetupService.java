@@ -4,8 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.GsonBuilder;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
-import de.uniba.dsg.serverless.calibration.methods.AWSCalibration;
-import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
+import de.uniba.dsg.serverless.calibration.mapping.MappingMaster;
+import de.uniba.dsg.serverless.calibration.provider.AWSCalibration;
+import de.uniba.dsg.serverless.calibration.provider.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.AWSBenchmark;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
@@ -194,6 +195,11 @@ public class SetupService {
         }
     }
 
+    public void computeMapping() throws SeMoDeException {
+        new MappingMaster(this.setupConfig.getCalibrationConfig().getMappingCalibrationConfig()).computeMapping();
+        this.updateSetup(this.setupConfig);
+    }
+
     // Old parts...
     @Deprecated
     public void updateAWSConfig(final String region, final String runtime, final String awsArnRole,
@@ -331,4 +337,6 @@ public class SetupService {
     public RunningCalibrationConfig getRunningConfig() {
         return this.setupConfig.getCalibrationConfig().getRunningCalibrationConfig();
     }
+
+
 }

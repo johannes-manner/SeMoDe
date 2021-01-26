@@ -1,21 +1,21 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
-import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Scanner;
-import java.util.stream.Collectors;
-
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.calibration.mapping.MappingMaster;
-import de.uniba.dsg.serverless.calibration.methods.AWSCalibration;
-import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
 import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
+import de.uniba.dsg.serverless.calibration.provider.AWSCalibration;
+import de.uniba.dsg.serverless.calibration.provider.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.PipelineFileHandler;
 import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.lang3.tuple.Pair;
+
+import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Scanner;
+import java.util.stream.Collectors;
 
 @Deprecated
 public class PipelineSetupController {
@@ -255,10 +255,10 @@ public class PipelineSetupController {
     public void undeployCalibration() throws SeMoDeException {
         if (this.setupService.isLocalEnabled()) {
             this.calibration = new LocalCalibration(this.setup.name, this.setup.pathToCalibration, this.setupService.getLocalConfig());
-            this.calibration.stopCalibration();
+            this.calibration.undeployCalibration();
         } else if (this.setupService.isAWSEnabled()) {
             this.calibration = new AWSCalibration(this.setup.name, this.setup.pathToCalibration, this.setupService.getAWSConfig());
-            this.calibration.stopCalibration();
+            this.calibration.undeployCalibration();
         }
     }
 
@@ -273,7 +273,7 @@ public class PipelineSetupController {
 
         this.setupService.updateMappingConfig(localCalibrationFile, providerCalibrationFile, memoryJSON);
 
-        new MappingMaster(this.setupService.getMappingConfig(), this.getPipelineLogger()).computeMapping();
+        new MappingMaster(this.setupService.getMappingConfig()).computeMapping();
     }
 
     public void runLocalContainer() throws SeMoDeException {
