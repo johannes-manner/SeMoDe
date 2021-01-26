@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.calibration.mapping.MappingMaster;
+import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.calibration.provider.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.provider.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
@@ -198,6 +199,11 @@ public class SetupService {
     public void computeMapping() throws SeMoDeException {
         new MappingMaster(this.setupConfig.getCalibrationConfig().getMappingCalibrationConfig()).computeMapping();
         this.updateSetup(this.setupConfig);
+    }
+
+    public void runFunctionLocally() throws SeMoDeException {
+        ContainerExecutor containerExecutor = new ContainerExecutor(this.fileHandler.pathToCalibration, this.setupConfig.getCalibrationConfig().getMappingCalibrationConfig(), this.setupConfig.getCalibrationConfig().getRunningCalibrationConfig());
+        containerExecutor.executeLocalProfiles();
     }
 
     // Old parts...

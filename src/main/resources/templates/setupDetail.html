@@ -262,6 +262,24 @@
                 </td>
             </tr>
         </table>
+        <h5>Run function locally with computed CPU share</h5>
+        <table class="table table-sm">
+            <tr>
+                <td>Folder, where the function and Dockerfile is located</td>
+                <td><input
+                        th:field="*{calibrationConfig.runningCalibrationConfig.dockerSourceFolder}"/></td>
+            </tr>
+            <tr>
+                <td>Environment variable file</td>
+                <td><input
+                        th:field="*{calibrationConfig.runningCalibrationConfig.environmentVariablesFile}"/></td>
+            </tr>
+            <tr>
+                <td>Number of Profiles</td>
+                <td><input
+                        th:field="*{calibrationConfig.runningCalibrationConfig.numberOfProfiles}"/></td>
+            </tr>
+        </table>
         <div class="py-1 px-1">
             <button class="btn btn-dark py-1 px-1">Update configuration</button>
         </div>
@@ -279,6 +297,7 @@
 <button id="startCalibration">Start Calibration</button>
 <button id="undeployCalibration">Undeploy Calibration</button>
 <button id="computeMapping">Compute Mapping for Calibrations</button>
+<button id="runFunction">Run function locally</button>
 <script type="text/javascript">
 
                     var selectElem = document.getElementById('benchmarkingMode')
@@ -424,16 +443,17 @@
                     });
 
 
-
-
-
-
-
-
-
-
-
-
+var runFunction = document.getElementById('runFunction')
+                    runFunction.addEventListener('click', function() {
+                          var deployDecision = confirm("Do you really want to undeploy calibration?")
+                          if(deployDecision == true) {
+                              $.ajax({
+                                url: "/run",
+                                success: function(result) {
+                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
+                              }});
+                          }
+                    });
 
 
 

@@ -66,4 +66,10 @@ public class AsynchronousController {
         this.service.computeMapping();
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/run")
+    public ResponseEntity runFunction() throws SeMoDeException {
+        this.service.runFunctionLocally();
+        return ResponseEntity.ok().build();
+    }
 }

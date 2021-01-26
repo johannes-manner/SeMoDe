@@ -2,7 +2,6 @@ package de.uniba.dsg.serverless.pipeline.controller;
 
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.calibration.mapping.MappingMaster;
-import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.calibration.provider.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.provider.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
@@ -287,7 +286,7 @@ public class PipelineSetupController {
 
         this.setupService.updateRunningConfig(dockerSourceFolder, environmentVariablesFile, numberOfProfiles);
 
-        final ContainerExecutor containerExecutor = new ContainerExecutor(this.setup.pathToCalibration, this.setupService.getMappingConfig(), this.setupService.getRunningConfig(), this.getPipelineLogger());
-        containerExecutor.executeLocalProfiles();
+//        final ContainerExecutor containerExecutor = new ContainerExecutor(this.setup.pathToCalibration, this.setupService.getMappingConfig(), this.setupService.getRunningConfig(), this.getPipelineLogger());
+//        containerExecutor.executeLocalProfiles();
     }
 }

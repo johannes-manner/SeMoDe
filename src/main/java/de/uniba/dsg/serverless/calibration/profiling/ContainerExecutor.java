@@ -8,8 +8,8 @@ import de.uniba.dsg.serverless.calibration.local.DockerContainer;
 import de.uniba.dsg.serverless.calibration.local.ResourceLimit;
 import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.RunningCalibrationConfig;
-import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
@@ -26,9 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+@Slf4j
 public class ContainerExecutor {
 
-    private final FileLogger logger;
     private final Path pathToCalibration;
     private final DockerContainer container;
     private final MappingCalibrationConfig mappingCalibrationConfig;
@@ -37,13 +37,12 @@ public class ContainerExecutor {
     private Map<String, String> environmentVariables;
     private List<String> logs;
 
-    public ContainerExecutor(final Path pathToCalibration, final MappingCalibrationConfig mappingConfig, final RunningCalibrationConfig runningConfig, final FileLogger logger) throws SeMoDeException {
-        this.logger = logger;
+    public ContainerExecutor(final Path pathToCalibration, final MappingCalibrationConfig mappingConfig, final RunningCalibrationConfig runningConfig) throws SeMoDeException {
         this.pathToCalibration = pathToCalibration;
         this.mappingCalibrationConfig = mappingConfig;
         this.runningCalibrationConfig = runningConfig;
         this.container = new DockerContainer(this.runningCalibrationConfig.dockerSourceFolder, "semode/local");
-        logger.info("building container semode/local " + this.runningCalibrationConfig.dockerSourceFolder);
+        log.info("building container semode/local " + this.runningCalibrationConfig.dockerSourceFolder);
         this.container.buildContainer();
         this.initEnvironmentVariables();
     }
@@ -87,7 +86,7 @@ public class ContainerExecutor {
             final Profile p = this.runContainer(this.environmentVariables, limits);
             this.saveProfile(p, out.resolve("profile_" + i + "_" + memorySize));
             profiles.add(p);
-            this.logger.info("Executed and saved profile " + i + " for memory size " + memorySize);
+            log.info("Executed and saved profile " + i + " for memory size " + memorySize);
         }
         final String csvOutput = out.resolve("profiles.csv").toString();
         try (final CSVPrinter printer = new CSVPrinter(new FileWriter(csvOutput, true), CSVFormat.EXCEL)) {
