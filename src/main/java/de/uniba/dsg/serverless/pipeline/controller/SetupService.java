@@ -1,19 +1,10 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.GsonBuilder;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
+import de.uniba.dsg.serverless.calibration.methods.AWSCalibration;
 import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.AWSBenchmark;
@@ -36,6 +27,16 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Wrapper to change the attributes of the user config class. If the changes are made directly in the model classes,
@@ -144,11 +145,28 @@ public class SetupService {
 
     // TODO calibration features
 
-    public void startCalibration(String platform) throws SeMoDeException {
+    public void deployCalibration(String platform) throws SeMoDeException {
+        CalibrationMethods calibration = this.getCalibrationMethod(platform);
+
+        if (calibration != null) {
+            calibration.deployCalibration();
+            this.setupConfig.setCalibrationDeployed(true);
+            this.updateSetup(this.setupConfig);
+        }
+    }
+
+    private CalibrationMethods getCalibrationMethod(String platform) throws SeMoDeException {
         CalibrationMethods calibration = null;
         if (CalibrationPlatform.LOCAL.getText().equals(platform)) {
             calibration = new LocalCalibration(this.setupConfig.getSetupName(), this.fileHandler.pathToCalibration, this.setupConfig.getCalibrationConfig().getLocalConfig());
+        } else if (CalibrationPlatform.AWS.getText().equals(platform)) {
+            calibration = new AWSCalibration(this.setupConfig.getSetupName(), this.setupConfig.getCalibrationConfig().getAwsCalibrationConfig());
         }
+        return calibration;
+    }
+
+    public void startCalibration(String platform) throws SeMoDeException {
+        CalibrationMethods calibration = this.getCalibrationMethod(platform);
 
         if (calibration != null) {
             calibration.startCalibration();
@@ -212,7 +230,7 @@ public class SetupService {
 
     @Deprecated
     public boolean isAWSEnabled() {
-        return this.setupConfig.getCalibrationConfig().getAwsCalibrationConfig().enabled;
+        return true;
     }
 
     @Deprecated

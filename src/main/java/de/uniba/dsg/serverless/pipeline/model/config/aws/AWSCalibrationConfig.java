@@ -1,20 +1,19 @@
 package de.uniba.dsg.serverless.pipeline.model.config.aws;
 
+import com.google.gson.annotations.Expose;
+import lombok.Data;
+
 import java.io.IOException;
 
-import com.google.gson.annotations.Expose;
-
+// TODO Expose (search for)
+@Data
 public class AWSCalibrationConfig {
 
     // AWS specific information
     @Expose
-    public boolean deployLinpack;
-    @Expose
     public String bucketName;
     @Expose
     public int numberOfAWSExecutions;
-    @Expose
-    public boolean enabled;
     @Expose
     public AWSDeploymentInternals deploymentInternals;
     @Expose
@@ -24,23 +23,12 @@ public class AWSCalibrationConfig {
         // hide default Constructor
     }
 
-    // copy constructor
-    public AWSCalibrationConfig(final AWSCalibrationConfig config) {
-        this.deployLinpack = config.deployLinpack;
-        this.bucketName = config.bucketName;
-        this.numberOfAWSExecutions = config.numberOfAWSExecutions;
-        this.enabled = config.enabled;
-        this.functionConfig = new AWSFunctionConfig(config.functionConfig);
-        this.deploymentInternals = new AWSDeploymentInternals(config.deploymentInternals);
-    }
 
     public void update(final String region, final String runtime, final String awsArnLambdaRole, final String functionHandler,
                        final String timeout, final String deployLinpack, final String targetUrl, final String apiKey,
                        final String bucketName, final String memorySizes, final String numberOfAWSExecutions, final String enabled, final String pathToSource) throws IOException {
-        if (!"".equals(deployLinpack)) this.deployLinpack = Boolean.parseBoolean(deployLinpack);
         if (!"".equals(bucketName)) this.bucketName = bucketName;
         if (!"".equals(numberOfAWSExecutions)) this.numberOfAWSExecutions = Integer.parseInt(numberOfAWSExecutions);
-        if (!"".equals(enabled)) this.enabled = Boolean.parseBoolean(enabled);
         this.functionConfig.update(region, runtime, awsArnLambdaRole, functionHandler, timeout, targetUrl, apiKey, memorySizes, pathToSource);
     }
 

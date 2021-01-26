@@ -1,12 +1,5 @@
 package de.uniba.dsg.serverless.calibration.methods;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.calibration.Calibration;
 import de.uniba.dsg.serverless.calibration.LinpackParser;
@@ -18,6 +11,13 @@ import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AWSCalibration implements CalibrationMethods {
 
@@ -34,6 +34,7 @@ public class AWSCalibration implements CalibrationMethods {
     private final String platformPrefix;
 
     // used for CLI feature
+    // TODO needed??
     public AWSCalibration(final String name, final AWSCalibrationConfig config) throws SeMoDeException {
         this.calibration = new Calibration(name + "_calibration", CalibrationPlatform.AWS);
         this.config = config;
@@ -73,17 +74,16 @@ public class AWSCalibration implements CalibrationMethods {
      * resources from the platform.
      */
     @Override
-    public void deployCalibration() throws SeMoDeException {
+    public void deployCalibration() {
         if (Files.exists(this.calibration.calibrationFile)) {
             logger.info("Provider calibration already performed.");
             return;
         }
 
-        // deploy linpack if user specified it
-        if (this.config.deployLinpack) {
-            final List<Pair<String, Integer>> functionConfigs = this.generateFunctionNames();
-            this.client.deployFunctions(this.calibration.name, functionConfigs, this.functionConfig, this.config.deploymentInternals);
-        }
+        // deploy linpack
+        final List<Pair<String, Integer>> functionConfigs = this.generateFunctionNames();
+        this.client.deployFunctions(this.calibration.name, functionConfigs, this.functionConfig, this.config.deploymentInternals);
+
     }
 
     @Override

@@ -1,5 +1,13 @@
 package de.uniba.dsg.serverless.calibration.local;
 
+import de.uniba.dsg.serverless.ArgumentProcessor;
+import de.uniba.dsg.serverless.calibration.Calibration;
+import de.uniba.dsg.serverless.calibration.LinpackParser;
+import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
+import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
+import de.uniba.dsg.serverless.util.FileLogger;
+import de.uniba.dsg.serverless.util.SeMoDeException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,14 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.calibration.Calibration;
-import de.uniba.dsg.serverless.calibration.LinpackParser;
-import de.uniba.dsg.serverless.calibration.methods.CalibrationMethods;
-import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
-import de.uniba.dsg.serverless.util.FileLogger;
-import de.uniba.dsg.serverless.util.SeMoDeException;
 
 public class LocalCalibration implements CalibrationMethods {
 
@@ -50,7 +50,7 @@ public class LocalCalibration implements CalibrationMethods {
     }
 
     @Override
-    public void deployCalibration() throws SeMoDeException {
+    public void deployCalibration() {
         logger.info("There is no deployment for local needed");
     }
 

@@ -42,12 +42,6 @@
         <h3>Benchmark Configuration</h3>
         <table class="table table-sm">
             <tr>
-                <td>Concurrent Worker</td>
-                <td><input
-                        th:readonly="${setupConfig.deployed}"
-                        name="concurrentWorker" th:field="*{benchmarkConfig.concurrentWorker}"/></td>
-            </tr>
-            <tr>
                 <td>Benchmarking Mode:</td>
                 <td>
                     <select th:disabled="${setupConfig.deployed}" id="benchmarkingMode"
@@ -158,12 +152,93 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>Enable local calibration</td>
+                    <td>Docker Source Folder(Dockerfile location)</td>
                     <td><input th:field="*{calibrationConfig.localConfig.dockerSourceFolder}"/></td>
                 </tr>
             </div>
         </table>
         <h5>AWS Configuration</h5>
+        <table class="table table-sm">
+            <div id="awsCalibrationSettings">
+                <tr>
+                    <td>Bucket name to store calibration to</td>
+                    <td><input th:readonly="${setupConfig.calibrationDeployed}"
+                               th:field="*{calibrationConfig.awsCalibrationConfig.bucketName}"/></td>
+                </tr>
+                <tr>
+                    <td>Number of aws executions</td>
+                    <td><input th:readonly="${setupConfig.calibrationDeployed}"
+                               th:field="*{calibrationConfig.awsCalibrationConfig.numberOfAWSExecutions}"/></td>
+                </tr>
+                <tr>
+                    <td>Region</td>
+                    <td><input th:readonly="${setupConfig.calibrationDeployed}"
+                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.region}"/></td>
+                </tr>
+                <tr>
+                    <td>Runtime</td>
+                    <td><input th:readonly="${setupConfig.calibrationDeployed}"
+                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.runtime}"/></td>
+                </tr>
+                <tr>
+                    <td>AWS ARN Lambda Role</td>
+                    <td><input th:readonly="${setupConfig.calibrationDeployed}"
+                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.awsArnLambdaRole}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Handler Class Name</td>
+                    <td><input th:readonly="${setupConfig.calibrationDeployed}"
+                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.functionHandler}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Timeout in Seconds</td>
+                    <td><input th:readonly="${setupConfig.calibrationDeployed}"
+                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.timeout}"/></td>
+                </tr>
+                <tr>
+                    <td>Memory Sizes (comma separated List)</td>
+                    <td><input th:readonly="${setupConfig.calibrationDeployed}"
+                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.memorySizes}"/></td>
+                </tr>
+                <tr>
+                    <td>Path to ZIP Source (locally on your computer)</td>
+                    <td><input th:readonly="${setupConfig.calibrationDeployed}"
+                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.pathToSource}"/></td>
+                </tr>
+                <tr>
+                    <td>Target URL (filled by the tool)</td>
+                    <td><input readonly="readonly"
+                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.targetUrl}"/></td>
+                </tr>
+                <tr>
+                    <td>API Key (filled by the tool)</td>
+                    <td><input readonly="readonly"
+                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.apiKey}"/>
+                    </td>
+                </tr>
+            </div>
+        </table>
+        <h5>AWS specific Benchmark Settings - Deployment Internals</h5>
+        <table class="table table-sm">
+            <tr>
+                <td>REST API ID (filled by the tool)</td>
+                <td><input readonly="readonly"
+                           th:field="*{calibrationConfig.awsCalibrationConfig.deploymentInternals.restApiId}"/></td>
+            </tr>
+            <tr>
+                <td>API Key ID (filled by the tool)</td>
+                <td><input readonly="readonly"
+                           th:field="*{calibrationConfig.awsCalibrationConfig.deploymentInternals.apiKeyId}"/></td>
+            </tr>
+            <tr>
+                <td>Usage Plan ID (filled by the tool)</td>
+                <td><input readonly="readonly"
+                           th:field="*{calibrationConfig.awsCalibrationConfig.deploymentInternals.usagePlanId}"/></td>
+            </tr>
+
+        </table>
         <div class="py-1 px-1">
             <button class="btn btn-dark py-1 px-1">Update configuration</button>
         </div>
@@ -177,6 +252,8 @@
 <button id="executeBenchmark">Execute Benchmark</button>
 <button id="fetchData">Fetch Data</button>
 <button id="startLocalCalibration">Start Local Calibration</button>
+<button id="deployCalibration">Deploy Calibration</button>
+<button id="startCalibration">Start Calibration</button>
 <script type="text/javascript">
 
                     var selectElem = document.getElementById('benchmarkingMode')
@@ -270,6 +347,44 @@ var startLocalCalibration = document.getElementById('startLocalCalibration')
                               }});
                           }
                     });
+
+
+                var deployCalibration = document.getElementById('deployCalibration')
+                    deployCalibration.addEventListener('click', function() {
+                          var deployDecision = confirm("Do you really want to deploy calibration?")
+                          if(deployDecision == true) {
+                              $.ajax({
+                                url: "/calibration/deploy/aws",
+                                success: function(result) {
+                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
+                              }});
+                          }
+                    });
+
+
+                var startCalibration = document.getElementById('startCalibration')
+                    startCalibration.addEventListener('click', function() {
+                          var deployDecision = confirm("Do you really want to deploy calibration?")
+                          if(deployDecision == true) {
+                              $.ajax({
+                                url: "/calibration/start/aws",
+                                success: function(result) {
+                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
+                              }});
+                          }
+                    });
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

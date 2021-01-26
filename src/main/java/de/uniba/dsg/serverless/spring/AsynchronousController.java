@@ -48,8 +48,14 @@ public class AsynchronousController {
     }
 
     @GetMapping("/calibration/start/{platform}")
-    public ResponseEntity startCalibratio(@PathVariable("platform") String platform) throws SeMoDeException {
+    public ResponseEntity startCalibration(@PathVariable("platform") String platform) throws SeMoDeException {
         this.service.startCalibration(platform);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/calibration/deploy/{platform}")
+    public ResponseEntity deployCalibration(@PathVariable("platform") String platform) throws SeMoDeException {
+        this.service.deployCalibration(platform);
         return ResponseEntity.ok().build();
     }
 }
