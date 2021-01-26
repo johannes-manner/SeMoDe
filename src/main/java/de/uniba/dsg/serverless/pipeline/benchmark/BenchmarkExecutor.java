@@ -1,5 +1,16 @@
 package de.uniba.dsg.serverless.pipeline.benchmark;
 
+import com.google.common.primitives.Doubles;
+import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.FunctionTrigger;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.FunctionTriggerWrapper;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.LocalRESTEvent;
+import de.uniba.dsg.serverless.pipeline.benchmark.util.LoadPatternGenerator;
+import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
+import de.uniba.dsg.serverless.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -8,22 +19,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
-import com.google.common.primitives.Doubles;
-import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.FunctionTrigger;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.LocalRESTEvent;
-import de.uniba.dsg.serverless.pipeline.benchmark.util.LoadPatternGenerator;
-import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-
+@Slf4j
 public class BenchmarkExecutor {
 
     private final Path pathToBenchmarkExecution;
@@ -31,7 +30,7 @@ public class BenchmarkExecutor {
 
     private Path loadPatternFile;
 
-    public BenchmarkExecutor(final Path pathToBenchmarkExecution, final BenchmarkConfig benchmarkConfig) throws SeMoDeException {
+    public BenchmarkExecutor(final Path pathToBenchmarkExecution, final BenchmarkConfig benchmarkConfig) {
         this.pathToBenchmarkExecution = pathToBenchmarkExecution;
         this.benchmarkConfig = benchmarkConfig;
     }
@@ -56,19 +55,21 @@ public class BenchmarkExecutor {
         }
     }
 
-    // TODO document here
-
     /**
      * Currently only aws is supported - for next provider integration, rethink the architecture.
+     * <br/>
+     * There was an ongoing discussion, if the scheduled executor service needs the number of the core pool size configured.
+     * Since the invocations to the cloud functions are synchronous to enable a proper measurement of the duration from
+     * a client perspective, the decision is now to use another executor service, a so called <i>delegator</i>, which
+     * gets a wrapped function trigger and executes it. This solves the problem to configure the number of threads for the scheduled thread pool.
      */
     public List<LocalRESTEvent> executeBenchmark(final List<BenchmarkMethods> benchmarkMethodsFromConfig) throws SeMoDeException {
 
         final List<Double> timestamps = this.loadLoadPatternFromFile();
 
-        // TODO think about a more sophisticated way to compute number of threads
-        // TODO number of threads really needed?
         final ScheduledExecutorService executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
-        final List<Future<LocalRESTEvent>> responses = new ArrayList<>();
+        final ExecutorService delegator = Executors.newCachedThreadPool();
+        final List<Future<LocalRESTEvent>> responses = new CopyOnWriteArrayList<>();
 
         long tmpTimestamp = 0;
         // for each provider
@@ -83,7 +84,8 @@ public class BenchmarkExecutor {
                             // 1 second time before the processing starts to get the processing of the functions triggers done
                             tmpTimestamp = (long) (1000 + timestamp * 1000);
                             final FunctionTrigger f = new FunctionTrigger(benchmarkMethods.getPlatform(), this.benchmarkConfig.postArgument, new URL(functionEndpoint), headerParameters);
-                            responses.add(executor.schedule(f, tmpTimestamp, TimeUnit.MILLISECONDS));
+                            FunctionTriggerWrapper fWrapper = new FunctionTriggerWrapper(delegator, responses, f);
+                            executor.schedule(fWrapper, tmpTimestamp, TimeUnit.MILLISECONDS);
                         } catch (final MalformedURLException e) {
                             throw new SeMoDeException("URL was malformed: " + functionEndpoint, e);
                         }
@@ -92,7 +94,16 @@ public class BenchmarkExecutor {
             }
         }
 
-        // TODO document here, why get is made here
+        // shut down the first scheduled service, means that all wrapper function trigger tasks are run and the
+        // function trigger tasks are submitted
+        // time to wait is the last timestamp from now on executing a function
+        this.shutdownExecService(executor, tmpTimestamp + 30_000);
+        // wait for the function trigger tasks to terminate
+        this.shutdownExecService(delegator, tmpTimestamp + 300_000);
+
+
+        // get is made after the executor services are shutdown correctly, otherwise results from the platform
+        // may not be computed - we use the 300 seconds timeout to wait, see the shutdown of the delegator
         List<LocalRESTEvent> events = new ArrayList<>();
         for (Future<LocalRESTEvent> futureEvent : responses) {
             try {
@@ -103,10 +114,13 @@ public class BenchmarkExecutor {
                 throw new SeMoDeException(e);
             }
         }
+        return events;
+    }
 
+    private void shutdownExecService(ExecutorService executor, long timeToWaitInMS) throws SeMoDeException {
         executor.shutdown();
         try {
-            if (!executor.awaitTermination(tmpTimestamp + 30_000, TimeUnit.MILLISECONDS)) {
+            if (!executor.awaitTermination(timeToWaitInMS, TimeUnit.MILLISECONDS)) {
                 if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
                     throw new SeMoDeException("Pool did not terminate. Shutdown JVM manually!");
                 }
@@ -115,8 +129,7 @@ public class BenchmarkExecutor {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
-
-        return events;
+        log.info("Shutdown executor service successfully");
     }
 
     private List<Double> loadLoadPatternFromFile() throws SeMoDeException {
