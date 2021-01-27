@@ -3,8 +3,8 @@ package de.uniba.dsg.serverless.pipeline.calibration.provider;
 import de.uniba.dsg.serverless.pipeline.calibration.Calibration;
 import de.uniba.dsg.serverless.pipeline.calibration.LinpackParser;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
+import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
-import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSFunctionConfig;
 import de.uniba.dsg.serverless.pipeline.sdk.AWSClient;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AWSCalibration implements CalibrationMethods {
 
-    private final AWSCalibrationConfig config;
-    private final AWSFunctionConfig functionConfig;
+    private final AWSCalibrationConfig calibrationConfig;
     private final AWSClient client;
     // composite
     private final Calibration calibration;
@@ -33,27 +32,25 @@ public class AWSCalibration implements CalibrationMethods {
 
     // used for CLI feature
     // TODO needed??
-    public AWSCalibration(final String name, final AWSCalibrationConfig config) throws SeMoDeException {
+    public AWSCalibration(final String name, final AWSCalibrationConfig calibrationConfig) throws SeMoDeException {
         this.calibration = new Calibration(name + "_calibration", CalibrationPlatform.AWS);
-        this.config = config;
-        this.functionConfig = config.functionConfig;
-        this.client = new AWSClient(this.functionConfig.region);
+        this.calibrationConfig = calibrationConfig;
+        this.client = new AWSClient(this.calibrationConfig.getBenchmarkConfig().getRegion());
         this.platformPrefix = this.calibration.name + "_linpack_";
     }
 
     // used within pipeline
-    public AWSCalibration(final String name, final Path calibrationFolder, final AWSCalibrationConfig config) throws SeMoDeException {
+    public AWSCalibration(final String name, final Path calibrationFolder, final AWSCalibrationConfig calibrationConfig) throws SeMoDeException {
         this.calibration = new Calibration(name + "_calibration", CalibrationPlatform.AWS, calibrationFolder);
-        this.config = config;
-        this.functionConfig = config.functionConfig;
-        this.client = new AWSClient(this.functionConfig.region);
+        this.calibrationConfig = calibrationConfig;
+        this.client = new AWSClient(this.calibrationConfig.getBenchmarkConfig().getRegion());
         this.platformPrefix = this.calibration.name + "_linpack_";
     }
 
     private List<Pair<String, Integer>> generateFunctionNames() {
         // create function names
         final List<Pair<String, Integer>> functionConfigs = new ArrayList<>();
-        for (final Integer memorySize : this.functionConfig.getMemorySizeList()) {
+        for (final Integer memorySize : this.calibrationConfig.getBenchmarkConfig().getMemorySizeList()) {
             functionConfigs.add(new ImmutablePair<>(this.platformPrefix + memorySize, memorySize));
         }
         return functionConfigs;
@@ -62,8 +59,8 @@ public class AWSCalibration implements CalibrationMethods {
     @Override
     public void undeployCalibration() {
         final List<Pair<String, Integer>> functionConfigs = this.generateFunctionNames();
-        this.client.removeAllDeployedResources(functionConfigs, this.config.deploymentInternals);
-        this.config.resetConfig();
+        this.client.removeAllDeployedResources(functionConfigs, this.calibrationConfig.getBenchmarkConfig());
+        this.calibrationConfig.resetConfig();
     }
 
     /**
@@ -80,7 +77,7 @@ public class AWSCalibration implements CalibrationMethods {
 
         // deploy linpack
         final List<Pair<String, Integer>> functionConfigs = this.generateFunctionNames();
-        this.client.deployFunctions(this.calibration.name, functionConfigs, this.functionConfig, this.config.deploymentInternals);
+        this.client.deployFunctions(this.calibration.name, functionConfigs, this.calibrationConfig.getBenchmarkConfig());
 
     }
 
@@ -96,22 +93,23 @@ public class AWSCalibration implements CalibrationMethods {
     }
 
     private void executeLinpackCalibration(final String platformPrefix) throws SeMoDeException {
+        AWSBenchmarkConfig config = this.calibrationConfig.getBenchmarkConfig();
         final StringBuilder sb = new StringBuilder();
-        sb.append(this.functionConfig.getMemorySizeList().stream().map(String::valueOf).collect(Collectors.joining(",")));
+        sb.append(config.getMemorySizeList().stream().map(String::valueOf).collect(Collectors.joining(",")));
         sb.append("\n");
 
-        for (int i = 0; i < this.config.numberOfAWSExecutions; i++) {
-            for (final int memory : this.functionConfig.getMemorySizeList()) {
+        for (int i = 0; i < this.calibrationConfig.numberOfAWSExecutions; i++) {
+            for (final int memory : config.getMemorySizeList()) {
                 final String fileName = this.calibration.name + "/" + memory + "_" + i;
                 final String pathForAPIGateway = platformPrefix + memory;
-                this.client.invokeLambdaFunction(this.functionConfig.targetUrl, this.functionConfig.apiKey, pathForAPIGateway, fileName);
+                this.client.invokeLambdaFunction(config.getTargetUrl(), config.getApiKey(), pathForAPIGateway, fileName);
             }
             final List<Double> results = new ArrayList<>();
-            for (final int memory : this.functionConfig.getMemorySizeList()) {
+            for (final int memory : config.getMemorySizeList()) {
                 final String fileName = this.calibration.name + "/" + memory + "_" + i;
-                this.client.waitForBucketObject(this.config.bucketName, "linpack/" + fileName, 600);
+                this.client.waitForBucketObject(this.calibrationConfig.bucketName, "linpack/" + fileName, 600);
                 final Path log = this.calibration.calibrationLogs.resolve(fileName);
-                this.client.getFileFromBucket(this.config.bucketName, "linpack/" + fileName, log);
+                this.client.getFileFromBucket(this.calibrationConfig.bucketName, "linpack/" + fileName, log);
                 results.add(new LinpackParser(log).parseLinpack());
             }
             sb.append(results.stream().map(this.calibration.DOUBLE_FORMAT::format).collect(Collectors.joining(",")));

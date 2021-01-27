@@ -14,8 +14,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.google.common.util.concurrent.Uninterruptibles;
-import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSDeploymentInternals;
-import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSFunctionConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -431,16 +430,16 @@ public class AWSClient {
         }
     }
 
-    public void deployLambdaFunctionAndHttpMethod(final String platformName, final Integer memorySize, final String restApiId, final AWSFunctionConfig functionConfig) throws SeMoDeException {
-        this.deployLambdaFunction(platformName, memorySize, functionConfig);
-        this.deployHttpMethodInRestApi(platformName, restApiId, functionConfig.region);
+    public void deployLambdaFunctionAndHttpMethod(final String platformName, final Integer memorySize, AWSBenchmarkConfig benchmarkConfig) throws SeMoDeException {
+        this.deployLambdaFunction(platformName, memorySize, benchmarkConfig);
+        this.deployHttpMethodInRestApi(platformName, benchmarkConfig.getRestApiId(), benchmarkConfig.getRegion());
     }
 
-    private void deployLambdaFunction(final String functionName, final int memorySize, final AWSFunctionConfig functionConfig) throws SeMoDeException {
+    private void deployLambdaFunction(final String functionName, final int memorySize, final AWSBenchmarkConfig benchmarkConfig) throws SeMoDeException {
         // change directory to the linpack directory and zip it
-        this.deployLambdaFunction(functionName, functionConfig.runtime, functionConfig.awsArnLambdaRole,
-                functionConfig.functionHandler, functionConfig.timeout, memorySize,
-                Paths.get(functionConfig.pathToSource));
+        this.deployLambdaFunction(functionName, benchmarkConfig.getRuntime(), benchmarkConfig.getAwsArnLambdaRole(),
+                benchmarkConfig.getFunctionHandler(), benchmarkConfig.getTimeout(), memorySize,
+                Paths.get(benchmarkConfig.getPathToSource()));
 
         log.info("Function deployment successfully completed for " + memorySize + " MB! (AWS Lambda)");
     }
@@ -456,7 +455,7 @@ public class AWSClient {
         this.putIntegrationAndIntegrationResponse(restApiId, resourceId, resourcePath, region);
     }
 
-    public void enableRestApiUsage(final String restApiId, final String setupName, final AWSFunctionConfig functionConfig, final AWSDeploymentInternals deploymentInternals) throws SeMoDeException {
+    public void enableRestApiUsage(final String restApiId, final String setupName, AWSBenchmarkConfig benchmarkConfig) throws SeMoDeException {
         final String stageName = setupName + "_stage";
         final String deploymentId = this.createStage(restApiId, stageName);
         final Pair<String, String> keyPair = this.createApiKey(setupName + "_key", restApiId, stageName);
@@ -464,38 +463,38 @@ public class AWSClient {
         log.info("API Gateway deployment successfully completed!");
 
         // store x-api-key and targetUrl in pipeline configuration
-        functionConfig.targetUrl = "https://" + restApiId + ".execute-api." + functionConfig.region + ".amazonaws.com/" + setupName + "_stage";
-        deploymentInternals.apiKeyId = keyPair.getKey();
-        functionConfig.apiKey = keyPair.getValue();
-        deploymentInternals.usagePlanId = usagePlanId;
+        benchmarkConfig.setTargetUrl("https://" + restApiId + ".execute-api." + benchmarkConfig.getRegion() + ".amazonaws.com/" + setupName + "_stage");
+        benchmarkConfig.setApiKeyId(keyPair.getKey());
+        benchmarkConfig.setApiKey(keyPair.getValue());
+        benchmarkConfig.setUsagePlanId(usagePlanId);
     }
 
-    public void deleteApi(final AWSDeploymentInternals deploymentInternals) {
-        this.deleteApiKey(deploymentInternals.apiKeyId);
-        this.deleteRestApi(deploymentInternals.restApiId);
-        this.deleteUsagePlan(deploymentInternals.usagePlanId);
+    public void deleteApi(final AWSBenchmarkConfig deploymentInternals) {
+        this.deleteApiKey(deploymentInternals.getApiKeyId());
+        this.deleteRestApi(deploymentInternals.getRestApiId());
+        this.deleteUsagePlan(deploymentInternals.getUsagePlanId());
     }
 
-    public void deployFunctions(final String setupName, final List<Pair<String, Integer>> functionConfigs, final AWSFunctionConfig functionConfig, final AWSDeploymentInternals deploymentInternals) {
+    public void deployFunctions(final String setupName, final List<Pair<String, Integer>> functionConfigs, AWSBenchmarkConfig benchmarkConfig) {
         try {
             // Create a single rest api for all function endpoints
             final String restApiId = this.createRestAPI(setupName);
-            deploymentInternals.restApiId = restApiId;
+            benchmarkConfig.setRestApiId(restApiId);
 
             for (final Pair<String, Integer> f : functionConfigs) {
-                this.deployLambdaFunctionAndHttpMethod(f.getLeft(), f.getRight(), restApiId, functionConfig);
+                this.deployLambdaFunctionAndHttpMethod(f.getLeft(), f.getRight(), benchmarkConfig);
             }
             // set up rest api and stage
-            this.enableRestApiUsage(restApiId, setupName, functionConfig, deploymentInternals);
+            this.enableRestApiUsage(restApiId, setupName, benchmarkConfig);
 
             // update lambda permission due to the enabled rest api
             for (final Pair<String, Integer> f : functionConfigs) {
-                this.updateLambdaPermission(f.getLeft(), restApiId, functionConfig.region);
+                this.updateLambdaPermission(f.getLeft(), restApiId, benchmarkConfig.getRegion());
             }
 
             log.info("Deployment successfully completed!");
         } catch (final SeMoDeException e) {
-            this.removeAllDeployedResources(functionConfigs, deploymentInternals);
+            this.removeAllDeployedResources(functionConfigs, benchmarkConfig);
         }
     }
 
@@ -503,12 +502,12 @@ public class AWSClient {
      * Removes all resources from aws cloud platform. </br> Currently only the deployed lambda function and the api
      * gateway, key and usage plan
      */
-    public void removeAllDeployedResources(final List<Pair<String, Integer>> functionConfigs, final AWSDeploymentInternals deploymentInternals) {
+    public void removeAllDeployedResources(final List<Pair<String, Integer>> functionConfigs, final AWSBenchmarkConfig benchmarkConfig) {
 
         for (final Pair<String, Integer> f : functionConfigs) {
             this.deleteLambdaFunction(f.getLeft());
         }
 
-        this.deleteApi(deploymentInternals);
+        this.deleteApi(benchmarkConfig);
     }
 }

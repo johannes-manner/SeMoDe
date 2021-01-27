@@ -28,14 +28,14 @@ public class AWSBenchmark implements BenchmarkMethods {
     public AWSBenchmark(final String setupName, final AWSBenchmarkConfig awsBenchmarkConfig) throws SeMoDeException {
         this.setupName = setupName + "_benchmark";
         this.awsBenchmarkConfig = awsBenchmarkConfig;
-        this.awsClient = new AWSClient(awsBenchmarkConfig.functionConfig.region);
+        this.awsClient = new AWSClient(awsBenchmarkConfig.getRegion());
         this.platformPrefix = this.setupName + "_";
     }
 
     @Override
     public List<Pair<String, Integer>> generateFunctionNames() {
         final List<Pair<String, Integer>> functionConfigs = new ArrayList<>();
-        for (final Integer memorySize : this.awsBenchmarkConfig.functionConfig.getMemorySizeList()) {
+        for (final Integer memorySize : this.awsBenchmarkConfig.getMemorySizeList()) {
             functionConfigs.add(new ImmutablePair<>(this.platformPrefix + memorySize, memorySize));
         }
         return functionConfigs;
@@ -45,7 +45,7 @@ public class AWSBenchmark implements BenchmarkMethods {
     public List<String> getUrlEndpointsOnPlatform() {
         final List<String> urlEndpoints = new ArrayList<>();
         for (final Pair<String, Integer> functionName : this.generateFunctionNames()) {
-            urlEndpoints.add(this.awsBenchmarkConfig.functionConfig.targetUrl + "/" + functionName.getLeft());
+            urlEndpoints.add(this.awsBenchmarkConfig.getTargetUrl() + "/" + functionName.getLeft());
         }
         return urlEndpoints;
     }
@@ -53,7 +53,7 @@ public class AWSBenchmark implements BenchmarkMethods {
     @Override
     public Map<String, String> getHeaderParameter() {
         final Map<String, String> headerParameters = new HashMap<>();
-        headerParameters.put("x-api-key", this.awsBenchmarkConfig.functionConfig.apiKey);
+        headerParameters.put("x-api-key", this.awsBenchmarkConfig.getApiKey());
         return headerParameters;
     }
 
@@ -67,7 +67,7 @@ public class AWSBenchmark implements BenchmarkMethods {
      */
     @Override
     public boolean isInitialized() {
-        final String restApiId = this.awsBenchmarkConfig.deploymentInternals.apiKeyId;
+        final String restApiId = this.awsBenchmarkConfig.getApiKeyId();
         if (restApiId == null || "".equals(restApiId)) {
             return false;
         }
@@ -79,7 +79,7 @@ public class AWSBenchmark implements BenchmarkMethods {
 
         List<PerformanceData> performanceDataList = new ArrayList<>();
         for (final Pair<String, Integer> functionName : this.generateFunctionNames()) {
-            final LogHandler logHandler = new AWSLogHandler(this.awsBenchmarkConfig.functionConfig.region, "/aws/lambda/" + functionName.getLeft(), startTime, endTime);
+            final LogHandler logHandler = new AWSLogHandler(this.awsBenchmarkConfig.getRegion(), "/aws/lambda/" + functionName.getLeft(), startTime, endTime);
 
             log.info("Fetch data for " + functionName.getLeft() + " from " + startTime + " to " + endTime);
             performanceDataList.addAll(logHandler.getPerformanceData());
@@ -90,12 +90,12 @@ public class AWSBenchmark implements BenchmarkMethods {
 
     @Override
     public void deploy() {
-        this.awsClient.deployFunctions(this.setupName, this.generateFunctionNames(), this.awsBenchmarkConfig.functionConfig, this.awsBenchmarkConfig.getDeploymentInternals());
+        this.awsClient.deployFunctions(this.setupName, this.generateFunctionNames(), this.awsBenchmarkConfig);
     }
 
     @Override
     public void undeploy() {
-        this.awsClient.removeAllDeployedResources(this.generateFunctionNames(), this.awsBenchmarkConfig.deploymentInternals);
+        this.awsClient.removeAllDeployedResources(this.generateFunctionNames(), this.awsBenchmarkConfig);
         this.awsBenchmarkConfig.resetConfig();
     }
 }

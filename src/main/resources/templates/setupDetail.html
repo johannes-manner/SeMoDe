@@ -72,46 +72,46 @@
             <tr>
                 <td>Region</td>
                 <td><input th:readonly="${setupConfig.deployed}"
-                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.region}"/></td>
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.region}"/></td>
             </tr>
             <tr>
                 <td>Runtime</td>
                 <td><input th:readonly="${setupConfig.deployed}"
-                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.runtime}"/></td>
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.runtime}"/></td>
             </tr>
             <tr>
                 <td>AWS ARN Lambda Role</td>
                 <td><input th:readonly="${setupConfig.deployed}"
-                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.awsArnLambdaRole}"/></td>
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.awsArnLambdaRole}"/></td>
             </tr>
             <tr>
                 <td>Handler Class Name</td>
                 <td><input th:readonly="${setupConfig.deployed}"
-                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.functionHandler}"/></td>
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionHandler}"/></td>
             </tr>
             <tr>
                 <td>Timeout in Seconds</td>
                 <td><input th:readonly="${setupConfig.deployed}"
-                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.timeout}"/></td>
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.timeout}"/></td>
             </tr>
             <tr>
                 <td>Memory Sizes (comma separated List)</td>
                 <td><input th:readonly="${setupConfig.deployed}"
-                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.memorySizes}"/></td>
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.memorySizes}"/></td>
             </tr>
             <tr>
                 <td>Path to ZIP Source (locally on your computer)</td>
                 <td><input th:readonly="${setupConfig.deployed}"
-                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.pathToSource}"/></td>
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.pathToSource}"/></td>
             </tr>
             <tr>
                 <td>Target URL (filled by the tool)</td>
                 <td><input readonly="readonly"
-                           th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.targetUrl}"/></td>
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.targetUrl}"/></td>
             </tr>
             <tr>
                 <td>API Key (filled by the tool)</td>
-                <td><input readonly="readonly" th:field="*{benchmarkConfig.awsBenchmarkConfig.functionConfig.apiKey}"/>
+                <td><input readonly="readonly" th:field="*{benchmarkConfig.awsBenchmarkConfig.apiKey}"/>
                 </td>
             </tr>
         </table>
@@ -120,17 +120,17 @@
             <tr>
                 <td>REST API ID (filled by the tool)</td>
                 <td><input readonly="readonly"
-                           th:field="*{benchmarkConfig.awsBenchmarkConfig.deploymentInternals.restApiId}"/></td>
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.restApiId}"/></td>
             </tr>
             <tr>
                 <td>API Key ID (filled by the tool)</td>
                 <td><input readonly="readonly"
-                           th:field="*{benchmarkConfig.awsBenchmarkConfig.deploymentInternals.apiKeyId}"/></td>
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.apiKeyId}"/></td>
             </tr>
             <tr>
                 <td>Usage Plan ID (filled by the tool)</td>
                 <td><input readonly="readonly"
-                           th:field="*{benchmarkConfig.awsBenchmarkConfig.deploymentInternals.usagePlanId}"/></td>
+                           th:field="*{benchmarkConfig.awsBenchmarkConfig.usagePlanId}"/></td>
             </tr>
         </table>
 
@@ -173,49 +173,49 @@
                 <tr>
                     <td>Region</td>
                     <td><input th:readonly="${setupConfig.calibrationDeployed}"
-                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.region}"/></td>
+                               th:field="*{calibrationConfig.awsCalibrationConfig.benchmarkConfig.region}"/></td>
                 </tr>
                 <tr>
                     <td>Runtime</td>
                     <td><input th:readonly="${setupConfig.calibrationDeployed}"
-                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.runtime}"/></td>
+                               th:field="*{calibrationConfig.awsCalibrationConfig.benchmarkConfig.runtime}"/></td>
                 </tr>
                 <tr>
                     <td>AWS ARN Lambda Role</td>
                     <td><input th:readonly="${setupConfig.calibrationDeployed}"
-                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.awsArnLambdaRole}"/>
+                               th:field="*{calibrationConfig.awsCalibrationConfig.benchmarkConfig.awsArnLambdaRole}"/>
                     </td>
                 </tr>
                 <tr>
                     <td>Handler Class Name</td>
                     <td><input th:readonly="${setupConfig.calibrationDeployed}"
-                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.functionHandler}"/>
+                               th:field="*{calibrationConfig.awsCalibrationConfig.benchmarkConfig.functionHandler}"/>
                     </td>
                 </tr>
                 <tr>
                     <td>Timeout in Seconds</td>
                     <td><input th:readonly="${setupConfig.calibrationDeployed}"
-                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.timeout}"/></td>
+                               th:field="*{calibrationConfig.awsCalibrationConfig.benchmarkConfig.timeout}"/></td>
                 </tr>
                 <tr>
                     <td>Memory Sizes (comma separated List)</td>
                     <td><input th:readonly="${setupConfig.calibrationDeployed}"
-                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.memorySizes}"/></td>
+                               th:field="*{calibrationConfig.awsCalibrationConfig.benchmarkConfig.memorySizes}"/></td>
                 </tr>
                 <tr>
                     <td>Path to ZIP Source (locally on your computer)</td>
                     <td><input th:readonly="${setupConfig.calibrationDeployed}"
-                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.pathToSource}"/></td>
+                               th:field="*{calibrationConfig.awsCalibrationConfig.benchmarkConfig.pathToSource}"/></td>
                 </tr>
                 <tr>
                     <td>Target URL (filled by the tool)</td>
                     <td><input readonly="readonly"
-                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.targetUrl}"/></td>
+                               th:field="*{calibrationConfig.awsCalibrationConfig.benchmarkConfig.targetUrl}"/></td>
                 </tr>
                 <tr>
                     <td>API Key (filled by the tool)</td>
                     <td><input readonly="readonly"
-                               th:field="*{calibrationConfig.awsCalibrationConfig.functionConfig.apiKey}"/>
+                               th:field="*{calibrationConfig.awsCalibrationConfig.benchmarkConfig.apiKey}"/>
                     </td>
                 </tr>
             </div>
@@ -225,17 +225,17 @@
             <tr>
                 <td>REST API ID (filled by the tool)</td>
                 <td><input readonly="readonly"
-                           th:field="*{calibrationConfig.awsCalibrationConfig.deploymentInternals.restApiId}"/></td>
+                           th:field="*{calibrationConfig.awsCalibrationConfig.benchmarkConfig.restApiId}"/></td>
             </tr>
             <tr>
                 <td>API Key ID (filled by the tool)</td>
                 <td><input readonly="readonly"
-                           th:field="*{calibrationConfig.awsCalibrationConfig.deploymentInternals.apiKeyId}"/></td>
+                           th:field="*{calibrationConfig.awsCalibrationConfig.benchmarkConfig.apiKeyId}"/></td>
             </tr>
             <tr>
                 <td>Usage Plan ID (filled by the tool)</td>
                 <td><input readonly="readonly"
-                           th:field="*{calibrationConfig.awsCalibrationConfig.deploymentInternals.usagePlanId}"/></td>
+                           th:field="*{calibrationConfig.awsCalibrationConfig.benchmarkConfig.usagePlanId}"/></td>
             </tr>
 
         </table>
@@ -454,6 +454,8 @@ var runFunction = document.getElementById('runFunction')
                               }});
                           }
                     });
+
+
 
 
 
