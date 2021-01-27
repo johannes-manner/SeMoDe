@@ -1,9 +1,8 @@
 package de.uniba.dsg.serverless.simulation.load;
 
-import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.simulation.load.model.ContainerInstance;
 import de.uniba.dsg.serverless.simulation.load.model.SimulationInput;
-import de.uniba.dsg.serverless.util.FileLogger;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,9 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class LoadPatternSimulator {
-
-    private static final FileLogger logger = ArgumentProcessor.logger;
 
     private final List<Double> inputValues;
 
@@ -48,7 +46,7 @@ public class LoadPatternSimulator {
             }
             simulation.addToExecuting(container);
 
-            logger.info(container.toString());
+            log.info(container.toString());
         }
 
         // shutdown all containers (idle and running)

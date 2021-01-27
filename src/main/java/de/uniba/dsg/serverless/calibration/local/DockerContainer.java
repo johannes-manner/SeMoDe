@@ -14,7 +14,6 @@ import com.github.dockerjava.core.InvocationBuilder.AsyncResultCallback;
 import com.github.dockerjava.core.command.BuildImageResultCallback;
 import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.github.dockerjava.core.command.WaitContainerResultCallback;
-import de.uniba.dsg.serverless.util.DockerUtil;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -155,15 +154,6 @@ public class DockerContainer {
         }
         return config;
 
-    }
-
-    // TODO any use for this?
-    public long getStartedAt() throws SeMoDeException {
-        final String startedAt = this.client.inspectContainerCmd(this.containerId)
-                .exec()
-                .getState()
-                .getStartedAt();
-        return DockerUtil.parseTime(startedAt);
     }
 
     /**

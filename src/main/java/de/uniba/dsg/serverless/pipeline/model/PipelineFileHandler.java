@@ -1,14 +1,13 @@
 package de.uniba.dsg.serverless.pipeline.model;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
+import de.uniba.dsg.serverless.util.SeMoDeException;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
-import de.uniba.dsg.serverless.util.FileLogger;
-import de.uniba.dsg.serverless.util.SeMoDeException;
 
 /**
  * Model class of a Pipeline Setup. A pipeline setup consists of multiple benchmarks or calibrations. The settings are
@@ -20,10 +19,6 @@ import de.uniba.dsg.serverless.util.SeMoDeException;
  */
 public class PipelineFileHandler {
 
-//    public static final String SETUP_LOCATION = "setups";
-//    private static final String PIPELINE_JSON = "pipeline.json";
-//    private static final String SEMODE_JAR_NAME = "SeMoDe.jar";
-
     // name of the pipeline setup, also name for the root folder
     public final String name;
     // global pipeline paths
@@ -34,10 +29,7 @@ public class PipelineFileHandler {
     // for calibration
     public final Path pathToCalibration;
 
-    // for logging the pipeline interaction
-    public FileLogger logger = null;
-
-    public PipelineFileHandler(final String name, String setupLocation) throws SeMoDeException {
+    public PipelineFileHandler(final String name, String setupLocation) {
         this.name = name;
         this.pathToSetup = Paths.get(setupLocation, name);
         this.pathToConfig = this.pathToSetup.resolve("settings.json");
@@ -77,39 +69,4 @@ public class PipelineFileHandler {
         }
     }
 
-    //TODO
-//    /**
-//     * This functions return the fully qualified name of the SeMoDe.jar file to enable other utilities to generate batch
-//     * files for automating the benchmarking pipeline.
-//     *
-//     * @return the location of the SeMoDe.jar file to generate different batch files
-//     * @throws SeMoDeException if the SeMoDe.jar is not in the current project directory.
-//     */
-//    public String getSeMoDeJarLocation() throws SeMoDeException {
-//
-//        final Predicate<Path> isSeMoDeJar = p -> p.toString().endsWith(SEMODE_JAR_NAME);
-//        final Optional<String> jarFile;
-//        try {
-//            jarFile = Files.walk(this.pathToSetup.toAbsolutePath().getParent().getParent())
-//                           .filter(isSeMoDeJar)
-//                           .map(p -> p.toString())
-//                           .findFirst();
-//
-//            // there is only one SeMoDe-jar
-//            if (!jarFile.isPresent()) {
-//                throw new SeMoDeException(
-//                        "The SeMoDe utility was not built - please execute the gradle build command before executing the command again");
-//            }
-//            return jarFile.get();
-//        } catch (final IOException e) {
-//            throw new SeMoDeException("Error while traversing the SeMoDe file tree", e);
-//        }
-//    }
-
-    public FileLogger getLogger() {
-        if (this.logger == null) {
-            this.logger = new FileLogger("pipeline", this.pathToSetup.resolve("pipeline.log").toString(), false);
-        }
-        return this.logger;
-    }
 }

@@ -1,14 +1,13 @@
 package de.uniba.dsg.serverless.calibration.provider;
 
-import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.calibration.Calibration;
 import de.uniba.dsg.serverless.calibration.LinpackParser;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSFunctionConfig;
 import de.uniba.dsg.serverless.pipeline.sdk.AWSClient;
-import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -19,9 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class AWSCalibration implements CalibrationMethods {
-
-    private static final FileLogger logger = ArgumentProcessor.logger;
 
     private final AWSCalibrationConfig config;
     private final AWSFunctionConfig functionConfig;
@@ -76,7 +74,7 @@ public class AWSCalibration implements CalibrationMethods {
     @Override
     public void deployCalibration() {
         if (Files.exists(this.calibration.calibrationFile)) {
-            logger.info("Provider calibration already performed.");
+            log.info("Provider calibration already performed.");
             return;
         }
 
@@ -89,7 +87,7 @@ public class AWSCalibration implements CalibrationMethods {
     @Override
     public void startCalibration() throws SeMoDeException {
         if (Files.exists(this.calibration.calibrationFile)) {
-            logger.info("Provider calibration already performed.");
+            log.info("Provider calibration already performed.");
             return;
         }
 

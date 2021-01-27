@@ -1,5 +1,35 @@
 package de.uniba.dsg.serverless.pipeline.sdk;
 
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.services.apigateway.AmazonApiGateway;
+import com.amazonaws.services.apigateway.AmazonApiGatewayClientBuilder;
+import com.amazonaws.services.apigateway.model.*;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
+import com.amazonaws.services.lambda.AWSLambda;
+import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
+import com.amazonaws.services.lambda.model.*;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.google.common.util.concurrent.Uninterruptibles;
+import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSDeploymentInternals;
+import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSFunctionConfig;
+import de.uniba.dsg.serverless.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.HttpStatus;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -9,82 +39,8 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.apigateway.AmazonApiGateway;
-import com.amazonaws.services.apigateway.AmazonApiGatewayClientBuilder;
-import com.amazonaws.services.apigateway.model.ApiStage;
-import com.amazonaws.services.apigateway.model.CreateApiKeyRequest;
-import com.amazonaws.services.apigateway.model.CreateApiKeyResult;
-import com.amazonaws.services.apigateway.model.CreateDeploymentRequest;
-import com.amazonaws.services.apigateway.model.CreateDeploymentResult;
-import com.amazonaws.services.apigateway.model.CreateResourceRequest;
-import com.amazonaws.services.apigateway.model.CreateResourceResult;
-import com.amazonaws.services.apigateway.model.CreateRestApiRequest;
-import com.amazonaws.services.apigateway.model.CreateRestApiResult;
-import com.amazonaws.services.apigateway.model.CreateUsagePlanKeyRequest;
-import com.amazonaws.services.apigateway.model.CreateUsagePlanKeyResult;
-import com.amazonaws.services.apigateway.model.CreateUsagePlanRequest;
-import com.amazonaws.services.apigateway.model.CreateUsagePlanResult;
-import com.amazonaws.services.apigateway.model.DeleteApiKeyRequest;
-import com.amazonaws.services.apigateway.model.DeleteApiKeyResult;
-import com.amazonaws.services.apigateway.model.DeleteRestApiRequest;
-import com.amazonaws.services.apigateway.model.DeleteRestApiResult;
-import com.amazonaws.services.apigateway.model.DeleteUsagePlanRequest;
-import com.amazonaws.services.apigateway.model.DeleteUsagePlanResult;
-import com.amazonaws.services.apigateway.model.GetResourcesRequest;
-import com.amazonaws.services.apigateway.model.GetResourcesResult;
-import com.amazonaws.services.apigateway.model.NotFoundException;
-import com.amazonaws.services.apigateway.model.PutIntegrationRequest;
-import com.amazonaws.services.apigateway.model.PutIntegrationResponseRequest;
-import com.amazonaws.services.apigateway.model.PutIntegrationResponseResult;
-import com.amazonaws.services.apigateway.model.PutIntegrationResult;
-import com.amazonaws.services.apigateway.model.PutMethodRequest;
-import com.amazonaws.services.apigateway.model.PutMethodResponseRequest;
-import com.amazonaws.services.apigateway.model.PutMethodResponseResult;
-import com.amazonaws.services.apigateway.model.PutMethodResult;
-import com.amazonaws.services.apigateway.model.Resource;
-import com.amazonaws.services.apigateway.model.StageKey;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
-import com.amazonaws.services.lambda.model.AddPermissionRequest;
-import com.amazonaws.services.lambda.model.AddPermissionResult;
-import com.amazonaws.services.lambda.model.CreateFunctionRequest;
-import com.amazonaws.services.lambda.model.CreateFunctionResult;
-import com.amazonaws.services.lambda.model.DeleteFunctionRequest;
-import com.amazonaws.services.lambda.model.DeleteFunctionResult;
-import com.amazonaws.services.lambda.model.FunctionCode;
-import com.amazonaws.services.lambda.model.ResourceConflictException;
-import com.amazonaws.services.lambda.model.ResourceNotFoundException;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import com.google.common.util.concurrent.Uninterruptibles;
-import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSDeploymentInternals;
-import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSFunctionConfig;
-import de.uniba.dsg.serverless.util.FileLogger;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.HttpStatus;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.ClientProperties;
-
 @Slf4j
 public class AWSClient {
-
-    private static final FileLogger logger = ArgumentProcessor.logger;
 
     private final AmazonS3 amazonS3Client;
     private final AmazonApiGateway amazonApiGatewayClient;
@@ -122,9 +78,9 @@ public class AWSClient {
         final WebTarget lambdaTarget = ClientBuilder.newClient(configuration).target(targetUrl);
         try {
             final Response r = lambdaTarget.path(path)
-                                           .request()
-                                           .header("x-api-key", apiKey)
-                                           .post(Entity.entity("{\"resultFileName\": \"" + resultFileNameS3Bucket + "\"}", MediaType.APPLICATION_JSON));
+                    .request()
+                    .header("x-api-key", apiKey)
+                    .post(Entity.entity("{\"resultFileName\": \"" + resultFileNameS3Bucket + "\"}", MediaType.APPLICATION_JSON));
             if (r.getStatus() == 403) {
                 throw new SeMoDeException("Cannot invoke function. Forbidden (403).");
             }
@@ -142,7 +98,7 @@ public class AWSClient {
      * @throws SeMoDeException thrown if the S3 bucket is not available or the timeout is exceeded.
      */
     public void waitForBucketObject(final String bucketName, final String keyName, long timeout) throws SeMoDeException {
-        logger.info("Waiting for object " + keyName);
+        log.info("Waiting for object " + keyName);
         timeout *= 1_000; // convert to ms
         final long startTime = System.currentTimeMillis();
         while (System.currentTimeMillis() < startTime + timeout) {
@@ -200,7 +156,7 @@ public class AWSClient {
                 throw new SeMoDeException("Can't deploy lambda function. Inspect it: " + createFunctionRequest.toString());
             }
         } catch (final ResourceConflictException e) {
-            logger.warning("Lambda function already exists! Check if you need an update!");
+            log.warn("Lambda function already exists! Check if you need an update!");
         }
     }
 
@@ -410,12 +366,12 @@ public class AWSClient {
 
         try {
             final AddPermissionResult result = this.amazonLambdaClient.addPermission(addPermissionRequest);
-            logger.info("update lambda permission: " + result.getSdkHttpMetadata().getHttpStatusCode());
+            log.info("update lambda permission: " + result.getSdkHttpMetadata().getHttpStatusCode());
             if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
-                logger.warning("Lambda function already exists! Permission update was not possible! Probably already there!");
+                log.warn("Lambda function already exists! Permission update was not possible! Probably already there!");
             }
         } catch (final ResourceConflictException e) {
-            logger.warning("Lambda function permission already exists! Check if you need an update!");
+            log.warn("Lambda function permission already exists! Check if you need an update!");
         }
     }
 
@@ -426,10 +382,10 @@ public class AWSClient {
         try {
             final DeleteFunctionResult result = this.amazonLambdaClient.deleteFunction(deleteFunctionRequest);
             if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                logger.info("AWS Lambda function " + functionName + " deleted");
+                log.info("AWS Lambda function " + functionName + " deleted");
             }
         } catch (final ResourceNotFoundException e) {
-            logger.warning("AWS Lambda function " + functionName + " deleted or not present!");
+            log.warn("AWS Lambda function " + functionName + " deleted or not present!");
         }
     }
 
@@ -440,10 +396,10 @@ public class AWSClient {
         try {
             final DeleteApiKeyResult result = this.amazonApiGatewayClient.deleteApiKey(deleteApiKeyRequest);
             if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_ACCEPTED) {
-                logger.info("Amazon Api Gateway key " + apiKeyId + " deleted");
+                log.info("Amazon Api Gateway key " + apiKeyId + " deleted");
             }
         } catch (final NotFoundException e) {
-            logger.warning("Amazon Api Gateway key " + apiKeyId + " deleted or not present!");
+            log.warn("Amazon Api Gateway key " + apiKeyId + " deleted or not present!");
         }
     }
 
@@ -454,10 +410,10 @@ public class AWSClient {
         try {
             final DeleteRestApiResult result = this.amazonApiGatewayClient.deleteRestApi(deleteRestApiRequest);
             if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_ACCEPTED) {
-                logger.info("Amazon Api Gateway rest api " + restApiId + " deleted");
+                log.info("Amazon Api Gateway rest api " + restApiId + " deleted");
             }
         } catch (final NotFoundException e) {
-            logger.warning("Amazon Api Gateway rest api " + restApiId + "deleted or not present!");
+            log.warn("Amazon Api Gateway rest api " + restApiId + "deleted or not present!");
         }
     }
 
@@ -468,10 +424,10 @@ public class AWSClient {
         try {
             final DeleteUsagePlanResult result = this.amazonApiGatewayClient.deleteUsagePlan(deleteUsagePlanRequest);
             if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_ACCEPTED) {
-                logger.info("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted");
+                log.info("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted");
             }
         } catch (final NotFoundException e) {
-            logger.warning("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted or not present!");
+            log.warn("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted or not present!");
         }
     }
 
@@ -486,7 +442,7 @@ public class AWSClient {
                 functionConfig.functionHandler, functionConfig.timeout, memorySize,
                 Paths.get(functionConfig.pathToSource));
 
-        logger.info("Function deployment successfully completed for " + memorySize + " MB! (AWS Lambda)");
+        log.info("Function deployment successfully completed for " + memorySize + " MB! (AWS Lambda)");
     }
 
     /**
@@ -505,7 +461,7 @@ public class AWSClient {
         final String deploymentId = this.createStage(restApiId, stageName);
         final Pair<String, String> keyPair = this.createApiKey(setupName + "_key", restApiId, stageName);
         final String usagePlanId = this.createUsagePlanAndUsagePlanKey(setupName + "_plan", restApiId, stageName, keyPair.getKey());
-        logger.info("API Gateway deployment successfully completed!");
+        log.info("API Gateway deployment successfully completed!");
 
         // store x-api-key and targetUrl in pipeline configuration
         functionConfig.targetUrl = "https://" + restApiId + ".execute-api." + functionConfig.region + ".amazonaws.com/" + setupName + "_stage";
@@ -537,7 +493,7 @@ public class AWSClient {
                 this.updateLambdaPermission(f.getLeft(), restApiId, functionConfig.region);
             }
 
-            logger.info("Deployment successfully completed!");
+            log.info("Deployment successfully completed!");
         } catch (final SeMoDeException e) {
             this.removeAllDeployedResources(functionConfigs, deploymentInternals);
         }

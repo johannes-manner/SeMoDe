@@ -1,9 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.GsonBuilder;
 import de.uniba.dsg.serverless.calibration.local.LocalCalibration;
-import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.calibration.mapping.MappingMaster;
 import de.uniba.dsg.serverless.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.calibration.provider.AWSCalibration;
@@ -16,16 +13,11 @@ import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.ProviderEvent;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.PipelineFileHandler;
-import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
-import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
-import de.uniba.dsg.serverless.pipeline.model.config.RunningCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
-import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
 import de.uniba.dsg.serverless.spring.repo.LocalRESTEventRepository;
 import de.uniba.dsg.serverless.spring.repo.ProviderEventRepository;
 import de.uniba.dsg.serverless.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -175,6 +167,19 @@ public class SetupService {
         }
     }
 
+    public void undeployCalibration(String platform) throws SeMoDeException {
+
+        CalibrationMethods calibration = this.getCalibrationMethod(platform);
+
+        if (calibration != null) {
+            calibration.undeployCalibration();
+            this.setupConfig.setCalibrationDeployed(false);
+            this.updateSetup(this.setupConfig);
+        }
+    }
+
+    // TODO undeploy calibration is missing
+
     // TODO document
     public void fetchPerformanceData() throws SeMoDeException {
         for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
@@ -205,144 +210,4 @@ public class SetupService {
         ContainerExecutor containerExecutor = new ContainerExecutor(this.fileHandler.pathToCalibration, this.setupConfig.getCalibrationConfig().getMappingCalibrationConfig(), this.setupConfig.getCalibrationConfig().getRunningCalibrationConfig());
         containerExecutor.executeLocalProfiles();
     }
-
-    // Old parts...
-    @Deprecated
-    public void updateAWSConfig(final String region, final String runtime, final String awsArnRole,
-                                final String functionHandler, final String timeout, final String deployLinpack, final String targetUrl,
-                                final String apiKey, final String bucketName, final String memorySizes, final String numberOfAWSExecutions,
-                                final String enabled, final String pathToSource) throws SeMoDeException {
-        try {
-            this.setupConfig.getCalibrationConfig().getAwsCalibrationConfig().update(region, runtime, awsArnRole, functionHandler, timeout, deployLinpack, targetUrl, apiKey, bucketName, memorySizes, numberOfAWSExecutions, enabled, pathToSource);
-        } catch (final IOException e) {
-            throw new SeMoDeException("Error during memory Size parsing");
-        }
-    }
-
-    @Deprecated
-    public void updateLocalConfig(final String localSteps, final String numberOfLocalCalibrations,
-                                  final String enabled, final String dockerSourceFolder) {
-        this.setupConfig.getCalibrationConfig().getLocalConfig().update(localSteps, numberOfLocalCalibrations, enabled, dockerSourceFolder);
-    }
-
-    @Deprecated
-    public AWSCalibrationConfig getAWSConfig() {
-        return this.setupConfig.getCalibrationConfig().getAwsCalibrationConfig();
-    }
-
-    @Deprecated
-    public LocalCalibrationConfig getLocalConfig() {
-        return this.setupConfig.getCalibrationConfig().getLocalConfig();
-    }
-
-    @Deprecated
-    public boolean isLocalEnabled() {
-        return this.setupConfig.getCalibrationConfig().getLocalConfig().isLocalEnabled();
-    }
-
-    @Deprecated
-    public boolean isAWSEnabled() {
-        return true;
-    }
-
-    @Deprecated
-    public double getLocalSteps() {
-        return this.setupConfig.getCalibrationConfig().getLocalConfig().getLocalSteps();
-    }
-
-    /**
-     * Load the user config from file.
-     */
-    @Deprecated
-    public void loadUserConfig(final String path) throws SeMoDeException {
-        final ObjectMapper om = new ObjectMapper();
-        try {
-            this.setupConfig = om.readValue(Paths.get(path).toFile(), SetupConfig.class);
-        } catch (final IOException e) {
-            throw new SeMoDeException("Error while parsing the " + path + " file. Check the config.");
-        }
-    }
-
-    @Deprecated
-    public void saveUserConfigToFile(final Path pathToConfig) throws SeMoDeException {
-        try {
-            new ObjectMapper().writer().withDefaultPrettyPrinter().writeValue(pathToConfig.toFile(),
-                    this.setupConfig);
-        } catch (final IOException e) {
-            throw new SeMoDeException("Configuration could not be saved.", e);
-        }
-    }
-
-    @Deprecated
-    public String getPrintableString() {
-        return new GsonBuilder().setPrettyPrinting().create().toJson(this.setupConfig);
-    }
-
-    @Deprecated
-    public void updateAWSFunctionBenchmarkConfig(final String region, final String runtime,
-                                                 final String awsArnRole, final String functionHandler,
-                                                 final String timeout, final String memorySizes, final String pathToSource, final String targetUrl,
-                                                 final String apiKey) throws SeMoDeException {
-        try {
-            this.setupConfig.getBenchmarkConfig().getAwsBenchmarkConfig().getFunctionConfig().update(region, runtime, awsArnRole, functionHandler, timeout, targetUrl, apiKey, memorySizes, pathToSource);
-        } catch (final IOException e) {
-            throw new SeMoDeException("Error during memory Size parsing");
-        }
-    }
-
-    @Deprecated
-    public void updateGlobalBenchmarkParameters(final String numberOfThreads, final String benchmarkingMode,
-                                                final String benchmarkingParameters, final String postArgument) {
-        this.setupConfig.getBenchmarkConfig().update(numberOfThreads, benchmarkingMode, benchmarkingParameters, postArgument);
-    }
-
-    @Deprecated
-    public BenchmarkConfig getBenchmarkConfig() {
-        return this.setupConfig.getBenchmarkConfig();
-    }
-
-    @Deprecated
-    public void logBenchmarkStartTime() {
-        this.setupConfig.getBenchmarkConfig().logBenchmarkStartTime();
-    }
-
-    @Deprecated
-    public void logBenchmarkEndTime() {
-        this.setupConfig.getBenchmarkConfig().logBenchmarkEndTime();
-    }
-
-    @Deprecated
-    public Pair<LocalDateTime, LocalDateTime> getStartAndEndTime() throws SeMoDeException {
-//        try {
-//            return new ImmutablePair<>(this.setupConfig.getBenchmarkConfig().startTime,
-//                    this.setupConfig.getBenchmarkConfig().endTime);
-//        } catch (final DateTimeParseException e) {
-        throw new SeMoDeException("Start or end time not parsable: start: " + this.setupConfig.getBenchmarkConfig().startTime
-                + " end: " + this.setupConfig.getBenchmarkConfig().endTime);
-//        }
-    }
-
-    @Deprecated
-    public void updateMappingConfig(final String localCalibrationFile, final String providerCalibrationFile,
-                                    final String memoryJSON) throws SeMoDeException {
-        this.setupConfig.getCalibrationConfig().getMappingCalibrationConfig().update(localCalibrationFile, providerCalibrationFile, memoryJSON);
-    }
-
-    @Deprecated
-    public MappingCalibrationConfig getMappingConfig() {
-        return this.setupConfig.getCalibrationConfig().getMappingCalibrationConfig();
-    }
-
-    @Deprecated
-    public void updateRunningConfig(final String dockerSourceFolder, final String environmentVariablesFile,
-                                    final String numberOfProfiles) {
-        this.setupConfig.getCalibrationConfig().getRunningCalibrationConfig().update(dockerSourceFolder, environmentVariablesFile, numberOfProfiles);
-    }
-
-    @Deprecated
-    public RunningCalibrationConfig getRunningConfig() {
-        return this.setupConfig.getCalibrationConfig().getRunningCalibrationConfig();
-    }
-
-
 }

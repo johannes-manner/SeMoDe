@@ -1,5 +1,13 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.log.azure;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.io.CharStreams;
+import com.google.common.net.UrlEscapers;
+import de.uniba.dsg.serverless.pipeline.benchmark.log.LogHandler;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
+import de.uniba.dsg.serverless.util.SeMoDeException;
+
+import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,21 +18,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.net.ssl.HttpsURLConnection;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.io.CharStreams;
-import com.google.common.net.UrlEscapers;
-import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.pipeline.benchmark.log.LogHandler;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
-import de.uniba.dsg.serverless.util.FileLogger;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-
 @Deprecated(since = "January 2021")
 public class AzureLogHandler implements LogHandler {
 
-    private static final FileLogger logger = ArgumentProcessor.logger;
     private static final DateTimeFormatter QUERY_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
 
     private final String apiURL;

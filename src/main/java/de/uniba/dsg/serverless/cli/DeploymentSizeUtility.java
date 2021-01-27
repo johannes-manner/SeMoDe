@@ -1,9 +1,8 @@
 package de.uniba.dsg.serverless.cli;
 
-import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.FileSizeEnlarger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,9 +11,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+@Slf4j
 public class DeploymentSizeUtility extends CustomUtility {
-
-    private static final FileLogger logger = ArgumentProcessor.logger;
 
     private boolean isZipFile;
     private Path path;
@@ -37,7 +35,7 @@ public class DeploymentSizeUtility extends CustomUtility {
                 enlarger.fillRegularFile(this.desiredFileSize, this.commentStart);
             }
         } catch (final SeMoDeException e) {
-            logger.warning("Increasing the Size of the file failed. " + e.getMessage());
+            log.warn("Increasing the Size of the file failed. " + e.getMessage());
         }
     }
 

@@ -1,12 +1,11 @@
 package de.uniba.dsg.serverless.calibration.local;
 
-import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.calibration.Calibration;
 import de.uniba.dsg.serverless.calibration.LinpackParser;
 import de.uniba.dsg.serverless.calibration.provider.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
-import de.uniba.dsg.serverless.util.FileLogger;
 import de.uniba.dsg.serverless.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,9 +19,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+@Slf4j
 public class LocalCalibration implements CalibrationMethods {
 
-    private static final FileLogger logger = ArgumentProcessor.logger;
     private static final String CONTAINER_RESULT_FOLDER = "/usr/src/linpack/output/"; // specified by linpack benchmark container
     private static final String LINPACK_IMAGE = "semode/linpack";
     // composite
@@ -46,18 +45,18 @@ public class LocalCalibration implements CalibrationMethods {
 
     @Override
     public void undeployCalibration() {
-        logger.warning("Not able to stop the local calibration!");
+        log.warn("Not able to stop the local calibration!");
     }
 
     @Override
     public void deployCalibration() {
-        logger.info("There is no deployment for local needed");
+        log.info("There is no deployment for local needed");
     }
 
     @Override
     public void startCalibration() throws SeMoDeException {
         if (Files.exists(this.calibration.calibrationFile)) {
-            logger.info("Calibration has already been performed. inspect it using \"calibrate info\"");
+            log.info("Calibration has already been performed. inspect it using \"calibrate info\"");
             return;
         }
 
@@ -65,7 +64,7 @@ public class LocalCalibration implements CalibrationMethods {
         final DockerContainer linpackContainer = new DockerContainer(this.config.getDockerSourceFolder(), LINPACK_IMAGE);
         linpackContainer.buildContainer();
         final int physicalCores = this.getPhysicalCores();
-        logger.info("Number of cores: " + physicalCores);
+        log.info("Number of cores: " + physicalCores);
         final List<Double> quotas = IntStream
                 // 1.1 results from 1 + avoid rounding errors (0.1)
                 .range(1, (int) (1.1 + ((double) physicalCores * 1.0 / this.config.getLocalSteps())))
@@ -102,7 +101,7 @@ public class LocalCalibration implements CalibrationMethods {
 
         final List<Double> results = new ArrayList<>();
         for (final double quota : quotas) {
-            logger.info("Run: " + i + " running calibration using quota " + quota);
+            log.info("Run: " + i + " running calibration using quota " + quota);
             results.add(subCalibration.executeBenchmark(linpackContainer, quota));
         }
         return results;

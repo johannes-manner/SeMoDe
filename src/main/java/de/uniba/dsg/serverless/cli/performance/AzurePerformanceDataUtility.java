@@ -1,32 +1,27 @@
 package de.uniba.dsg.serverless.cli.performance;
 
+import de.uniba.dsg.serverless.cli.CustomUtility;
+import de.uniba.dsg.serverless.pipeline.benchmark.log.azure.AzureLogHandler;
+import de.uniba.dsg.serverless.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.cli.CustomUtility;
-import de.uniba.dsg.serverless.pipeline.benchmark.log.azure.AzureLogHandler;
-import de.uniba.dsg.serverless.util.FileLogger;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-
 @Deprecated
+@Slf4j
 public final class AzurePerformanceDataUtility extends CustomUtility {
-
-    private static final FileLogger logger = ArgumentProcessor.logger;
-
-//    private final PerformanceDataWriter fetcher;
 
     public AzurePerformanceDataUtility(final String name) {
         super(name);
-//        this.fetcher = new PerformanceDataWriter();
     }
 
     @Override
     public void start(final List<String> args) {
 
         if (args.size() < 6) {
-            logger.warning("Wrong parameter size: " + "\n(1) Application ID " + "\n(2) API Key " + "\n(3) Service Name"
+            log.warn("Wrong parameter size: " + "\n(1) Application ID " + "\n(2) API Key " + "\n(3) Service Name"
                     + "\n(4) Function Name" + "\n(5) Start time filter of performance data"
                     + "\n(6) End time filter of performance data" + "\n(7) Optional - REST calls file");
             return;
@@ -56,7 +51,7 @@ public final class AzurePerformanceDataUtility extends CustomUtility {
 
 //            this.fetcher.getPerformanceDataFromPlatform("azure", azureLogHandler, serviceName, restFile);
         } catch (final SeMoDeException e) {
-            logger.warning(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!" : e.getCause().getMessage()));
+            log.warn(e.getMessage() + "Cause: " + (e.getCause() == null ? "No further cause!" : e.getCause().getMessage()));
         }
     }
 }

@@ -1,16 +1,15 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.log.aws;
 
+import com.amazonaws.services.logs.model.OutputLogEvent;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
+import lombok.extern.slf4j.Slf4j;
+
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
-
-import com.amazonaws.services.logs.model.OutputLogEvent;
-import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
-import de.uniba.dsg.serverless.util.FileLogger;
 
 /**
  * {@code LogAnaylzer} is an utility class for analyzing log data and a basket for all public static final string values
@@ -20,6 +19,7 @@ import de.uniba.dsg.serverless.util.FileLogger;
  * @author Johannes Manner
  * @version 1.0
  */
+@Slf4j
 public final class AWSLogAnalyzer {
 
     public static final String HANDLER_CLASS = "HANDLERCLASS";
@@ -42,7 +42,6 @@ public final class AWSLogAnalyzer {
     public static final String TROUBLESHOOT_SPLIT_PATTERN = "::";
     private static final String EVENT_MESSAGE_START = "START";
     private static final String EVENT_MESSAGE_END = "REPORT";
-    private static final FileLogger logger = ArgumentProcessor.logger;
     /**
      * AWS log group name is constructed like a file path with the '/' separator
      */
@@ -143,15 +142,15 @@ public final class AWSLogAnalyzer {
         }
 
         if (messageParts == null) {
-            logger.warning("The investigated log event does not contain any messages");
+            log.warn("The investigated log event does not contain any messages");
             return new PerformanceData();
         } else if (messageParts.length != STRING_IN_END_MESSAGE && messageParts.length != STRING_IN_END_MESSAGE_FIRST_LOG_MESSAGE) {
-            logger.warning("The investigated log event does not contain an end message with performance data.");
+            log.warn("The investigated log event does not contain an end message with performance data.");
             String errorMessage = "Size of the report message: " + messageParts.length + " Split of the report message : ";
             for (int i = 0; i < messageParts.length; i++) {
                 errorMessage += i + " " + messageParts[i] + ", ";
             }
-            logger.info(errorMessage);
+            log.info(errorMessage);
             return new PerformanceData();
         }
 

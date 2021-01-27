@@ -61,6 +61,13 @@ public class AsynchronousController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/calibration/undeploy/{platform}")
+    public ResponseEntity undeployCalibration(@PathVariable("platform") String platform) throws SeMoDeException {
+        this.service.undeployCalibration(platform);
+        return ResponseEntity.ok().build();
+    }
+
+
     @GetMapping("/mapping")
     public ResponseEntity mapping() throws SeMoDeException {
         this.service.computeMapping();

@@ -1,27 +1,20 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.log.aws;
 
+import com.amazonaws.SdkClientException;
+import com.amazonaws.services.logs.AWSLogs;
+import com.amazonaws.services.logs.AWSLogsClientBuilder;
+import com.amazonaws.services.logs.model.*;
+import de.uniba.dsg.serverless.pipeline.benchmark.log.LogHandler;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
+import de.uniba.dsg.serverless.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
+
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import com.amazonaws.SdkClientException;
-import com.amazonaws.services.logs.AWSLogs;
-import com.amazonaws.services.logs.AWSLogsClientBuilder;
-import com.amazonaws.services.logs.model.DescribeLogStreamsRequest;
-import com.amazonaws.services.logs.model.DescribeLogStreamsResult;
-import com.amazonaws.services.logs.model.GetLogEventsRequest;
-import com.amazonaws.services.logs.model.GetLogEventsResult;
-import com.amazonaws.services.logs.model.LogStream;
-import com.amazonaws.services.logs.model.OutputLogEvent;
-import com.amazonaws.services.logs.model.ResourceNotFoundException;
-import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.pipeline.benchmark.log.LogHandler;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
-import de.uniba.dsg.serverless.util.FileLogger;
-import de.uniba.dsg.serverless.util.SeMoDeException;
 
 /**
  * This class starts the analysis of the log streams of the specified log group. It introduces a grouping of single log
@@ -30,9 +23,8 @@ import de.uniba.dsg.serverless.util.SeMoDeException;
  * @author Johannes Manner
  * @version 1.0
  */
+@Slf4j
 public final class AWSLogHandler implements LogHandler {
-
-    private static final FileLogger logger = ArgumentProcessor.logger;
 
     private final String region;
     private final String logGroupName;
@@ -72,7 +64,7 @@ public final class AWSLogHandler implements LogHandler {
         final List<FunctionExecutionEvent> logEventList = new ArrayList<>();
 
         for (final LogStream logStream : this.getLogStreams()) {
-            logger.info("Investigated LogStream " + logStream.getArn());
+            log.info("Investigated LogStream " + logStream.getArn());
             final List<OutputLogEvent> logEvents = this.getOutputLogEvent(logStream.getLogStreamName());
 
             final List<FunctionExecutionEvent> logStreamEvents = AWSLogAnalyzer.generateEventList(logEvents, this.logGroupName,
@@ -127,7 +119,7 @@ public final class AWSLogHandler implements LogHandler {
                 }
             } while (furtherLogRequest);//logResponse.getLogStreams().size() > 0);
 
-            logger.info("Number of Log streams: " + streams.size());
+            log.info("Number of Log streams: " + streams.size());
 
             return this.filterLogStreams(streams);
         } catch (final ResourceNotFoundException e) {
