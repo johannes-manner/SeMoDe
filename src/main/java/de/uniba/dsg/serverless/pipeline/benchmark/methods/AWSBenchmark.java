@@ -1,21 +1,21 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.methods;
 
+import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
+import de.uniba.dsg.serverless.pipeline.benchmark.provider.LogHandler;
+import de.uniba.dsg.serverless.pipeline.benchmark.provider.aws.AWSLogHandler;
+import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
+import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
+import de.uniba.dsg.serverless.pipeline.sdk.AWSClient;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import de.uniba.dsg.serverless.pipeline.benchmark.log.LogHandler;
-import de.uniba.dsg.serverless.pipeline.benchmark.log.aws.AWSLogHandler;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
-import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
-import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
-import de.uniba.dsg.serverless.pipeline.sdk.AWSClient;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 
 @Slf4j
 public class AWSBenchmark implements BenchmarkMethods {

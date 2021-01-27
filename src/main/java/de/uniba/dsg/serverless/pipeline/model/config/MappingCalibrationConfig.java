@@ -1,7 +1,7 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
 import com.google.gson.annotations.Expose;
-import de.uniba.dsg.serverless.util.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.Data;
 
 import java.util.Arrays;
@@ -36,7 +36,7 @@ public class MappingCalibrationConfig {
                 .map(Integer::parseInt)
                 .collect(Collectors.toList());
     }
-    
+
     // TODO remove
     public void update(final String localCalibrationFile, final String providerCalibrationFile, final String memoryJSON) throws SeMoDeException {
         if (!"".equals(localCalibrationFile)) {

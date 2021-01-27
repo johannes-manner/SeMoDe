@@ -1,6 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
-import de.uniba.dsg.serverless.calibration.local.LocalCalibrationConfig;
+import de.uniba.dsg.serverless.pipeline.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
 import lombok.Data;
 

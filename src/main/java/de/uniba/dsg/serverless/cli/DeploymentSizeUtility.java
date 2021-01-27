@@ -1,7 +1,7 @@
 package de.uniba.dsg.serverless.cli;
 
-import de.uniba.dsg.serverless.util.FileSizeEnlarger;
-import de.uniba.dsg.serverless.util.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.util.FileSizeEnlarger;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

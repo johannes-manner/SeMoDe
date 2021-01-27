@@ -1,9 +1,9 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.model;
 
-import java.util.List;
-
-import de.uniba.dsg.serverless.util.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class BenchmarkMode {

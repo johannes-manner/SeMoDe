@@ -1,8 +1,8 @@
 package de.uniba.dsg.serverless.cli.performance;
 
 import de.uniba.dsg.serverless.cli.CustomUtility;
-import de.uniba.dsg.serverless.pipeline.benchmark.log.ibm.IBMLogHandler;
-import de.uniba.dsg.serverless.util.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.benchmark.provider.ibm.IBMLogHandler;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;

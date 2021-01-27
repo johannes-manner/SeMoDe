@@ -16,7 +16,7 @@ import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.google.common.util.concurrent.Uninterruptibles;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSDeploymentInternals;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSFunctionConfig;
-import de.uniba.dsg.serverless.util.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;

@@ -3,8 +3,8 @@ package de.uniba.dsg.serverless.simulation.load;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.uniba.dsg.serverless.cli.CustomUtility;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import de.uniba.dsg.serverless.simulation.load.model.SimulationInput;
-import de.uniba.dsg.serverless.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

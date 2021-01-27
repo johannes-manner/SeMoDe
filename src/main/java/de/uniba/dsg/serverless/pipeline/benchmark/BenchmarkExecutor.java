@@ -8,7 +8,7 @@ import de.uniba.dsg.serverless.pipeline.benchmark.model.FunctionTriggerWrapper;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.LocalRESTEvent;
 import de.uniba.dsg.serverless.pipeline.benchmark.util.LoadPatternGenerator;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
-import de.uniba.dsg.serverless.util.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

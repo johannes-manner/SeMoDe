@@ -1,7 +1,7 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.util;
 
 import com.google.common.primitives.Doubles;
-import de.uniba.dsg.serverless.util.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

@@ -1,6 +1,6 @@
 package de.uniba.dsg.serverless.simulation.load;
 
-import de.uniba.dsg.serverless.util.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 
 import java.io.IOException;
 import java.nio.file.Files;

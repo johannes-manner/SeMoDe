@@ -1,24 +1,19 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.model;
 
+import de.uniba.dsg.serverless.pipeline.benchmark.util.LoadPatternGenerator;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
+import org.glassfish.jersey.client.ClientProperties;
+
+import javax.ws.rs.client.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import de.uniba.dsg.serverless.pipeline.benchmark.util.LoadPatternGenerator;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-import lombok.extern.slf4j.Slf4j;
-import org.glassfish.jersey.client.ClientProperties;
 
 @Slf4j
 public class FunctionTrigger implements Callable<LocalRESTEvent> {

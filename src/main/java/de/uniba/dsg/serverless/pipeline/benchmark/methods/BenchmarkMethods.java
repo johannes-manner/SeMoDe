@@ -1,12 +1,12 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.methods;
 
+import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-
-import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-import org.apache.commons.lang3.tuple.Pair;
 
 public interface BenchmarkMethods {
 

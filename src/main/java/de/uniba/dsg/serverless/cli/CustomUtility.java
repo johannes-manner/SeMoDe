@@ -1,6 +1,6 @@
 package de.uniba.dsg.serverless.cli;
 
-import de.uniba.dsg.serverless.util.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
