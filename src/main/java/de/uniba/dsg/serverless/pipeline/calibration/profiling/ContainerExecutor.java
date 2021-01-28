@@ -41,8 +41,8 @@ public class ContainerExecutor {
         this.pathToCalibration = pathToCalibration;
         this.mappingCalibrationConfig = mappingConfig;
         this.runningCalibrationConfig = runningConfig;
-        this.container = new DockerContainer(this.runningCalibrationConfig.dockerSourceFolder, "semode/local");
-        log.info("building container semode/local " + this.runningCalibrationConfig.dockerSourceFolder);
+        this.container = new DockerContainer(this.runningCalibrationConfig.getDockerSourceFolder(), "semode/local");
+        log.info("building container semode/local " + this.runningCalibrationConfig.getDockerSourceFolder());
         this.container.buildContainer();
         this.initEnvironmentVariables();
     }
@@ -52,20 +52,20 @@ public class ContainerExecutor {
      * Assumes that each running container has environment variables (some parameters to change the behavior).
      */
     private void initEnvironmentVariables() throws SeMoDeException {
-        final Path envFile = Paths.get(this.runningCalibrationConfig.environmentVariablesFile);
+        final Path envFile = Paths.get(this.runningCalibrationConfig.getEnvironmentVariablesFile());
         final Properties properties = new Properties();
         final Map<String, String> environmentVariables;
         try {
             properties.load(new FileInputStream(envFile.toString()));
             this.environmentVariables = Maps.fromProperties(properties);
         } catch (final IOException e) {
-            throw new SeMoDeException("Could not load environment variables from " + this.runningCalibrationConfig.environmentVariablesFile + ".", e);
+            throw new SeMoDeException("Could not load environment variables from " + this.runningCalibrationConfig.getEnvironmentVariablesFile() + ".", e);
         }
     }
 
     public void executeLocalProfiles() throws SeMoDeException {
-        for (final Integer memorySize : this.mappingCalibrationConfig.memorySizeCPUShare.keySet()) {
-            this.executeLocalProfiles(new ResourceLimit(this.mappingCalibrationConfig.memorySizeCPUShare.get(memorySize), false, memorySize), "" + memorySize);
+        for (final Integer memorySize : this.mappingCalibrationConfig.getMemorySizeCPUShare().keySet()) {
+            this.executeLocalProfiles(new ResourceLimit(this.mappingCalibrationConfig.getMemorySizeCPUShare().get(memorySize), false, memorySize), "" + memorySize);
         }
     }
 
@@ -82,7 +82,7 @@ public class ContainerExecutor {
         final Path out = this.pathToCalibration
                 .resolve("profiles")
                 .resolve(memorySize);
-        for (int i = 0; i < this.runningCalibrationConfig.numberOfProfiles; i++) {
+        for (int i = 0; i < this.runningCalibrationConfig.getNumberOfProfiles(); i++) {
             final Profile p = this.runContainer(this.environmentVariables, limits);
             this.saveProfile(p, out.resolve("profile_" + i + "_" + memorySize));
             profiles.add(p);

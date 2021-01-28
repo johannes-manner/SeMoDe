@@ -39,17 +39,18 @@ public class BenchmarkExecutor {
         this.loadPatternFile = this.pathToBenchmarkExecution.resolve("loadPattern.csv");
         final LoadPatternGenerator loadpatternGenerator = new LoadPatternGenerator(this.loadPatternFile);
 
-        String benchmarkMode = this.benchmarkConfig.benchmarkMode;
+        String benchmarkMode = this.benchmarkConfig.getBenchmarkMode();
+        String benchmarkParameters = this.benchmarkConfig.getBenchmarkParameters();
         if (benchmarkMode.equals(BenchmarkMode.CONCURRENT)) {
-            loadpatternGenerator.generateConcurrentLoadPattern(this.benchmarkConfig.benchmarkParameters);
+            loadpatternGenerator.generateConcurrentLoadPattern(benchmarkParameters);
         } else if (benchmarkMode.equals(BenchmarkMode.SEQUENTIAL_INTERVAL)) {
-            loadpatternGenerator.generateSequentialInterval(this.benchmarkConfig.benchmarkParameters);
+            loadpatternGenerator.generateSequentialInterval(benchmarkParameters);
         } else if (benchmarkMode.equals(BenchmarkMode.SEQUENTIAL_CONCURRENT)) {
-            loadpatternGenerator.generateSequentialConcurrent(this.benchmarkConfig.benchmarkParameters);
+            loadpatternGenerator.generateSequentialConcurrent(benchmarkParameters);
         } else if (benchmarkMode.equals(BenchmarkMode.SEQUENTIAL_CHANGING_INTERVAL)) {
-            loadpatternGenerator.generateSequentialChangingInterval(this.benchmarkConfig.benchmarkParameters);
+            loadpatternGenerator.generateSequentialChangingInterval(benchmarkParameters);
         } else if (benchmarkMode.equals(BenchmarkMode.ARBITRARY_LOAD_PATTERN)) {
-            loadpatternGenerator.copyArbitraryLoadPattern(this.benchmarkConfig.benchmarkParameters);
+            loadpatternGenerator.copyArbitraryLoadPattern(benchmarkParameters);
         } else {
             throw new SeMoDeException("Mode is unknown. Entered mode = " + benchmarkMode);
         }
@@ -83,7 +84,7 @@ public class BenchmarkExecutor {
                         try {
                             // 1 second time before the processing starts to get the processing of the functions triggers done
                             tmpTimestamp = (long) (1000 + timestamp * 1000);
-                            final FunctionTrigger f = new FunctionTrigger(benchmarkMethods.getPlatform(), this.benchmarkConfig.postArgument, new URL(functionEndpoint), headerParameters);
+                            final FunctionTrigger f = new FunctionTrigger(benchmarkMethods.getPlatform(), this.benchmarkConfig.getPostArgument(), new URL(functionEndpoint), headerParameters);
                             FunctionTriggerWrapper fWrapper = new FunctionTriggerWrapper(delegator, responses, f);
                             executor.schedule(fWrapper, tmpTimestamp, TimeUnit.MILLISECONDS);
                         } catch (final MalformedURLException e) {

@@ -98,7 +98,7 @@ public class AWSCalibration implements CalibrationMethods {
         sb.append(config.getMemorySizeList().stream().map(String::valueOf).collect(Collectors.joining(",")));
         sb.append("\n");
 
-        for (int i = 0; i < this.calibrationConfig.numberOfAWSExecutions; i++) {
+        for (int i = 0; i < this.calibrationConfig.getNumberOfAWSExecutions(); i++) {
             for (final int memory : config.getMemorySizeList()) {
                 final String fileName = this.calibration.name + "/" + memory + "_" + i;
                 final String pathForAPIGateway = platformPrefix + memory;
@@ -107,9 +107,9 @@ public class AWSCalibration implements CalibrationMethods {
             final List<Double> results = new ArrayList<>();
             for (final int memory : config.getMemorySizeList()) {
                 final String fileName = this.calibration.name + "/" + memory + "_" + i;
-                this.client.waitForBucketObject(this.calibrationConfig.bucketName, "linpack/" + fileName, 600);
+                this.client.waitForBucketObject(this.calibrationConfig.getBucketName(), "linpack/" + fileName, 600);
                 final Path log = this.calibration.calibrationLogs.resolve(fileName);
-                this.client.getFileFromBucket(this.calibrationConfig.bucketName, "linpack/" + fileName, log);
+                this.client.getFileFromBucket(this.calibrationConfig.getBucketName(), "linpack/" + fileName, log);
                 results.add(new LinpackParser(log).parseLinpack());
             }
             sb.append(results.stream().map(this.calibration.DOUBLE_FORMAT::format).collect(Collectors.joining(",")));

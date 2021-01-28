@@ -1,19 +1,15 @@
 package de.uniba.dsg.serverless.pipeline.model.config.aws;
 
-import com.google.gson.annotations.Expose;
 import lombok.Data;
 
-// TODO Expose (search for)
 @Data
 public class AWSCalibrationConfig {
 
     // AWS specific information
-    @Expose
-    public String bucketName;
-    @Expose
-    public int numberOfAWSExecutions;
+    private String bucketName;
+    private int numberOfAWSExecutions;
 
-    public AWSBenchmarkConfig benchmarkConfig;
+    private AWSBenchmarkConfig benchmarkConfig;
 
     public AWSCalibrationConfig() {
         // hide default Constructor

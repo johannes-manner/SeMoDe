@@ -83,7 +83,7 @@ public class SetupService {
     }
 
     public void updateSetup(SetupConfig setupConfig) throws SeMoDeException {
-        if (setupConfig != null && setupConfig.isDeployed() && setupConfig.getBenchmarkConfig().benchmarkMode == null) {
+        if (setupConfig != null && setupConfig.isDeployed() && setupConfig.getBenchmarkConfig().getBenchmarkMode() == null) {
             setupConfig.getBenchmarkConfig().setBenchmarkMode(this.setupConfig.getBenchmarkConfig().getBenchmarkMode());
         }
         this.setupConfig = setupConfig;
@@ -118,8 +118,8 @@ public class SetupService {
     private List<BenchmarkMethods> createBenchmarkMethodsFromConfig(final String setupName) throws SeMoDeException {
         final List<BenchmarkMethods> benchmarkMethods = new ArrayList<>();
         // if this is the case, the benchmark config was initialized, see function above
-        if (this.setupConfig.getBenchmarkConfig().awsBenchmarkConfig != null) {
-            benchmarkMethods.add(new AWSBenchmark(setupName, this.setupConfig.getBenchmarkConfig().awsBenchmarkConfig));
+        if (this.setupConfig.getBenchmarkConfig().getAwsBenchmarkConfig() != null) {
+            benchmarkMethods.add(new AWSBenchmark(setupName, this.setupConfig.getBenchmarkConfig().getAwsBenchmarkConfig()));
         }
         return benchmarkMethods;
     }
@@ -178,14 +178,12 @@ public class SetupService {
         }
     }
 
-    // TODO undeploy calibration is missing
-
     // TODO document
     public void fetchPerformanceData() throws SeMoDeException {
         for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
             int numberOfPerformanceDataMappings = 0;
             log.info("Fetch performance data for " + benchmark.getPlatform());
-            List<PerformanceData> data = benchmark.getPerformanceDataFromPlatform(LocalDateTime.parse(this.setupConfig.getBenchmarkConfig().startTime), LocalDateTime.parse(this.setupConfig.getBenchmarkConfig().endTime));
+            List<PerformanceData> data = benchmark.getPerformanceDataFromPlatform(LocalDateTime.parse(this.setupConfig.getBenchmarkConfig().getStartTime()), LocalDateTime.parse(this.setupConfig.getBenchmarkConfig().getEndTime()));
             for (PerformanceData performanceData : data) {
                 Optional<ProviderEvent> event = this.providerEventRepository.findByPlatformId(performanceData.getPlatformId());
                 if (event.isPresent()) {

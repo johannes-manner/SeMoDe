@@ -50,8 +50,6 @@ dependencies {
     // for java doc generation
     umlDoclet "nl.talsmasoftware:umldoclet:2.0.8"
 
-    compile group: 'com.google.guava', name: 'guava', version: '28.1-jre'
-
     // aws
     compile "com.amazonaws:aws-lambda-java-core:$awsJavaCore"
 

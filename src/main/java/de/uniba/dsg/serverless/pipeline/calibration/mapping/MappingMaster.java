@@ -23,11 +23,11 @@ public class MappingMaster {
     }
 
     public void computeFunctions() throws SeMoDeException {
-        final RegressionComputation localRegression = new RegressionComputation(Paths.get(this.config.localCalibrationFile));
+        final RegressionComputation localRegression = new RegressionComputation(Paths.get(this.config.getLocalCalibrationFile()));
         this.localRegressionFunction = localRegression.computeRegression();
         log.info(CalibrationPlatform.LOCAL + " regression: " + this.localRegressionFunction);
 
-        final RegressionComputation providerRegression = new RegressionComputation(Paths.get(this.config.providerCalibrationFile));
+        final RegressionComputation providerRegression = new RegressionComputation(Paths.get(this.config.getProviderCalibrationFile()));
         this.providerRegressionFunction = providerRegression.computeRegression();
         log.info("Provider regression: " + this.providerRegressionFunction);
     }
@@ -38,6 +38,6 @@ public class MappingMaster {
             log.info("Compute CPU quota for memory size: " + memorySize);
             memorySettingCPUShare.put(memorySize, this.localRegressionFunction.computeDependentResult(this.providerRegressionFunction, memorySize));
         }
-        this.config.memorySizeCPUShare = memorySettingCPUShare;
+        this.config.setMemorySizeCPUShare(memorySettingCPUShare);
     }
 }
