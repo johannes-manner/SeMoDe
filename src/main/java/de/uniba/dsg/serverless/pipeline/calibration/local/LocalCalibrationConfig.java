@@ -11,7 +11,7 @@ public class LocalCalibrationConfig {
     private double localSteps;
     private int numberOfLocalCalibrations;
     private boolean localEnabled;
-    private String dockerSourceFolder;
+    private String calibrationDockerSourceFolder;
 
     public LocalCalibrationConfig() {
     }
@@ -28,7 +28,7 @@ public class LocalCalibrationConfig {
             this.localEnabled = Boolean.parseBoolean(enabled);
         }
         if (!"".equals(dockerSourceFolder)) {
-            this.dockerSourceFolder = dockerSourceFolder.trim();
+            this.calibrationDockerSourceFolder = dockerSourceFolder.trim();
         }
     }
 }

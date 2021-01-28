@@ -153,7 +153,7 @@
                 </tr>
                 <tr>
                     <td>Docker Source Folder(Dockerfile location)</td>
-                    <td><input th:field="*{calibrationConfig.localConfig.dockerSourceFolder}"/></td>
+                    <td><input th:field="*{calibrationConfig.localConfig.calibrationDockerSourceFolder}"/></td>
                 </tr>
             </div>
         </table>
@@ -267,7 +267,7 @@
             <tr>
                 <td>Folder, where the function and Dockerfile is located</td>
                 <td><input
-                        th:field="*{calibrationConfig.runningCalibrationConfig.dockerSourceFolder}"/></td>
+                        th:field="*{calibrationConfig.runningCalibrationConfig.functionDockerSourceFolder}"/></td>
             </tr>
             <tr>
                 <td>Environment variable file</td>
@@ -454,6 +454,8 @@ var runFunction = document.getElementById('runFunction')
                               }});
                           }
                     });
+
+
 
 
 

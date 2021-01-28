@@ -2,6 +2,7 @@ package de.uniba.dsg.serverless.pipeline.model.config.aws;
 
 import lombok.Data;
 
+import javax.persistence.Embeddable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -9,6 +10,7 @@ import java.util.stream.Collectors;
 
 // TODO maybe add validation
 @Data
+@Embeddable
 public class AWSBenchmarkConfig {
 
     // user input

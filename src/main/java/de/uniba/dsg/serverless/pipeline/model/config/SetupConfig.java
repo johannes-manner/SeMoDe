@@ -2,6 +2,11 @@ package de.uniba.dsg.serverless.pipeline.model.config;
 
 import lombok.Data;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
+
 /**
  * <p>
  * This is the central configuration class were all config values for the pipeline is stored. <br/> Currently
@@ -14,12 +19,16 @@ import lombok.Data;
  * </p>
  */
 @Data
+@Entity
 public class SetupConfig {
 
+    @Id
     private String setupName;
     private boolean deployed = false;
     private boolean calibrationDeployed = false;
+    @OneToOne(cascade = CascadeType.ALL)
     private BenchmarkConfig benchmarkConfig;
+    @OneToOne(cascade = CascadeType.ALL)
     private CalibrationConfig calibrationConfig;
 
     public SetupConfig() {

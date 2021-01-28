@@ -41,8 +41,8 @@ public class ContainerExecutor {
         this.pathToCalibration = pathToCalibration;
         this.mappingCalibrationConfig = mappingConfig;
         this.runningCalibrationConfig = runningConfig;
-        this.container = new DockerContainer(this.runningCalibrationConfig.getDockerSourceFolder(), "semode/local");
-        log.info("building container semode/local " + this.runningCalibrationConfig.getDockerSourceFolder());
+        this.container = new DockerContainer(this.runningCalibrationConfig.getFunctionDockerSourceFolder(), "semode/local");
+        log.info("building container semode/local " + this.runningCalibrationConfig.getFunctionDockerSourceFolder());
         this.container.buildContainer();
         this.initEnvironmentVariables();
     }

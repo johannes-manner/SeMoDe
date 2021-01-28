@@ -1,14 +1,15 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import javax.persistence.Embeddable;
 
 // TODO validation
 @Data
-@NoArgsConstructor
+@Embeddable
 public class RunningCalibrationConfig {
 
-    private String dockerSourceFolder;
+    private String functionDockerSourceFolder;
     private String environmentVariablesFile;
     private int numberOfProfiles;
 

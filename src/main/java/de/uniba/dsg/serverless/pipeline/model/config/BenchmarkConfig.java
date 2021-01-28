@@ -3,7 +3,7 @@ package de.uniba.dsg.serverless.pipeline.model.config;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 /**
@@ -12,9 +12,13 @@ import java.time.LocalDateTime;
  */
 // TODO add bean validation to the class (not completed yet)
 @Data
+@Entity
 public class BenchmarkConfig {
 
-    @NotNull(message = "Select one of the benchmark modes")
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+    //    @NotNull(message = "Select one of the benchmark modes")
     private String benchmarkMode;
     private String benchmarkParameters;
     private String postArgument;
@@ -24,7 +28,12 @@ public class BenchmarkConfig {
     private String startTime;
     private String endTime;
 
+    // TODO describe the idea of this relationsship
+    @OneToOne(mappedBy = "benchmarkConfig")
+    private SetupConfig setupConfig;
+
     // aws parameters
+    @Embedded
     private AWSBenchmarkConfig awsBenchmarkConfig;
 
     public BenchmarkConfig() {

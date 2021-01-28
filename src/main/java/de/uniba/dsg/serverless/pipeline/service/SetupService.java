@@ -16,6 +16,7 @@ import de.uniba.dsg.serverless.pipeline.model.PipelineFileHandler;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.pipeline.repo.LocalRESTEventRepository;
 import de.uniba.dsg.serverless.pipeline.repo.ProviderEventRepository;
+import de.uniba.dsg.serverless.pipeline.repo.SetupConfigRepository;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,19 +48,24 @@ public class SetupService {
     @Value("${semode.setups.path}")
     private String setups;
 
+    private final SetupConfigRepository setupConfigRepository;
     private final LocalRESTEventRepository localRESTEventRepository;
     private final ProviderEventRepository providerEventRepository;
 
     @Autowired
-    public SetupService(LocalRESTEventRepository localRESTEventRepository, ProviderEventRepository providerEventRepository) {
+    public SetupService(SetupConfigRepository setupConfigRepository, LocalRESTEventRepository localRESTEventRepository, ProviderEventRepository providerEventRepository) {
+        this.setupConfigRepository = setupConfigRepository;
         this.localRESTEventRepository = localRESTEventRepository;
         this.providerEventRepository = providerEventRepository;
     }
 
+    // TODO - really local and in DB?
     public void createSetup(String setupName) throws SeMoDeException {
         this.setupConfig = new SetupConfig(setupName);
         this.fileHandler = new PipelineFileHandler(setupName, this.setups);
         this.fileHandler.createFolderStructure();
+
+        this.setupConfigRepository.save(this.setupConfig);
     }
 
     public SetupConfig getSetup(String setupName) throws SeMoDeException {

@@ -61,7 +61,7 @@ public class LocalCalibration implements CalibrationMethods {
         }
 
         // prepare calibration - build container and compute quotas based on steps
-        final DockerContainer linpackContainer = new DockerContainer(this.config.getDockerSourceFolder(), LINPACK_IMAGE);
+        final DockerContainer linpackContainer = new DockerContainer(this.config.getCalibrationDockerSourceFolder(), LINPACK_IMAGE);
         linpackContainer.buildContainer();
         final int physicalCores = this.getPhysicalCores();
         log.info("Number of cores: " + physicalCores);
