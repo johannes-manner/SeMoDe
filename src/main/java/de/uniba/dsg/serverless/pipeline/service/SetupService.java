@@ -12,26 +12,22 @@ import de.uniba.dsg.serverless.pipeline.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.AWSCalibration;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
-import de.uniba.dsg.serverless.pipeline.model.PipelineFileHandler;
+import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.pipeline.repo.LocalRESTEventRepository;
 import de.uniba.dsg.serverless.pipeline.repo.ProviderEventRepository;
 import de.uniba.dsg.serverless.pipeline.repo.SetupConfigRepository;
+import de.uniba.dsg.serverless.pipeline.util.PipelineFileHandler;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Wrapper to change the attributes of the user config class. If the changes are made directly in the model classes,
@@ -63,45 +59,78 @@ public class SetupService {
     public void createSetup(String setupName) throws SeMoDeException {
         this.setupConfig = new SetupConfig(setupName);
         this.fileHandler = new PipelineFileHandler(setupName, this.setups);
-        this.fileHandler.createFolderStructure();
 
         this.setupConfigRepository.save(this.setupConfig);
     }
 
+    // TODO document only source of truth is the DB
     public SetupConfig getSetup(String setupName) throws SeMoDeException {
         this.fileHandler = new PipelineFileHandler(setupName, this.setups);
-        this.setupConfig = this.fileHandler.loadUserConfig();
-        return this.setupConfig;
+        Optional<SetupConfig> config = this.setupConfigRepository.findById(setupName);
+        if (config.isPresent()) {
+            this.setupConfig = config.get();
+            return this.setupConfig;
+        } else {
+            throw new SeMoDeException("Setup with name " + setupName + " is not present!!");
+        }
     }
 
     public List<String> getSetupNames() {
-        List<String> setupList = new ArrayList<>();
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(this.setups))) {
-            for (Path p : stream) {
-                if (Files.isDirectory(p)) {
-                    setupList.add(p.getFileName().toString());
-                }
-            }
-        } catch (IOException e) {
-            // TODO error handling and show an error with a pop up window
-        }
-        return setupList;
+        return this.setupConfigRepository.findAll().stream().map(SetupConfig::getSetupName).collect(Collectors.toList());
     }
 
+    // TODO remove due to special pages
     public void updateSetup(SetupConfig setupConfig) throws SeMoDeException {
-        if (setupConfig != null && setupConfig.isDeployed() && setupConfig.getBenchmarkConfig().getBenchmarkMode() == null) {
+        // Otherwise loose this information when submitting twice the web page
+        if (setupConfig != null && setupConfig.getBenchmarkConfig().isDeployed() && setupConfig.getBenchmarkConfig().getBenchmarkMode() == null) {
             setupConfig.getBenchmarkConfig().setBenchmarkMode(this.setupConfig.getBenchmarkConfig().getBenchmarkMode());
         }
         this.setupConfig = setupConfig;
-        this.fileHandler.saveUserConfigToFile(setupConfig);
+        this.saveSetup();
+
+    }
+
+    private void saveSetup() throws SeMoDeException {
+        this.setupConfig = this.setupConfigRepository.save(this.setupConfig);
+        this.fileHandler.saveUserConfigToFile(this.setupConfig);
+    }
+
+    public BenchmarkConfig getCurrentBenchmark(String setupName) throws SeMoDeException {
+        return this.getSetup(setupName).getBenchmarkConfig();
+    }
+
+    public void saveBenchmark(BenchmarkConfig config, String setupName) throws SeMoDeException {
+        SetupConfig setupConfig = this.getSetup(setupName);
+        // benchmark configuration has changed
+        BenchmarkConfig currentBenchmarkConfig = setupConfig.getBenchmarkConfig();
+        if (currentBenchmarkConfig.equals(config) == false) {
+            config.setVersionNumber(currentBenchmarkConfig.getVersionNumber() + 1);
+            // set the current benchmark config
+            setupConfig.setBenchmarkConfig(config);
+            // store setup config and use cascade mechanism to store also the benchmark config
+            this.setupConfigRepository.save(setupConfig);
+            log.info("Stored a new benchmark configuration for setup " + setupName + " with version number " + config.getVersionNumber());
+        } else {
+            log.info("No changes in the benchmark config for setup " + setupName);
+        }
+    }
+
+
+    private void increaseBenchmarkVersionNumberAndForceNewEntryInDb() {
+        BenchmarkConfig config = this.setupConfig.getBenchmarkConfig();
+        config.setId(null);
+        config.setVersionNumber(config.getVersionNumber() + 1);
     }
 
     // TODO maybe DeploymentService?? handle Exception properly (cleanup)
     public void deployFunctions() throws SeMoDeException {
         for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
             benchmark.deploy();
+
             // during deployment a lot of internals are set and therefore the update here is needed
-            this.setupConfig.setDeployed(true);
+            this.setupConfig.getBenchmarkConfig().setDeployed(true);
+
+            this.increaseBenchmarkVersionNumberAndForceNewEntryInDb();
             this.updateSetup(this.setupConfig);
         }
     }
@@ -110,7 +139,9 @@ public class SetupService {
         for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
             benchmark.undeploy();
             // during undeployment a lot of  internals are reset, therefore setup config must be stored again
-            this.setupConfig.setDeployed(false);
+            this.setupConfig.getBenchmarkConfig().setDeployed(false);
+
+            this.increaseBenchmarkVersionNumberAndForceNewEntryInDb();
             this.updateSetup(this.setupConfig);
         }
     }
@@ -136,11 +167,16 @@ public class SetupService {
         final BenchmarkExecutor benchmarkExecutor = new BenchmarkExecutor(this.fileHandler.pathToBenchmarkExecution, this.setupConfig.getBenchmarkConfig());
         benchmarkExecutor.generateLoadPattern();
         List<LocalRESTEvent> events = benchmarkExecutor.executeBenchmark(this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName()));
-        this.localRESTEventRepository.saveAll(events);
-        log.info("Sucessfully stored " + events.size() + " benchmark execution events!");
 
         this.setupConfig.getBenchmarkConfig().logBenchmarkEndTime();
+
+        this.increaseBenchmarkVersionNumberAndForceNewEntryInDb();
         this.updateSetup(this.setupConfig);
+
+        // set the relationship before storing the rest event
+        events.stream().forEach(localRESTEvent -> localRESTEvent.setBenchmarkConfig(this.setupConfig.getBenchmarkConfig()));
+        this.localRESTEventRepository.saveAll(events);
+        log.info("Sucessfully stored " + events.size() + " benchmark execution events!");
     }
 
     // TODO calibration features
@@ -189,7 +225,7 @@ public class SetupService {
         for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
             int numberOfPerformanceDataMappings = 0;
             log.info("Fetch performance data for " + benchmark.getPlatform());
-            List<PerformanceData> data = benchmark.getPerformanceDataFromPlatform(LocalDateTime.parse(this.setupConfig.getBenchmarkConfig().getStartTime()), LocalDateTime.parse(this.setupConfig.getBenchmarkConfig().getEndTime()));
+            List<PerformanceData> data = benchmark.getPerformanceDataFromPlatform(this.setupConfig.getBenchmarkConfig().getStartTime(), this.setupConfig.getBenchmarkConfig().getEndTime());
             for (PerformanceData performanceData : data) {
                 Optional<ProviderEvent> event = this.providerEventRepository.findByPlatformId(performanceData.getPlatformId());
                 if (event.isPresent()) {
@@ -214,4 +250,6 @@ public class SetupService {
         ContainerExecutor containerExecutor = new ContainerExecutor(this.fileHandler.pathToCalibration, this.setupConfig.getCalibrationConfig().getMappingCalibrationConfig(), this.setupConfig.getCalibrationConfig().getRunningCalibrationConfig());
         containerExecutor.executeLocalProfiles();
     }
+
+
 }

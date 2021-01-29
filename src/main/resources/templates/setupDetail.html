@@ -4,7 +4,7 @@
 >
 <head>
     <meta charset="UTF-8">
-    <title>Movie Service</title>
+    <title>SeMoDe - Setup</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
           integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
@@ -18,6 +18,7 @@
             integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
             crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
 </head>
 <body>
 
@@ -33,18 +34,19 @@
                     <input readonly="readonly" name="setupName" th:field="*{setupName}"/>
                 </th>
             </tr>
-            <tr>
-                <td>Deployed</td>
-                <td><input readonly="readonly" name="setupName" th:field="*{deployed}"/></td>
-            </tr>
             </thead>
         </table>
         <h3>Benchmark Configuration</h3>
         <table class="table table-sm">
+
+            <tr>
+                <td>Deployed</td>
+                <td><input readonly="readonly" th:field="*{benchmarkConfig.deployed}"/></td>
+            </tr>
             <tr>
                 <td>Benchmarking Mode:</td>
                 <td>
-                    <select th:disabled="${setupConfig.deployed}" id="benchmarkingMode"
+                    <select disabled id="benchmarkingMode"
                             th:field="*{benchmarkConfig.benchmarkMode}">
                         <option value="">-- Select an option --</option>
                         <option th:each="mode: ${benchmarkingModes}" th:value="${mode.text}"
@@ -56,12 +58,12 @@
             </tr>
             <tr>
                 <td><label id="benchmarkingParams">Benchmarking Parameters</label></td>
-                <td><input th:readonly="${setupConfig.deployed}" name="benchmarkParameters"
+                <td><input readonly="readonly" name="benchmarkParameters"
                            th:field="*{benchmarkConfig.benchmarkParameters}"/></td>
             </tr>
             <tr>
                 <td>Post Body Argument (JSON)</td>
-                <td><textarea th:readonly="${setupConfig.deployed}" rows="10" cols="40"
+                <td><textarea readonly="readonly" rows="10" cols="40"
                               th:field="*{benchmarkConfig.postArgument}"></textarea></td>
             </tr>
             <tbody>
@@ -71,37 +73,37 @@
         <table class="table table-sm">
             <tr>
                 <td>Region</td>
-                <td><input th:readonly="${setupConfig.deployed}"
+                <td><input readonly="readonly"
                            th:field="*{benchmarkConfig.awsBenchmarkConfig.region}"/></td>
             </tr>
             <tr>
                 <td>Runtime</td>
-                <td><input th:readonly="${setupConfig.deployed}"
+                <td><input readonly="readonly"
                            th:field="*{benchmarkConfig.awsBenchmarkConfig.runtime}"/></td>
             </tr>
             <tr>
                 <td>AWS ARN Lambda Role</td>
-                <td><input th:readonly="${setupConfig.deployed}"
+                <td><input readonly="readonly"
                            th:field="*{benchmarkConfig.awsBenchmarkConfig.awsArnLambdaRole}"/></td>
             </tr>
             <tr>
                 <td>Handler Class Name</td>
-                <td><input th:readonly="${setupConfig.deployed}"
+                <td><input readonly="readonly"
                            th:field="*{benchmarkConfig.awsBenchmarkConfig.functionHandler}"/></td>
             </tr>
             <tr>
                 <td>Timeout in Seconds</td>
-                <td><input th:readonly="${setupConfig.deployed}"
+                <td><input readonly="readonly"
                            th:field="*{benchmarkConfig.awsBenchmarkConfig.timeout}"/></td>
             </tr>
             <tr>
                 <td>Memory Sizes (comma separated List)</td>
-                <td><input th:readonly="${setupConfig.deployed}"
+                <td><input readonly="readonly"
                            th:field="*{benchmarkConfig.awsBenchmarkConfig.memorySizes}"/></td>
             </tr>
             <tr>
                 <td>Path to ZIP Source (locally on your computer)</td>
-                <td><input th:readonly="${setupConfig.deployed}"
+                <td><input readonly="readonly"
                            th:field="*{benchmarkConfig.awsBenchmarkConfig.pathToSource}"/></td>
             </tr>
             <tr>
@@ -286,183 +288,15 @@
     </form>
 </div>
 
-<button id="deployFunction">Deploy</button>
-<label id="deployProgress"></label>
-
-<button id="undeployFunction">Undeploy</button>
-<button id="executeBenchmark">Execute Benchmark</button>
-<button id="fetchData">Fetch Data</button>
 <button id="startLocalCalibration">Start Local Calibration</button>
 <button id="deployCalibration">Deploy Calibration</button>
 <button id="startCalibration">Start Calibration</button>
 <button id="undeployCalibration">Undeploy Calibration</button>
 <button id="computeMapping">Compute Mapping for Calibrations</button>
 <button id="runFunction">Run function locally</button>
-<script type="text/javascript">
 
-                    var selectElem = document.getElementById('benchmarkingMode')
-                    var modeInfo = document.getElementById('benchmarkInfoLabel')
-                    var benchmarkingParams = document.getElementById('benchmarkingParams');
-
-                    // When a new <option> is selected
-                    selectElem.addEventListener('change', function() {
-                          var tag = selectElem.value;
-                          if(selectElem.selectedIndex > 0) {
-                              $.ajax({
-                                url: "../benchmark/mode/" + tag,
-                                success: function(result) {
-                                    modeInfo.innerHTML = result.information;
-                                    var parameters = "";
-                                    for(let i = 0 ; i < result.parameters.length; i++){
-                                        parameters = parameters + '<b>Parameter ' + i + ':</b> ' + result.parameters[i] + '<br/>';
-                                        console.log(parameters);
-                                    }
-                                    benchmarkingParams.innerHTML = parameters;
-                              }});
-                          } else {
-                              modeInfo.innerHTML = ""
-                              benchmarkingParams.innerHTML = ""
-                          }
-                    });
-
-
-                    var deployButton = document.getElementById('deployFunction')
-                    var label = document.getElementById('deployProgress')
-
-                    deployButton.addEventListener('click', function() {
-                          console.log("deploy...")
-                          var deployDecision = confirm("Do you really want to deploy the setup?")
-                          if(deployDecision == true) {
-                              $.ajax({
-                                url: "/deploy",
-                                success: function(result) {
-                                    label.innerHTML = 'Refresh page to see the infos - deployment successful'
-                              }});
-                          }
-                    });
-
-
-                    var undeployButton = document.getElementById('undeployFunction')
-                    undeployButton.addEventListener('click', function() {
-                          console.log("deploy...")
-                          var deployDecision = confirm("Do you really want to undeploy the setup?")
-                          if(deployDecision == true) {
-                              $.ajax({
-                                url: "/undeploy",
-                                success: function(result) {
-                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
-                              }});
-                          }
-                    });
-
-                    var executeBenchmark = document.getElementById('executeBenchmark')
-                    executeBenchmark.addEventListener('click', function() {
-                          var deployDecision = confirm("Do you really want to execute benchmark?")
-                          if(deployDecision == true) {
-                              $.ajax({
-                                url: "/benchmark",
-                                success: function(result) {
-                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
-                              }});
-                          }
-                    });
-
-                    var fetchData = document.getElementById('fetchData')
-                    fetchData.addEventListener('click', function() {
-                          var deployDecision = confirm("Do you really want to fetch benchmark?")
-                          if(deployDecision == true) {
-                              $.ajax({
-                                url: "/fetch",
-                                success: function(result) {
-                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
-                              }});
-                          }
-                    });
-
-
-                    var startLocalCalibration = document.getElementById('startLocalCalibration')
-                    startLocalCalibration.addEventListener('click', function() {
-                          var deployDecision = confirm("Do you really want to fetch benchmark?")
-                          if(deployDecision == true) {
-                              $.ajax({
-                                url: "/calibration/start/local",
-                                success: function(result) {
-                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
-                              }});
-                          }
-                    });
-
-
-                var deployCalibration = document.getElementById('deployCalibration')
-                    deployCalibration.addEventListener('click', function() {
-                          var deployDecision = confirm("Do you really want to deploy calibration?")
-                          if(deployDecision == true) {
-                              $.ajax({
-                                url: "/calibration/deploy/aws",
-                                success: function(result) {
-                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
-                              }});
-                          }
-                    });
-
-
-                var startCalibration = document.getElementById('startCalibration')
-                    startCalibration.addEventListener('click', function() {
-                          var deployDecision = confirm("Do you really want to deploy calibration?")
-                          if(deployDecision == true) {
-                              $.ajax({
-                                url: "/calibration/start/aws",
-                                success: function(result) {
-                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
-                              }});
-                          }
-                    });
-
-                var undeployCalibration = document.getElementById('undeployCalibration')
-                    undeployCalibration.addEventListener('click', function() {
-                          var deployDecision = confirm("Do you really want to undeploy calibration?")
-                          if(deployDecision == true) {
-                              $.ajax({
-                                url: "/calibration/undeploy/aws",
-                                success: function(result) {
-                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
-                              }});
-                          }
-                    });
-
-                var computeMapping = document.getElementById('computeMapping')
-                    computeMapping.addEventListener('click', function() {
-                          var deployDecision = confirm("Do you really want to undeploy calibration?")
-                          if(deployDecision == true) {
-                              $.ajax({
-                                url: "/mapping",
-                                success: function(result) {
-                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
-                              }});
-                          }
-                    });
-
-
-var runFunction = document.getElementById('runFunction')
-                    runFunction.addEventListener('click', function() {
-                          var deployDecision = confirm("Do you really want to undeploy calibration?")
-                          if(deployDecision == true) {
-                              $.ajax({
-                                url: "/run",
-                                success: function(result) {
-                                    label.innerHTML = 'Refresh page to see the infos - undeployment successful'
-                              }});
-                          }
-                    });
-
-
-
-
-
-
-
-</script>
 
 <div th:replace="fragments/footer :: footer">...</div>
+<script type="text/javascript" th:src="@{/js/custom.js}"></script>
 </body>
 </html>

@@ -2,6 +2,7 @@ package de.uniba.dsg.serverless.pipeline.controller;
 
 import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
+import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.pipeline.service.SetupService;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
@@ -31,14 +32,7 @@ public class SetupController {
     }
 
     @PostMapping
-    public String createSetup(String setupName, Model model) {
-        // TODO add validation
-//        if (errors.hasErrors()) {
-//            log.info("Setup " + setupName + " already present.");
-//            model.addAttribute("setups", this.setupService.getSetupNames());
-//            return "setups";
-//        }
-
+    public String createSetup(String setupName) {
         // create setup
         try {
             this.setupService.createSetup(setupName);
@@ -79,6 +73,27 @@ public class SetupController {
         model.addAttribute("calibrationPlatforms", CalibrationPlatform.values());
 
         return "setupDetail";
+    }
+
+    @GetMapping("{name}/benchmark")
+    public String getBenchmark(@PathVariable("name") String setupName, Model model) throws SeMoDeException {
+
+        log.info("Setup detail page...");
+
+        model.addAttribute("benchmarkConfig", this.setupService.getCurrentBenchmark(setupName));
+        model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);
+
+        return "benchmarkDetail";
+    }
+
+    @PostMapping("{name}/benchmark")
+    public String saveBenchmark(BenchmarkConfig config, @PathVariable("name") String setupName, Model model) throws SeMoDeException {
+
+        log.info("Save benchmark config...");
+
+        this.setupService.saveBenchmark(config, setupName);
+
+        return "redirect:/setups/" + setupName + "/benchmark";
     }
 
     @ExceptionHandler({SeMoDeException.class})

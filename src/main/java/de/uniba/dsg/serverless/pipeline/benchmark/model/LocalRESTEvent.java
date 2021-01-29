@@ -1,17 +1,12 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.model;
 
-import java.time.LocalDateTime;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
-
+import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -27,4 +22,6 @@ public class LocalRESTEvent {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private boolean erroneous = false;
+    @ManyToOne(cascade = {})
+    private BenchmarkConfig benchmarkConfig;
 }

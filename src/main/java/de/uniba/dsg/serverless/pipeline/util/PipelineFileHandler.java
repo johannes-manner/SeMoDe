@@ -1,9 +1,10 @@
-package de.uniba.dsg.serverless.pipeline.model;
+package de.uniba.dsg.serverless.pipeline.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
-import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,6 +18,7 @@ import java.nio.file.Paths;
  * <p>
  * with keys being listed below.<br> Resulting pipeline setup contains all possible combinations of the settings.
  */
+@Slf4j
 public class PipelineFileHandler {
 
     // name of the pipeline setup, also name for the root folder
@@ -29,15 +31,19 @@ public class PipelineFileHandler {
     // for calibration
     public final Path pathToCalibration;
 
-    public PipelineFileHandler(final String name, String setupLocation) {
+    public PipelineFileHandler(final String name, String setupLocation) throws SeMoDeException {
         this.name = name;
         this.pathToSetup = Paths.get(setupLocation, name);
         this.pathToConfig = this.pathToSetup.resolve("settings.json");
         this.pathToCalibration = this.pathToSetup.resolve("calibration");
         this.pathToBenchmarkExecution = this.pathToSetup.resolve("benchmark");
+
+        if (Files.exists(this.pathToSetup) == false) {
+            this.createFolderStructure();
+        }
     }
 
-    public void createFolderStructure() throws SeMoDeException {
+    private void createFolderStructure() throws SeMoDeException {
         try {
             Files.createDirectories(this.pathToSetup);
             // for benchmarking
@@ -51,19 +57,13 @@ public class PipelineFileHandler {
         }
     }
 
-    public SetupConfig loadUserConfig() throws SeMoDeException {
-        // TODO inject ObjectMapper
-        final ObjectMapper om = new ObjectMapper();
-        try {
-            return om.readValue(this.pathToConfig.toFile(), SetupConfig.class);
-        } catch (final IOException e) {
-            throw new SeMoDeException("Error while parsing the " + this.name + " file. Check the config.");
-        }
-    }
-
     public void saveUserConfigToFile(SetupConfig setupConfig) throws SeMoDeException {
         try {
             new ObjectMapper().writer().withDefaultPrettyPrinter().writeValue(this.pathToConfig.toFile(), setupConfig);
+        } catch (FileNotFoundException e) {
+            log.warn("Setup folder structure was not present. Create it now...");
+            this.createFolderStructure();
+            this.saveUserConfigToFile(setupConfig);
         } catch (final IOException e) {
             throw new SeMoDeException("Configuration could not be saved.", e);
         }

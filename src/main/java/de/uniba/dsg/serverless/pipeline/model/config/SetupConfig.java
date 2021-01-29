@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -20,25 +21,20 @@ import javax.persistence.OneToOne;
  */
 @Data
 @Entity
+@NoArgsConstructor
 public class SetupConfig {
 
     @Id
     private String setupName;
-    private boolean deployed = false;
     private boolean calibrationDeployed = false;
     @OneToOne(cascade = CascadeType.ALL)
     private BenchmarkConfig benchmarkConfig;
     @OneToOne(cascade = CascadeType.ALL)
     private CalibrationConfig calibrationConfig;
 
-    public SetupConfig() {
-        this.benchmarkConfig = new BenchmarkConfig();
-        this.calibrationConfig = new CalibrationConfig();
-    }
-
     public SetupConfig(String name) {
         this.setupName = name;
-        this.benchmarkConfig = new BenchmarkConfig();
+        this.benchmarkConfig = new BenchmarkConfig(this);
         this.calibrationConfig = new CalibrationConfig();
     }
 }

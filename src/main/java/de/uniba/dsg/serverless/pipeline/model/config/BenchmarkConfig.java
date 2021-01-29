@@ -1,7 +1,9 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -13,22 +15,25 @@ import java.time.LocalDateTime;
 // TODO add bean validation to the class (not completed yet)
 @Data
 @Entity
+@NoArgsConstructor
 public class BenchmarkConfig {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     //    @NotNull(message = "Select one of the benchmark modes")
+    private boolean deployed = false;
     private String benchmarkMode;
     private String benchmarkParameters;
     private String postArgument;
 
-    // TODO i don't know why Local Date Time is a problem - might be json parsing problem
-    // TODO when changing it to an entity, go for it in the db :)
-    private String startTime;
-    private String endTime;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
     // TODO describe the idea of this relationsship
+    private int versionNumber;
+    private String setupName;
+    @JsonIgnore
     @OneToOne(mappedBy = "benchmarkConfig")
     private SetupConfig setupConfig;
 
@@ -36,8 +41,10 @@ public class BenchmarkConfig {
     @Embedded
     private AWSBenchmarkConfig awsBenchmarkConfig;
 
-    public BenchmarkConfig() {
+    public BenchmarkConfig(SetupConfig setupConfig) {
         this.awsBenchmarkConfig = new AWSBenchmarkConfig();
+        this.setupConfig = setupConfig;
+        this.setupName = setupConfig.getSetupName();
     }
 
 
@@ -46,7 +53,7 @@ public class BenchmarkConfig {
      * the corresponding platform.
      */
     public void logBenchmarkStartTime() {
-        this.startTime = LocalDateTime.now().toString();
+        this.startTime = LocalDateTime.now();
     }
 
     /**
@@ -54,6 +61,6 @@ public class BenchmarkConfig {
      * retrieval of the information from the corresponding platform.
      */
     public void logBenchmarkEndTime() {
-        this.endTime = LocalDateTime.now().toString();
+        this.endTime = LocalDateTime.now();
     }
 }
