@@ -64,4 +64,9 @@ public class BenchmarkConfig {
     public void logBenchmarkEndTime() {
         this.endTime = LocalDateTime.now();
     }
+
+    public void increaseVersion() {
+        this.id = null;
+        this.versionNumber++;
+    }
 }

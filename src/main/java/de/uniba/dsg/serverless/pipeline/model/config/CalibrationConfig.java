@@ -46,4 +46,9 @@ public class CalibrationConfig {
         this.runningCalibrationConfig = new RunningCalibrationConfig();
         this.setupName = config.getSetupName();
     }
+
+    public void increaseVersion() {
+        this.id = null;
+        this.versionNumber++;
+    }
 }

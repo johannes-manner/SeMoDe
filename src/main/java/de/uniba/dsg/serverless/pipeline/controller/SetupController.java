@@ -79,7 +79,7 @@ public class SetupController {
     @GetMapping("{name}/benchmark")
     public String getBenchmark(@PathVariable("name") String setupName, Model model) throws SeMoDeException {
 
-        log.info("Setup detail page...");
+        log.info("Setup detail benchmark page...");
 
         model.addAttribute("benchmarkConfig", this.setupService.getCurrentBenchmark(setupName));
         model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);
@@ -100,7 +100,7 @@ public class SetupController {
     @GetMapping("{name}/calibration")
     public String getCalibration(@PathVariable("name") String setupName, Model model) throws SeMoDeException {
 
-        log.info("Setup detail page...");
+        log.info("Setup detail calibration page...");
 
         model.addAttribute("calibrationConfig", this.setupService.getCurrentCalibrationConfig(setupName));
         model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);

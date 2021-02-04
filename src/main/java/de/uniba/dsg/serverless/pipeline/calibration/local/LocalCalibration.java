@@ -2,6 +2,7 @@ package de.uniba.dsg.serverless.pipeline.calibration.local;
 
 import de.uniba.dsg.serverless.pipeline.calibration.Calibration;
 import de.uniba.dsg.serverless.pipeline.calibration.LinpackParser;
+import de.uniba.dsg.serverless.pipeline.calibration.model.CalibrationEvent;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.LocalCalibrationConfig;
@@ -14,9 +15,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -55,10 +54,10 @@ public class LocalCalibration implements CalibrationMethods {
     }
 
     @Override
-    public void startCalibration() throws SeMoDeException {
+    public List<CalibrationEvent> startCalibration() throws SeMoDeException {
         if (Files.exists(this.calibration.calibrationFile)) {
-            log.info("Calibration has already been performed. inspect it using \"calibrate info\"");
-            return;
+            log.info("Calibration has already been performed.");
+            return List.of();
         }
 
         // prepare calibration - build container and compute quotas based on steps
@@ -74,36 +73,32 @@ public class LocalCalibration implements CalibrationMethods {
                 .collect(Collectors.toList());
 
         // perform subcalibration - execute number of Calibrations N times
-        final Map<Integer, List<Double>> subResults = new HashMap<>();
+        final List<CalibrationEvent> subResults = new ArrayList<>();
         for (int i = 0; i < this.config.getNumberOfLocalCalibrations(); i++) {
-            subResults.put(i, this.performCalibration(i, quotas, linpackContainer));
+            subResults.addAll(i, this.performCalibration(i, quotas, linpackContainer));
         }
 
-        // merge results in this.calibrationFile
-        final StringBuilder stringBuilder = new StringBuilder();
-        // add header line
-        stringBuilder.append(quotas.stream().map(this.calibration.DOUBLE_FORMAT::format).collect(Collectors.joining(",")));
-        stringBuilder.append("\n");
-        for (final Integer i : subResults.keySet()) {
-            stringBuilder.append(subResults.get(i).stream().map(String::valueOf).collect(Collectors.joining(",")));
-            stringBuilder.append("\n");
-        }
-        try {
-            Files.write(this.calibration.calibrationFile, stringBuilder.toString().getBytes());
-        } catch (final IOException e) {
-            throw new SeMoDeException("Could not write local calibration summary to " + this.calibration.calibrationFile.toString(), e);
-        }
+        return subResults;
     }
 
-    private List<Double> performCalibration(final int i, final List<Double> quotas, final DockerContainer linpackContainer) throws SeMoDeException {
+    /**
+     * Executes the linpack functionality once for each quota in the quotas list!
+     *
+     * @param i                Number of the run
+     * @param quotas           List of quotas for which the local calibration should be executed
+     * @param linpackContainer docker container, where the linpack functionality is included
+     * @return
+     * @throws SeMoDeException
+     */
+    private List<CalibrationEvent> performCalibration(final int i, final List<Double> quotas, final DockerContainer linpackContainer) throws SeMoDeException {
 
         // Create a single sub calibration for each run
         final LocalCalibration subCalibration = new LocalCalibration(this.calibration.name + i, this.calibration.calibrationFolder, this.config);
 
-        final List<Double> results = new ArrayList<>();
+        final List<CalibrationEvent> results = new ArrayList<>();
         for (final double quota : quotas) {
             log.info("Run: " + i + " running calibration using quota " + quota);
-            results.add(subCalibration.executeBenchmark(linpackContainer, quota));
+            results.add(new CalibrationEvent(i, quota, subCalibration.executeBenchmark(linpackContainer, quota)));
         }
         return results;
     }
@@ -116,18 +111,26 @@ public class LocalCalibration implements CalibrationMethods {
      * @return average performance of linpack in GFLOPS
      */
     private double executeBenchmark(final DockerContainer linpackContainer, final double cpuLimit) throws SeMoDeException {
-        linpackContainer.startContainer(new ResourceLimit(cpuLimit, false, 0));
-        final int statusCode = linpackContainer.awaitTermination();
-        if (statusCode != 0) {
-            throw new SeMoDeException("Benchmark failed. (status code = " + statusCode + ")");
-        }
-        linpackContainer.getFilesFromContainer(CONTAINER_RESULT_FOLDER, this.calibration.calibrationLogs);
-        try {
-            final Path logFile = this.calibration.calibrationLogs.resolve("linpack_" + this.calibration.DOUBLE_FORMAT.format(cpuLimit) + ".log");
-            Files.move(this.temporaryLog, logFile);
+
+        final Path logFile = this.calibration.calibrationLogs.resolve("linpack_" + this.calibration.DOUBLE_FORMAT.format(cpuLimit) + ".log");
+        if (Files.exists(logFile)) {
+            log.info("Local calibration already exists for " + cpuLimit);
             return new LinpackParser(logFile).parseLinpack();
-        } catch (final IOException e) {
-            throw new SeMoDeException(e);
+        } else {
+            log.info("Start execution...");
+            linpackContainer.startContainer(new ResourceLimit(cpuLimit, false, 0));
+            final int statusCode = linpackContainer.awaitTermination();
+            if (statusCode != 0) {
+                throw new SeMoDeException("Benchmark failed. (status code = " + statusCode + ")");
+            }
+            linpackContainer.getFilesFromContainer(CONTAINER_RESULT_FOLDER, this.calibration.calibrationLogs);
+            try {
+
+                Files.move(this.temporaryLog, logFile);
+                return new LinpackParser(logFile).parseLinpack();
+            } catch (final IOException e) {
+                throw new SeMoDeException(e);
+            }
         }
     }
 

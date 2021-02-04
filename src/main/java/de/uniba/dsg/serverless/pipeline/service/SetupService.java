@@ -8,6 +8,7 @@ import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.ProviderEvent;
 import de.uniba.dsg.serverless.pipeline.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.pipeline.calibration.mapping.MappingMaster;
+import de.uniba.dsg.serverless.pipeline.calibration.model.CalibrationEvent;
 import de.uniba.dsg.serverless.pipeline.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.AWSCalibration;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.CalibrationMethods;
@@ -15,6 +16,7 @@ import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
+import de.uniba.dsg.serverless.pipeline.repo.CalibrationEventRepository;
 import de.uniba.dsg.serverless.pipeline.repo.LocalRESTEventRepository;
 import de.uniba.dsg.serverless.pipeline.repo.ProviderEventRepository;
 import de.uniba.dsg.serverless.pipeline.repo.SetupConfigRepository;
@@ -48,12 +50,17 @@ public class SetupService {
     private final SetupConfigRepository setupConfigRepository;
     private final LocalRESTEventRepository localRESTEventRepository;
     private final ProviderEventRepository providerEventRepository;
+    private final CalibrationEventRepository calibrationEventRepository;
 
     @Autowired
-    public SetupService(SetupConfigRepository setupConfigRepository, LocalRESTEventRepository localRESTEventRepository, ProviderEventRepository providerEventRepository) {
+    public SetupService(SetupConfigRepository setupConfigRepository,
+                        LocalRESTEventRepository localRESTEventRepository,
+                        ProviderEventRepository providerEventRepository,
+                        CalibrationEventRepository calibrationEventRepository) {
         this.setupConfigRepository = setupConfigRepository;
         this.localRESTEventRepository = localRESTEventRepository;
         this.providerEventRepository = providerEventRepository;
+        this.calibrationEventRepository = calibrationEventRepository;
     }
 
     // TODO - really local and in DB?
@@ -104,10 +111,9 @@ public class SetupService {
         return this.getSetup(setupName).getBenchmarkConfig();
     }
 
-    private void increaseBenchmarkVersionNumberAndForceNewEntryInDb() {
-        BenchmarkConfig config = this.setupConfig.getBenchmarkConfig();
-        config.setId(null);
-        config.setVersionNumber(config.getVersionNumber() + 1);
+    private void increaseBenchmarkVersionNumberAndForceNewEntryInDb() throws SeMoDeException {
+        this.setupConfig.getBenchmarkConfig().increaseVersion();
+        this.saveSetup();
     }
 
     public void saveBenchmark(BenchmarkConfig config, String setupName) throws SeMoDeException {
@@ -141,6 +147,7 @@ public class SetupService {
             // set the current configuration config
             setupConfig.setCalibrationConfig(config);
             // store setup config and use cascade mechanism to store also the calibration config
+            this.saveSetup();
         }
     }
 
@@ -154,7 +161,6 @@ public class SetupService {
             this.setupConfig.getBenchmarkConfig().setDeployed(true);
 
             this.increaseBenchmarkVersionNumberAndForceNewEntryInDb();
-            this.updateSetup(this.setupConfig);
         }
     }
 
@@ -165,7 +171,6 @@ public class SetupService {
             this.setupConfig.getBenchmarkConfig().setDeployed(false);
 
             this.increaseBenchmarkVersionNumberAndForceNewEntryInDb();
-            this.updateSetup(this.setupConfig);
         }
     }
 
@@ -194,7 +199,6 @@ public class SetupService {
         this.setupConfig.getBenchmarkConfig().logBenchmarkEndTime();
 
         this.increaseBenchmarkVersionNumberAndForceNewEntryInDb();
-        this.updateSetup(this.setupConfig);
 
         // set the relationship before storing the rest event
         events.stream().forEach(localRESTEvent -> localRESTEvent.setBenchmarkConfig(this.setupConfig.getBenchmarkConfig()));
@@ -228,8 +232,19 @@ public class SetupService {
         CalibrationMethods calibration = this.getCalibrationMethod(platform);
 
         if (calibration != null) {
-            calibration.startCalibration();
+
+            this.increaseCalibrationVersionNumberAndForceNewEntry();
+
+            List<CalibrationEvent> events = calibration.startCalibration();
+            events.forEach(e -> e.setConfig(this.setupConfig.getCalibrationConfig()));
+            this.calibrationEventRepository.saveAll(events);
+            log.info("Sucessfully stored " + events.size() + " calibration events for platform " + platform);
         }
+    }
+
+    private void increaseCalibrationVersionNumberAndForceNewEntry() throws SeMoDeException {
+        this.setupConfig.getCalibrationConfig().increaseVersion();
+        this.saveSetup();
     }
 
     public void undeployCalibration(String platform) throws SeMoDeException {
