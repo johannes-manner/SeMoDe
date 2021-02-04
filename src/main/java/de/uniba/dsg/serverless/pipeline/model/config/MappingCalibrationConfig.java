@@ -14,21 +14,17 @@ import java.util.stream.Collectors;
 @Embeddable
 public class MappingCalibrationConfig {
 
-    private String localCalibrationFile;
-    private String providerCalibrationFile;
-    private String memorySizes;
+    private String localCalibrationFile = "";
+    private String providerCalibrationFile = "";
+    private String memorySizesCalibration = "";
     @Transient
     private Map<Integer, Double> memorySizeCPUShare;
 
-    public MappingCalibrationConfig() {
-
-    }
-
     public List<Integer> getMemorySizeList() {
-        if (this.memorySizes == null) {
+        if (this.memorySizesCalibration == null) {
             return List.of();
         }
-        return Arrays.stream(this.memorySizes.split(","))
+        return Arrays.stream(this.memorySizesCalibration.split(","))
                 .map(String::trim)
                 .filter(Predicate.not(String::isEmpty))
                 .map(Integer::parseInt)

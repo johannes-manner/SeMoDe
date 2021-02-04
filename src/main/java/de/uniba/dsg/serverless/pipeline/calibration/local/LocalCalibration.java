@@ -4,6 +4,7 @@ import de.uniba.dsg.serverless.pipeline.calibration.Calibration;
 import de.uniba.dsg.serverless.pipeline.calibration.LinpackParser;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
+import de.uniba.dsg.serverless.pipeline.model.config.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 

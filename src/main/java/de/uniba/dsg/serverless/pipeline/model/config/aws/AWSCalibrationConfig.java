@@ -2,15 +2,12 @@ package de.uniba.dsg.serverless.pipeline.model.config.aws;
 
 import lombok.Data;
 
-import javax.persistence.*;
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
 
 @Data
-@Entity
+@Embeddable
 public class AWSCalibrationConfig {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
 
     // AWS specific information
     private String bucketName;

@@ -13,6 +13,7 @@ import de.uniba.dsg.serverless.pipeline.calibration.provider.AWSCalibration;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.pipeline.repo.LocalRESTEventRepository;
 import de.uniba.dsg.serverless.pipeline.repo.ProviderEventRepository;
@@ -95,8 +96,18 @@ public class SetupService {
         this.fileHandler.saveUserConfigToFile(this.setupConfig);
     }
 
+    /*
+     * Benchmark Configuration Handling
+     */
+
     public BenchmarkConfig getCurrentBenchmark(String setupName) throws SeMoDeException {
         return this.getSetup(setupName).getBenchmarkConfig();
+    }
+
+    private void increaseBenchmarkVersionNumberAndForceNewEntryInDb() {
+        BenchmarkConfig config = this.setupConfig.getBenchmarkConfig();
+        config.setId(null);
+        config.setVersionNumber(config.getVersionNumber() + 1);
     }
 
     public void saveBenchmark(BenchmarkConfig config, String setupName) throws SeMoDeException {
@@ -108,19 +119,31 @@ public class SetupService {
             // set the current benchmark config
             setupConfig.setBenchmarkConfig(config);
             // store setup config and use cascade mechanism to store also the benchmark config
-            this.setupConfigRepository.save(setupConfig);
+            this.saveSetup();
             log.info("Stored a new benchmark configuration for setup " + setupName + " with version number " + config.getVersionNumber());
         } else {
             log.info("No changes in the benchmark config for setup " + setupName);
         }
     }
 
-
-    private void increaseBenchmarkVersionNumberAndForceNewEntryInDb() {
-        BenchmarkConfig config = this.setupConfig.getBenchmarkConfig();
-        config.setId(null);
-        config.setVersionNumber(config.getVersionNumber() + 1);
+    /*
+     * Calibration Configuration Handling
+     */
+    public CalibrationConfig getCurrentCalibrationConfig(String setupName) throws SeMoDeException {
+        return this.getSetup(setupName).getCalibrationConfig();
     }
+
+    public void saveCalibration(CalibrationConfig config, String setupName) throws SeMoDeException {
+        SetupConfig setupConfig = this.getSetup(setupName);
+        CalibrationConfig currentConfig = setupConfig.getCalibrationConfig();
+        if (currentConfig.equals(config) == false) {
+            config.setVersionNumber(currentConfig.getVersionNumber() + 1);
+            // set the current configuration config
+            setupConfig.setCalibrationConfig(config);
+            // store setup config and use cascade mechanism to store also the calibration config
+        }
+    }
+
 
     // TODO maybe DeploymentService?? handle Exception properly (cleanup)
     public void deployFunctions() throws SeMoDeException {
@@ -186,7 +209,7 @@ public class SetupService {
 
         if (calibration != null) {
             calibration.deployCalibration();
-            this.setupConfig.setCalibrationDeployed(true);
+            this.setupConfig.getCalibrationConfig().setDeployed(true);
             this.updateSetup(this.setupConfig);
         }
     }
@@ -215,7 +238,7 @@ public class SetupService {
 
         if (calibration != null) {
             calibration.undeployCalibration();
-            this.setupConfig.setCalibrationDeployed(false);
+            this.setupConfig.getCalibrationConfig().setDeployed(false);
             this.updateSetup(this.setupConfig);
         }
     }

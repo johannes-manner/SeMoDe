@@ -1,8 +1,8 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
-import de.uniba.dsg.serverless.pipeline.calibration.local.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
@@ -12,17 +12,23 @@ import javax.persistence.*;
  */
 @Data
 @Entity
+@NoArgsConstructor
 public class CalibrationConfig {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    // attribute for easy finding N calibration configs to a single setup no need for many to one and faster retrieval of
+    // the actual benchmark config in the setup config
+    private boolean deployed;
+    private int versionNumber;
+    private String setupName;
 
     // local parameter
     @Embedded
     private LocalCalibrationConfig localConfig;
     // aws parameter
-    @OneToOne(cascade = CascadeType.ALL)
+    @Embedded
     private AWSCalibrationConfig awsCalibrationConfig;
 
     // for mappping
@@ -33,10 +39,11 @@ public class CalibrationConfig {
     @Embedded
     private RunningCalibrationConfig runningCalibrationConfig;
 
-    public CalibrationConfig() {
+    public CalibrationConfig(SetupConfig config) {
         this.localConfig = new LocalCalibrationConfig();
         this.awsCalibrationConfig = new AWSCalibrationConfig();
         this.mappingCalibrationConfig = new MappingCalibrationConfig();
         this.runningCalibrationConfig = new RunningCalibrationConfig();
+        this.setupName = config.getSetupName();
     }
 }

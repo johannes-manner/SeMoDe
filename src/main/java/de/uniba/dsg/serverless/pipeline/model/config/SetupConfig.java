@@ -26,7 +26,6 @@ public class SetupConfig {
 
     @Id
     private String setupName;
-    private boolean calibrationDeployed = false;
     @OneToOne(cascade = CascadeType.ALL)
     private BenchmarkConfig benchmarkConfig;
     @OneToOne(cascade = CascadeType.ALL)
@@ -35,6 +34,6 @@ public class SetupConfig {
     public SetupConfig(String name) {
         this.setupName = name;
         this.benchmarkConfig = new BenchmarkConfig(this);
-        this.calibrationConfig = new CalibrationConfig();
+        this.calibrationConfig = new CalibrationConfig(this);
     }
 }

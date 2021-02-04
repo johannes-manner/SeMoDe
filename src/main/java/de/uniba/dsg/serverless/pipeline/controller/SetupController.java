@@ -3,6 +3,7 @@ package de.uniba.dsg.serverless.pipeline.controller;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.pipeline.service.SetupService;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
@@ -94,6 +95,27 @@ public class SetupController {
         this.setupService.saveBenchmark(config, setupName);
 
         return "redirect:/setups/" + setupName + "/benchmark";
+    }
+
+    @GetMapping("{name}/calibration")
+    public String getCalibration(@PathVariable("name") String setupName, Model model) throws SeMoDeException {
+
+        log.info("Setup detail page...");
+
+        model.addAttribute("calibrationConfig", this.setupService.getCurrentCalibrationConfig(setupName));
+        model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);
+
+        return "calibrationDetail";
+    }
+
+    @PostMapping("{name}/calibration")
+    public String saveCalibration(CalibrationConfig config, @PathVariable("name") String setupName, Model model) throws SeMoDeException {
+
+        log.info("Save calibration config...");
+
+        this.setupService.saveCalibration(config, setupName);
+
+        return "redirect:/setups/" + setupName + "/calibration";
     }
 
     @ExceptionHandler({SeMoDeException.class})

@@ -30,8 +30,9 @@ public class BenchmarkConfig {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
-    // TODO describe the idea of this relationsship
     private int versionNumber;
+    // attribute for easy finding N benchmark configs to a single setup no need for many to one and faster retrieval of
+    // the actual benchmark config in the setup config
     private String setupName;
     @JsonIgnore
     @OneToOne(mappedBy = "benchmarkConfig")
