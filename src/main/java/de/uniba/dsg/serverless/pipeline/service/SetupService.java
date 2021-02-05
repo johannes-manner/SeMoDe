@@ -16,10 +16,7 @@ import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
-import de.uniba.dsg.serverless.pipeline.repo.CalibrationEventRepository;
-import de.uniba.dsg.serverless.pipeline.repo.LocalRESTEventRepository;
-import de.uniba.dsg.serverless.pipeline.repo.ProviderEventRepository;
-import de.uniba.dsg.serverless.pipeline.repo.SetupConfigRepository;
+import de.uniba.dsg.serverless.pipeline.repo.*;
 import de.uniba.dsg.serverless.pipeline.util.PipelineFileHandler;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
@@ -51,16 +48,19 @@ public class SetupService {
     private final LocalRESTEventRepository localRESTEventRepository;
     private final ProviderEventRepository providerEventRepository;
     private final CalibrationEventRepository calibrationEventRepository;
+    private final BenchmarkConfigRepository benchmarkConfigRepository;
 
     @Autowired
     public SetupService(SetupConfigRepository setupConfigRepository,
                         LocalRESTEventRepository localRESTEventRepository,
                         ProviderEventRepository providerEventRepository,
-                        CalibrationEventRepository calibrationEventRepository) {
+                        CalibrationEventRepository calibrationEventRepository,
+                        BenchmarkConfigRepository benchmarkConfigRepository) {
         this.setupConfigRepository = setupConfigRepository;
         this.localRESTEventRepository = localRESTEventRepository;
         this.providerEventRepository = providerEventRepository;
         this.calibrationEventRepository = calibrationEventRepository;
+        this.benchmarkConfigRepository = benchmarkConfigRepository;
     }
 
     // TODO - really local and in DB?
@@ -290,4 +290,13 @@ public class SetupService {
     }
 
 
+    public List<BenchmarkConfig> getBenchmarkVersions(String setupName) {
+        List<BenchmarkConfig> configs = this.benchmarkConfigRepository.findBySetupNameOrderByVersionNumberDesc(setupName);
+        configs.forEach(c -> c.setNumberOfLocalDbEvents(c.getLocalExecutionEvents().size()));
+        configs.forEach(
+                c -> c.setNumberOfFetchedData(
+                        c.getLocalExecutionEvents().stream().filter(LocalRESTEvent::dataAlreadyFetched).mapToInt(e -> 1).sum()
+                ));
+        return configs;
+    }
 }

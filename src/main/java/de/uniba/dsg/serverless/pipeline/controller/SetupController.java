@@ -83,6 +83,7 @@ public class SetupController {
 
         model.addAttribute("benchmarkConfig", this.setupService.getCurrentBenchmark(setupName));
         model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);
+        model.addAttribute("benchmarkingVersions", this.setupService.getBenchmarkVersions(setupName));
 
         return "benchmarkDetail";
     }

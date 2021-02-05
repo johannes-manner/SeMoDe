@@ -1,12 +1,14 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import de.uniba.dsg.serverless.pipeline.benchmark.model.LocalRESTEvent;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Model class for benchmark execution config and json serialization. DO NOT change this class. Otherwise json
@@ -16,6 +18,8 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @NoArgsConstructor
+@NamedEntityGraph(name = "BenchmarkConfig.localExecutionEvents",
+        attributeNodes = @NamedAttributeNode(value = "localExecutionEvents"))
 public class BenchmarkConfig {
 
     @Id
@@ -41,6 +45,15 @@ public class BenchmarkConfig {
     // aws parameters
     @Embedded
     private AWSBenchmarkConfig awsBenchmarkConfig;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "benchmarkConfig", fetch = FetchType.LAZY)
+    private List<LocalRESTEvent> localExecutionEvents;
+
+    @Transient
+    private int numberOfLocalDbEvents;
+    @Transient
+    private int numberOfFetchedData;
 
     public BenchmarkConfig(SetupConfig setupConfig) {
         this.awsBenchmarkConfig = new AWSBenchmarkConfig();

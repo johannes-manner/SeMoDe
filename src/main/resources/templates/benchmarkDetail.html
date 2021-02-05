@@ -32,6 +32,15 @@
                        th:field="*{setupName}"/></td>
         </tr>
         <tr>
+            <td>Versions</td>
+            <td>
+                <select id="benchmarkVersions">
+                    <option th:each="version: ${benchmarkingVersions}" th:value="${version.versionNumber}"
+                            th:text="${version.versionNumber + ' - Local events: ' + version.numberOfLocalDbEvents + ' - Fetched events: ' + version.numberOfFetchedData}"></option>
+                </select>
+            </td>
+        </tr>
+        <tr>
             <td>Benchmarking Mode:</td>
             <td>
                 <select id="benchmarkingMode"

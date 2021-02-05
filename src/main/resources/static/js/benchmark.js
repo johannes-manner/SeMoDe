@@ -32,6 +32,7 @@ deployButton.addEventListener('click', function() {
             url: "/deploy",
             success: function(result) {
                 console.log('Refresh page to see the infos - deployment successful')
+                location.reload();
           }});
       }
 });
@@ -46,6 +47,7 @@ undeployButton.addEventListener('click', function() {
             url: "/undeploy",
             success: function(result) {
                 console.log('Refresh page to see the infos - undeployment successful')
+                location.reload();
           }});
       }
 });
@@ -58,6 +60,7 @@ executeBenchmark.addEventListener('click', function() {
             url: "/benchmark",
             success: function(result) {
                 console.log('Refresh page to see the infos - undeployment successful')
+                location.reload();
           }});
       }
 });
@@ -70,6 +73,7 @@ fetchData.addEventListener('click', function() {
             url: "/fetch",
             success: function(result) {
                 console.log('Refresh page to see the infos - undeployment successful')
+                location.reload();
           }});
       }
 });
