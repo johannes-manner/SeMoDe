@@ -223,7 +223,7 @@ public class SetupService {
         if (CalibrationPlatform.LOCAL.getText().equals(platform)) {
             calibration = new LocalCalibration(this.setupConfig.getSetupName(), this.fileHandler.pathToCalibration, this.setupConfig.getCalibrationConfig().getLocalConfig());
         } else if (CalibrationPlatform.AWS.getText().equals(platform)) {
-            calibration = new AWSCalibration(this.setupConfig.getSetupName(), this.setupConfig.getCalibrationConfig().getAwsCalibrationConfig());
+            calibration = new AWSCalibration(this.setupConfig.getCalibrationConfig().getAwsCalibrationConfig());
         }
         return calibration;
     }

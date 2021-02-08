@@ -109,6 +109,10 @@ public class AWSClient {
         throw new SeMoDeException("Timeout exceeded, no object found.");
     }
 
+    public boolean doesS3ObjectExist(String bucketName, String keyName) {
+        return this.amazonS3Client.doesObjectExist(bucketName, keyName);
+    }
+
     /**
      * Reads a file from S3 and stores it to the output path.
      *

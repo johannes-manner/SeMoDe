@@ -98,7 +98,7 @@ public class LocalCalibration implements CalibrationMethods {
         final List<CalibrationEvent> results = new ArrayList<>();
         for (final double quota : quotas) {
             log.info("Run: " + i + " running calibration using quota " + quota);
-            results.add(new CalibrationEvent(i, quota, subCalibration.executeBenchmark(linpackContainer, quota)));
+            results.add(new CalibrationEvent(i, quota, subCalibration.executeBenchmark(linpackContainer, quota), CalibrationPlatform.LOCAL));
         }
         return results;
     }

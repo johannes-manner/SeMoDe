@@ -30,8 +30,8 @@ public class AWSCalibration implements CalibrationMethods {
     private final String platformPrefix;
 
     // used for CLI feature
-    public AWSCalibration(final String name, final AWSCalibrationConfig calibrationConfig) throws SeMoDeException {
-        this.calibration = new Calibration(name + "_calibration", CalibrationPlatform.AWS);
+    public AWSCalibration(final AWSCalibrationConfig calibrationConfig) throws SeMoDeException {
+        this.calibration = new Calibration(calibrationConfig.getBenchmarkConfig().getRegion() + "_calibration", CalibrationPlatform.AWS);
         this.calibrationConfig = calibrationConfig;
         this.client = new AWSClient(this.calibrationConfig.getBenchmarkConfig().getRegion());
         this.platformPrefix = this.calibration.name + "_linpack_";
@@ -82,7 +82,6 @@ public class AWSCalibration implements CalibrationMethods {
         return this.executeLinpackCalibration(this.platformPrefix);
     }
 
-    // TODO might happen to execute two calibration and overriding the stuff on the plattform
     private List<CalibrationEvent> executeLinpackCalibration(final String platformPrefix) throws SeMoDeException {
         AWSBenchmarkConfig config = this.calibrationConfig.getBenchmarkConfig();
 
@@ -91,8 +90,12 @@ public class AWSCalibration implements CalibrationMethods {
             for (final int memory : config.getMemorySizeList()) {
                 final String fileName = this.calibration.name + "/" + memory + "_" + i;
                 final String pathForAPIGateway = platformPrefix + memory;
-                this.client.invokeLambdaFunction(config.getTargetUrl(), config.getApiKey(), pathForAPIGateway, fileName);
-                log.info("Invoke Lambda calibration function with " + memory + " MB");
+                if (this.client.doesS3ObjectExist(this.calibrationConfig.getBucketName(), "linpack/" + fileName)) {
+                    log.info("Calibration already there - if you want to reexecute it, you have to remove it!");
+                } else {
+                    this.client.invokeLambdaFunction(config.getTargetUrl(), config.getApiKey(), pathForAPIGateway, fileName);
+                    log.info("Invoke Lambda calibration function with " + memory + " MB");
+                }
             }
 
             for (final int memory : config.getMemorySizeList()) {
@@ -100,7 +103,7 @@ public class AWSCalibration implements CalibrationMethods {
                 this.client.waitForBucketObject(this.calibrationConfig.getBucketName(), "linpack/" + fileName, 600);
                 final Path log = this.calibration.calibrationLogs.resolve(fileName);
                 this.client.getFileFromBucket(this.calibrationConfig.getBucketName(), "linpack/" + fileName, log);
-                results.add(new CalibrationEvent(i, memory, new LinpackParser(log).parseLinpack()));
+                results.add(new CalibrationEvent(i, memory, new LinpackParser(log).parseLinpack(), CalibrationPlatform.AWS));
             }
         }
 

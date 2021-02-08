@@ -1,5 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.calibration.model;
 
+import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import lombok.Data;
 
@@ -17,12 +18,15 @@ public class CalibrationEvent {
     private double cpuOrMemoryQuota;
     private double gflops;
 
+    private CalibrationPlatform platform;
+
     @ManyToOne(cascade = {})
     private CalibrationConfig config;
 
-    public CalibrationEvent(int i, double quota, double executeBenchmark) {
+    public CalibrationEvent(int i, double quota, double executeBenchmark, CalibrationPlatform platform) {
         this.runNumber = i;
         this.cpuOrMemoryQuota = quota;
         this.gflops = executeBenchmark;
+        this.platform = platform;
     }
 }
