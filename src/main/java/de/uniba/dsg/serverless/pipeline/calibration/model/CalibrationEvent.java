@@ -3,11 +3,13 @@ package de.uniba.dsg.serverless.pipeline.calibration.model;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 @Data
 @Entity
+@NoArgsConstructor
 public class CalibrationEvent {
 
     @Id

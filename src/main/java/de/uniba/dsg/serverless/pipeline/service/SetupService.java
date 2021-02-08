@@ -15,6 +15,7 @@ import de.uniba.dsg.serverless.pipeline.calibration.provider.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.pipeline.repo.*;
 import de.uniba.dsg.serverless.pipeline.util.PipelineFileHandler;
@@ -24,9 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -49,18 +48,21 @@ public class SetupService {
     private final ProviderEventRepository providerEventRepository;
     private final CalibrationEventRepository calibrationEventRepository;
     private final BenchmarkConfigRepository benchmarkConfigRepository;
+    private final CalibrationConfigRepository calibrationConfigRepository;
 
     @Autowired
     public SetupService(SetupConfigRepository setupConfigRepository,
                         LocalRESTEventRepository localRESTEventRepository,
                         ProviderEventRepository providerEventRepository,
                         CalibrationEventRepository calibrationEventRepository,
-                        BenchmarkConfigRepository benchmarkConfigRepository) {
+                        BenchmarkConfigRepository benchmarkConfigRepository,
+                        CalibrationConfigRepository calibrationConfigRepository) {
         this.setupConfigRepository = setupConfigRepository;
         this.localRESTEventRepository = localRESTEventRepository;
         this.providerEventRepository = providerEventRepository;
         this.calibrationEventRepository = calibrationEventRepository;
         this.benchmarkConfigRepository = benchmarkConfigRepository;
+        this.calibrationConfigRepository = calibrationConfigRepository;
     }
 
     // TODO - really local and in DB?
@@ -142,6 +144,17 @@ public class SetupService {
     public void saveCalibration(CalibrationConfig config, String setupName) throws SeMoDeException {
         SetupConfig setupConfig = this.getSetup(setupName);
         CalibrationConfig currentConfig = setupConfig.getCalibrationConfig();
+
+        // update associated local and provider calibration
+        MappingCalibrationConfig mapppingConfig = config.getMappingCalibrationConfig();
+        if (mapppingConfig.getLocalCalibrationId() != 0) {
+            mapppingConfig.setLocalCalibration(this.calibrationConfigRepository.findById(mapppingConfig.getLocalCalibrationId()).get());
+        }
+        if (mapppingConfig.getProviderCalibrationId() != 0) {
+            mapppingConfig.setProviderCalibration(this.calibrationConfigRepository.findById(mapppingConfig.getProviderCalibrationId()).get());
+        }
+
+
         if (currentConfig.equals(config) == false) {
             config.setVersionNumber(currentConfig.getVersionNumber() + 1);
             // set the current configuration config
@@ -298,5 +311,37 @@ public class SetupService {
                         c.getLocalExecutionEvents().stream().filter(LocalRESTEvent::dataAlreadyFetched).mapToInt(e -> 1).sum()
                 ));
         return configs;
+    }
+
+    private Map<Long, String> getCalibrations(String setupName, CalibrationPlatform platform) {
+        List<CalibrationConfig> configList = this.calibrationConfigRepository.findDistinctCalibrationConfigBySetupName(setupName);
+        Map<Long, String> configInformation = new HashMap<>();
+        for (CalibrationConfig config : configList) {
+            String info = config.getCalibrationEvents().stream()
+                    .filter(e -> e.getPlatform().equals(platform))
+                    .map(CalibrationEvent::getCpuOrMemoryQuota)
+                    .distinct()
+                    .sorted()
+                    .map(d -> d.toString())
+                    .collect(Collectors.joining(","));
+            if (!info.isBlank()) {
+                configInformation.put(config.getId(), platform.getText() + " - " + info);
+            }
+        }
+        return configInformation;
+    }
+
+    public Map<Long, String> getLocalCalibrations(String setupName) {
+        return this.getCalibrations(setupName, CalibrationPlatform.LOCAL);
+    }
+
+    /**
+     * Currently only AWS is supported
+     *
+     * @param setupName current available setup, where the data is stored in the db
+     * @return information about the available calibration detail
+     */
+    public Map<Long, String> getProviderCalibrations(String setupName) {
+        return this.getCalibrations(setupName, CalibrationPlatform.AWS);
     }
 }

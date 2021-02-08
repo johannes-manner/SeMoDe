@@ -3,19 +3,35 @@ package de.uniba.dsg.serverless.pipeline.model.config;
 import lombok.Data;
 
 import javax.persistence.Embeddable;
+import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+// TODO check all transient classes
+
+/**
+ * All transient fields are not included in the hashCode and equals.
+ * Only when the object also changes in db the equals returns false.
+ */
 @Data
 @Embeddable
 public class MappingCalibrationConfig {
 
-    private String localCalibrationFile = "";
-    private String providerCalibrationFile = "";
+    @OneToOne
+    private CalibrationConfig localCalibration;
+    @Transient
+    private Long localCalibrationId;
+
+    @OneToOne
+    private CalibrationConfig providerCalibration;
+    @Transient
+    private Long providerCalibrationId;
+
     private String memorySizesCalibration = "";
     @Transient
     private Map<Integer, Double> memorySizeCPUShare;
@@ -31,4 +47,21 @@ public class MappingCalibrationConfig {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || this.getClass() != o.getClass()) return false;
+        MappingCalibrationConfig that = (MappingCalibrationConfig) o;
+        return this.localCalibration.equals(that.localCalibration) && this.providerCalibration.equals(that.providerCalibration) && this.memorySizesCalibration.equals(that.memorySizesCalibration);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.localCalibration, this.providerCalibration, this.memorySizesCalibration);
+    }
+
+    @Override
+    public String toString() {
+        return "";
+    }
 }

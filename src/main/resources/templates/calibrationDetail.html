@@ -139,15 +139,25 @@
     <h5>Mapping Calibration Configuration</h5>
     <table class="table table-sm">
         <tr>
-            <td>Local calibration file path</td>
-            <td><input
-                    th:field="*{mappingCalibrationConfig.localCalibrationFile}"/></td>
+            <td th:text="${'Local calibration configuration (Current ID: ' + (calibrationConfig.mappingCalibrationConfig.localCalibration != null ? calibrationConfig.mappingCalibrationConfig.localCalibration.id : '-') + ')' }"/>
+            <td>
+                <select id="localCalibrationConfig"
+                        th:field="*{mappingCalibrationConfig.localCalibrationId}">
+                    <option value=0>-- Select an option --</option>
+                    <option th:each="key: ${localCalibrations.keySet()}" th:value="${key}"
+                            th:text="${localCalibrations.get(key)}"></option>
+                </select>
+            </td>
         </tr>
-        <tr>
-            <td>Provider calibration file path</td>
-            <td><input
-                    th:field="*{mappingCalibrationConfig.providerCalibrationFile}"/></td>
-        </tr>
+        <td th:text="${'Local calibration configuration (Current ID: ' + calibrationConfig.mappingCalibrationConfig.localCalibration != null ? calibrationConfig.mappingCalibrationConfig.localCalibration.id : '-' + ')' }"></td>
+        <td>
+            <select id="providerCalibrationConfig"
+                    th:field="*{mappingCalibrationConfig.providerCalibrationId}">
+                <option value=0>-- Select an option --</option>
+                <option th:each="key: ${providerCalibrations.keySet()}" th:value="${key}"
+                        th:text="${'Id:' + key + ' - ' + providerCalibrations.get(key)}"></option>
+            </select>
+        </td>
         <tr>
             <td>Memory Sizes on Provider Platform (comma separated)</td>
             <td><input

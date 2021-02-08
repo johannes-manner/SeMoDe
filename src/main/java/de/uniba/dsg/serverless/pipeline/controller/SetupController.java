@@ -105,6 +105,8 @@ public class SetupController {
 
         model.addAttribute("calibrationConfig", this.setupService.getCurrentCalibrationConfig(setupName));
         model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);
+        model.addAttribute("localCalibrations", this.setupService.getLocalCalibrations(setupName));
+        model.addAttribute("providerCalibrations", this.setupService.getProviderCalibrations(setupName));
 
         return "calibrationDetail";
     }

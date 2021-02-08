@@ -1,11 +1,9 @@
 package de.uniba.dsg.serverless.pipeline.calibration.mapping;
 
-import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,14 +20,15 @@ public class MappingMaster {
         this.computeFunctions();
     }
 
+    // TODO
     public void computeFunctions() throws SeMoDeException {
-        final RegressionComputation localRegression = new RegressionComputation(Paths.get(this.config.getLocalCalibrationFile()));
-        this.localRegressionFunction = localRegression.computeRegression();
-        log.info(CalibrationPlatform.LOCAL + " regression: " + this.localRegressionFunction);
-
-        final RegressionComputation providerRegression = new RegressionComputation(Paths.get(this.config.getProviderCalibrationFile()));
-        this.providerRegressionFunction = providerRegression.computeRegression();
-        log.info("Provider regression: " + this.providerRegressionFunction);
+//        final RegressionComputation localRegression = new RegressionComputation(Paths.get(this.config.getLocalCalibrationFile()));
+//        this.localRegressionFunction = localRegression.computeRegression();
+//        log.info(CalibrationPlatform.LOCAL + " regression: " + this.localRegressionFunction);
+//
+//        final RegressionComputation providerRegression = new RegressionComputation(Paths.get(this.config.getProviderCalibrationFile()));
+//        this.providerRegressionFunction = providerRegression.computeRegression();
+//        log.info("Provider regression: " + this.providerRegressionFunction);
     }
 
     public void computeMapping() {

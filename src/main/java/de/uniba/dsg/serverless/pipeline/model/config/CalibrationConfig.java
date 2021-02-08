@@ -1,10 +1,13 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import de.uniba.dsg.serverless.pipeline.calibration.model.CalibrationEvent;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 /**
  * Model class for calibration config and json serialization. DO NOT change this class. Otherwise json serialization and
@@ -13,6 +16,9 @@ import javax.persistence.*;
 @Data
 @Entity
 @NoArgsConstructor
+// TODO check if needed...
+@NamedEntityGraph(name = "CalibrationConfig.calibrationEvents",
+        attributeNodes = @NamedAttributeNode(value = "calibrationEvents"))
 public class CalibrationConfig {
 
     @Id
@@ -39,6 +45,10 @@ public class CalibrationConfig {
     @Embedded
     private RunningCalibrationConfig runningCalibrationConfig;
 
+    @JsonIgnore
+    @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "config")
+    private List<CalibrationEvent> calibrationEvents;
+
     public CalibrationConfig(SetupConfig config) {
         this.localConfig = new LocalCalibrationConfig();
         this.awsCalibrationConfig = new AWSCalibrationConfig();
@@ -50,5 +60,11 @@ public class CalibrationConfig {
     public void increaseVersion() {
         this.id = null;
         this.versionNumber++;
+    }
+
+    // TODO fix it - recursion problem
+    @Override
+    public String toString() {
+        return "";
     }
 }
