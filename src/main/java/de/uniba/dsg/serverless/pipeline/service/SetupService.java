@@ -10,6 +10,7 @@ import de.uniba.dsg.serverless.pipeline.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.pipeline.calibration.mapping.MappingMaster;
 import de.uniba.dsg.serverless.pipeline.calibration.model.CalibrationEvent;
 import de.uniba.dsg.serverless.pipeline.calibration.profiling.ContainerExecutor;
+import de.uniba.dsg.serverless.pipeline.calibration.profiling.ProfileRecord;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.AWSCalibration;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
@@ -49,6 +50,7 @@ public class SetupService {
     private final CalibrationEventRepository calibrationEventRepository;
     private final BenchmarkConfigRepository benchmarkConfigRepository;
     private final CalibrationConfigRepository calibrationConfigRepository;
+    private final ProfileRecordRepository profileRecordRepository;
 
     @Autowired
     public SetupService(SetupConfigRepository setupConfigRepository,
@@ -56,13 +58,15 @@ public class SetupService {
                         ProviderEventRepository providerEventRepository,
                         CalibrationEventRepository calibrationEventRepository,
                         BenchmarkConfigRepository benchmarkConfigRepository,
-                        CalibrationConfigRepository calibrationConfigRepository) {
+                        CalibrationConfigRepository calibrationConfigRepository,
+                        ProfileRecordRepository profileRecordRepository) {
         this.setupConfigRepository = setupConfigRepository;
         this.localRESTEventRepository = localRESTEventRepository;
         this.providerEventRepository = providerEventRepository;
         this.calibrationEventRepository = calibrationEventRepository;
         this.benchmarkConfigRepository = benchmarkConfigRepository;
         this.calibrationConfigRepository = calibrationConfigRepository;
+        this.profileRecordRepository = profileRecordRepository;
     }
 
     // TODO - really local and in DB?
@@ -323,8 +327,13 @@ public class SetupService {
         log.info("Running the function with the computed cpu share for the specified memory settings...");
         Map<Integer, Double> memorySizeCPUShare = this.computeMapping();
         ContainerExecutor containerExecutor = new ContainerExecutor(this.fileHandler.pathToCalibration, memorySizeCPUShare, this.setupConfig.getCalibrationConfig().getRunningCalibrationConfig());
-        containerExecutor.executeLocalProfiles();
+        List<ProfileRecord> records = containerExecutor.executeLocalProfiles();
         log.info("Running the function with the computed cpu share for the specified memory settings successfully terminated!");
+
+        records.stream().forEach(r -> r.setCalibrationConfig(this.setupConfig.getCalibrationConfig()));
+        this.profileRecordRepository.saveAll(records);
+
+        log.info("Sucessfully stored " + records.size() + " profiling records to the db");
     }
 
 

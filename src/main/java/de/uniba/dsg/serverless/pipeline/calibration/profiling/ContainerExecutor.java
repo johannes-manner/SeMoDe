@@ -9,21 +9,15 @@ import de.uniba.dsg.serverless.pipeline.calibration.local.ResourceLimit;
 import de.uniba.dsg.serverless.pipeline.model.config.RunningCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
 
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 @Slf4j
 public class ContainerExecutor {
@@ -62,20 +56,23 @@ public class ContainerExecutor {
         }
     }
 
-    public void executeLocalProfiles() throws SeMoDeException {
+    public List<ProfileRecord> executeLocalProfiles() throws SeMoDeException {
+        String randomExecutionNumber = UUID.randomUUID().toString();
+        List<ProfileRecord> profileRecords = new ArrayList<>();
         for (final Integer memorySize : this.memorySizeCPUShare.keySet()) {
-            this.executeLocalProfiles(new ResourceLimit(this.memorySizeCPUShare.get(memorySize), false, memorySize), "" + memorySize);
+            profileRecords.addAll(
+                    this.executeLocalProfiles(randomExecutionNumber,
+                            new ResourceLimit(this.memorySizeCPUShare.get(memorySize),
+                                    false, memorySize),
+                            "" + memorySize));
         }
+        return profileRecords;
     }
 
     /**
-     * Creates a profile of multiple container executions and aggregates them in a CSV file.<br>
-     * Profiles are stored in /profiling/profiles/IMAGE_NAME/TIME_STAMP/
-     *
-     * @param limits resource limits
-     * @throws SeMoDeException
+     * TODO document
      */
-    private void executeLocalProfiles(final ResourceLimit limits, final String memorySize) throws SeMoDeException {
+    private List<ProfileRecord> executeLocalProfiles(final String randomExecutionNumber, final ResourceLimit limits, final String memorySize) throws SeMoDeException {
         final List<Profile> profiles = new ArrayList<>();
         final String time = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         final Path out = this.pathToCalibration
@@ -83,20 +80,24 @@ public class ContainerExecutor {
                 .resolve(memorySize);
         for (int i = 0; i < this.runningCalibrationConfig.getNumberOfProfiles(); i++) {
             final Profile p = this.runContainer(this.environmentVariables, limits);
-            this.saveProfile(p, out.resolve("profile_" + i + "_" + memorySize));
+            this.saveProfile(p, out.resolve("profile_" + randomExecutionNumber + "_" + i + "_" + memorySize));
             profiles.add(p);
-            log.info("Executed and saved profile " + i + " for memory size " + memorySize);
+            log.info("Executed profile " + i + " for memory size " + memorySize);
         }
-        final String csvOutput = out.resolve("profiles.csv").toString();
-        try (final CSVPrinter printer = new CSVPrinter(new FileWriter(csvOutput, true), CSVFormat.EXCEL)) {
-            printer.printRecord("FunctionName", "StartTime", "EndTime", "PreciseDuration", "MemorySize", "MemoryUsed");
-            for (final Profile p : profiles) {
-                printer.printRecord(this.container.imageTag, p.started, p.finished, p.metaInfo.durationMS,
-                        limits.getMemoryLimitInMb(), MemoryUnit.MB.fromBytes(p.metaInfo.averageMemoryUsage));
-            }
-        } catch (final IOException e) {
-            throw new SeMoDeException("Unable to write CSV File", e);
+
+        List<ProfileRecord> records = new ArrayList<>();
+
+        for (final Profile p : profiles) {
+            records.add(new ProfileRecord(randomExecutionNumber,
+                    this.container.imageTag,
+                    p.started,
+                    p.finished,
+                    p.metaInfo.durationMS,
+                    limits.getMemoryLimitInMb(),
+                    MemoryUnit.MB.fromBytes(p.metaInfo.averageMemoryUsage)));
         }
+
+        return records;
     }
 
     private Profile runContainer(final Map<String, String> envParams, final ResourceLimit limits) throws SeMoDeException {
