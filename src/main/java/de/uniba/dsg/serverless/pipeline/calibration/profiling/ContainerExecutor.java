@@ -6,7 +6,6 @@ import com.google.common.collect.Maps;
 import de.uniba.dsg.serverless.pipeline.calibration.MemoryUnit;
 import de.uniba.dsg.serverless.pipeline.calibration.local.DockerContainer;
 import de.uniba.dsg.serverless.pipeline.calibration.local.ResourceLimit;
-import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.RunningCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
@@ -31,15 +30,15 @@ public class ContainerExecutor {
 
     private final Path pathToCalibration;
     private final DockerContainer container;
-    private final MappingCalibrationConfig mappingCalibrationConfig;
+    private final Map<Integer, Double> memorySizeCPUShare;
     private final RunningCalibrationConfig runningCalibrationConfig;
 
     private Map<String, String> environmentVariables;
     private List<String> logs;
 
-    public ContainerExecutor(final Path pathToCalibration, final MappingCalibrationConfig mappingConfig, final RunningCalibrationConfig runningConfig) throws SeMoDeException {
+    public ContainerExecutor(final Path pathToCalibration, Map<Integer, Double> memorySizeCPUShare, final RunningCalibrationConfig runningConfig) throws SeMoDeException {
         this.pathToCalibration = pathToCalibration;
-        this.mappingCalibrationConfig = mappingConfig;
+        this.memorySizeCPUShare = memorySizeCPUShare;
         this.runningCalibrationConfig = runningConfig;
         this.container = new DockerContainer(this.runningCalibrationConfig.getFunctionDockerSourceFolder(), "semode/local");
         log.info("building container semode/local " + this.runningCalibrationConfig.getFunctionDockerSourceFolder());
@@ -64,8 +63,8 @@ public class ContainerExecutor {
     }
 
     public void executeLocalProfiles() throws SeMoDeException {
-        for (final Integer memorySize : this.mappingCalibrationConfig.getMemorySizeCPUShare().keySet()) {
-            this.executeLocalProfiles(new ResourceLimit(this.mappingCalibrationConfig.getMemorySizeCPUShare().get(memorySize), false, memorySize), "" + memorySize);
+        for (final Integer memorySize : this.memorySizeCPUShare.keySet()) {
+            this.executeLocalProfiles(new ResourceLimit(this.memorySizeCPUShare.get(memorySize), false, memorySize), "" + memorySize);
         }
     }
 

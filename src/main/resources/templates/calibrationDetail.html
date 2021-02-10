@@ -149,7 +149,7 @@
                 </select>
             </td>
         </tr>
-        <td th:text="${'Local calibration configuration (Current ID: ' + calibrationConfig.mappingCalibrationConfig.localCalibration != null ? calibrationConfig.mappingCalibrationConfig.localCalibration.id : '-' + ')' }"></td>
+        <td th:text="${'Local calibration configuration (Current ID: ' + (calibrationConfig.mappingCalibrationConfig.providerCalibration != null ? calibrationConfig.mappingCalibrationConfig.providerCalibration.id : '-' ) + ')' }"></td>
         <td>
             <select id="providerCalibrationConfig"
                     th:field="*{mappingCalibrationConfig.providerCalibrationId}">
@@ -162,10 +162,6 @@
             <td>Memory Sizes on Provider Platform (comma separated)</td>
             <td><input
                     th:field="*{mappingCalibrationConfig.memorySizesCalibration}"/></td>
-        </tr>
-        <tr>
-            <td>Memory Sizes, CPU share</td>
-            <td th:text="${calibrationConfig.mappingCalibrationConfig.memorySizeCPUShare}"/>
         </tr>
     </table>
     <h5>Run function locally with computed CPU share</h5>
@@ -195,7 +191,7 @@
 <button id="deployCalibration">Deploy Calibration</button>
 <button id="startCalibration">Start Calibration</button>
 <button id="undeployCalibration">Undeploy Calibration</button>
-<button id="computeMapping">Compute Mapping for Calibrations</button>
+<button id="computeMapping">Compute Mapping for Calibrations (INFO only)</button>
 <button id="runFunction">Run function locally</button>
 
 <div th:replace="fragments/footer :: footer">...</div>

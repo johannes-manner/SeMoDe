@@ -149,9 +149,13 @@ public class SetupService {
         MappingCalibrationConfig mapppingConfig = config.getMappingCalibrationConfig();
         if (mapppingConfig.getLocalCalibrationId() != 0) {
             mapppingConfig.setLocalCalibration(this.calibrationConfigRepository.findById(mapppingConfig.getLocalCalibrationId()).get());
+        } else {
+            mapppingConfig.setLocalCalibration(currentConfig.getMappingCalibrationConfig().getLocalCalibration());
         }
         if (mapppingConfig.getProviderCalibrationId() != 0) {
             mapppingConfig.setProviderCalibration(this.calibrationConfigRepository.findById(mapppingConfig.getProviderCalibrationId()).get());
+        } else {
+            mapppingConfig.setProviderCalibration(currentConfig.getMappingCalibrationConfig().getProviderCalibration());
         }
 
 
@@ -292,14 +296,35 @@ public class SetupService {
         }
     }
 
-    public void computeMapping() throws SeMoDeException {
-        new MappingMaster(this.setupConfig.getCalibrationConfig().getMappingCalibrationConfig()).computeMapping();
-        this.updateSetup(this.setupConfig);
+    private Map<Double, List<Double>> mapCalibrationEventList(List<CalibrationEvent> calibrationEvents) {
+        Map<Double, List<Double>> memoryOrCPUAndItsMeasures = new HashMap<>();
+        for (CalibrationEvent event : calibrationEvents) {
+            if (!memoryOrCPUAndItsMeasures.containsKey(event.getCpuOrMemoryQuota())) {
+                memoryOrCPUAndItsMeasures.put(event.getCpuOrMemoryQuota(), new ArrayList<>());
+            }
+            memoryOrCPUAndItsMeasures.get(event.getCpuOrMemoryQuota()).add(event.getGflops());
+        }
+        return memoryOrCPUAndItsMeasures;
+    }
+
+    public Map<Integer, Double> computeMapping() throws SeMoDeException {
+        MappingCalibrationConfig mappingConfig = this.setupConfig.getCalibrationConfig().getMappingCalibrationConfig();
+
+        // compute mapping
+        Map<Integer, Double> memorySizeCPUShare = new MappingMaster().computeMapping(
+                mappingConfig.getMemorySizeList(),
+                this.mapCalibrationEventList(this.calibrationEventRepository.findByConfigId(mappingConfig.getLocalCalibration().getId())),
+                this.mapCalibrationEventList(this.calibrationEventRepository.findByConfigId(mappingConfig.getProviderCalibration().getId())));
+        // return it to the caller
+        return memorySizeCPUShare;
     }
 
     public void runFunctionLocally() throws SeMoDeException {
-        ContainerExecutor containerExecutor = new ContainerExecutor(this.fileHandler.pathToCalibration, this.setupConfig.getCalibrationConfig().getMappingCalibrationConfig(), this.setupConfig.getCalibrationConfig().getRunningCalibrationConfig());
+        log.info("Running the function with the computed cpu share for the specified memory settings...");
+        Map<Integer, Double> memorySizeCPUShare = this.computeMapping();
+        ContainerExecutor containerExecutor = new ContainerExecutor(this.fileHandler.pathToCalibration, memorySizeCPUShare, this.setupConfig.getCalibrationConfig().getRunningCalibrationConfig());
         containerExecutor.executeLocalProfiles();
+        log.info("Running the function with the computed cpu share for the specified memory settings successfully terminated!");
     }
 
 
