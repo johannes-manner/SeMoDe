@@ -145,11 +145,11 @@
                         th:field="*{mappingCalibrationConfig.localCalibrationId}">
                     <option value=0>-- Select an option --</option>
                     <option th:each="key: ${localCalibrations.keySet()}" th:value="${key}"
-                            th:text="${localCalibrations.get(key)}"></option>
+                            th:text="${'Id:' + key + ' - ' + localCalibrations.get(key)}"></option>
                 </select>
             </td>
         </tr>
-        <td th:text="${'Local calibration configuration (Current ID: ' + (calibrationConfig.mappingCalibrationConfig.providerCalibration != null ? calibrationConfig.mappingCalibrationConfig.providerCalibration.id : '-' ) + ')' }"></td>
+        <td th:text="${'Provider calibration configuration (Current ID: ' + (calibrationConfig.mappingCalibrationConfig.providerCalibration != null ? calibrationConfig.mappingCalibrationConfig.providerCalibration.id : '-' ) + ')' }"></td>
         <td>
             <select id="providerCalibrationConfig"
                     th:field="*{mappingCalibrationConfig.providerCalibrationId}">
