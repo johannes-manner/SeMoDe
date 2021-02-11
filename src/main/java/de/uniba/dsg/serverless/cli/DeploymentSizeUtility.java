@@ -12,15 +12,22 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @Slf4j
-public class DeploymentSizeUtility extends CustomUtility {
+public class DeploymentSizeUtility implements CustomUtility {
 
     private boolean isZipFile;
     private Path path;
     private long desiredFileSize;
     private String commentStart;
 
+    private final String name;
+
     public DeploymentSizeUtility(final String name) {
-        super(name);
+        this.name = name;
+    }
+
+    @Override
+    public String getName() {
+        return this.name;
     }
 
     @Override

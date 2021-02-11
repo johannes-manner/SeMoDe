@@ -3,6 +3,7 @@ package de.uniba.dsg.serverless;
 import de.uniba.dsg.serverless.cli.CustomUtility;
 import de.uniba.dsg.serverless.cli.UtilityFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnNotWebApplication;
 import org.springframework.stereotype.Component;
@@ -25,12 +26,15 @@ import java.util.Optional;
 @Slf4j
 public class ArgumentProcessor implements CommandLineRunner {
 
+    private final UtilityFactory utilityFactory;
+
+    @Autowired
+    public ArgumentProcessor(UtilityFactory utilityFactory) {
+        this.utilityFactory = utilityFactory;
+    }
+
     @Override
     public void run(final String[] args) {
-        // set logging system property
-        // TODO think about property management
-        System.setProperty("java.util.logging.SimpleFormatter.format", "[;%1$tFT%1$tH:%1$tM:%1$tS.%1$tL;] [%4$-7s] %5$s %n");
-        System.setProperty("CSV_SEPARATOR", ";");
 
         if (args == null || args.length < 2) {
             log.warn("Please specify cli arguments. Program exited.");
@@ -42,7 +46,7 @@ public class ArgumentProcessor implements CommandLineRunner {
             argumentList.add(args[i]);
         }
 
-        final Optional<CustomUtility> utility = UtilityFactory.getUtilityClass(args[0]);
+        final Optional<CustomUtility> utility = this.utilityFactory.getUtilityClass(args[0]);
         if (utility.isPresent()) {
             utility.get().start(argumentList);
         } else {

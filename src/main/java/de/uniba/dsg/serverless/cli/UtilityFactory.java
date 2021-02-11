@@ -1,32 +1,33 @@
 package de.uniba.dsg.serverless.cli;
 
-import de.uniba.dsg.serverless.cli.performance.AzurePerformanceDataUtility;
-import de.uniba.dsg.serverless.cli.performance.GooglePerformanceDataUtility;
-import de.uniba.dsg.serverless.cli.performance.IBMOpenWhiskPerformanceDataUtility;
 import de.uniba.dsg.serverless.simulation.load.SimulationUtility;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class UtilityFactory {
 
-    private static final List<CustomUtility> utilityList = Arrays.asList(
+    private final List<CustomUtility> utilityList = new ArrayList<>();
 
-            // fetcher for performance data
-            new AzurePerformanceDataUtility("azurePerformanceData"),
-            new IBMOpenWhiskPerformanceDataUtility("openWhiskPerformanceData"),
-            new GooglePerformanceDataUtility("googlePerformanceData"),
+    @Autowired
+    public UtilityFactory(CliSetupService cliSetupService) {
+        this.utilityList.addAll(List.of(
+                // parts of benchmarking
+                cliSetupService,
+                // pre spring era
+                new DeploymentSizeUtility("deploymentSize"),
 
-            // parts of benchmarking
-            new PipelineSetupUtility("pipelineSetup"),
-            new DeploymentSizeUtility("deploymentSize"),
+                // simulation
+                // pre spring era
+                new SimulationUtility("loadSimulation")
+        ));
+    }
 
-            // simulation
-            new SimulationUtility("loadSimulation")
-    );
-
-    public static Optional<CustomUtility> getUtilityClass(final String name) {
-        return utilityList.stream().filter(c -> c.getName().equals(name)).findFirst();
+    public Optional<CustomUtility> getUtilityClass(final String name) {
+        return this.utilityList.stream().filter(c -> c.getName().equals(name)).findFirst();
     }
 }

@@ -17,12 +17,18 @@ import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
-public class SimulationUtility extends CustomUtility {
+public class SimulationUtility implements CustomUtility {
 
     private Path file;
+    private final String name;
 
     public SimulationUtility(final String name) {
-        super(name);
+        this.name = name;
+    }
+
+    @Override
+    public String getName() {
+        return this.name;
     }
 
     @Override

@@ -77,16 +77,20 @@ public class SetupService {
         this.setupConfigRepository.save(this.setupConfig);
     }
 
-    // TODO document only source of truth is the DB
-    public SetupConfig getSetup(String setupName) throws SeMoDeException {
+    public void loadSetup(String setupName) throws SeMoDeException {
         this.fileHandler = new PipelineFileHandler(setupName, this.setups);
         Optional<SetupConfig> config = this.setupConfigRepository.findById(setupName);
         if (config.isPresent()) {
             this.setupConfig = config.get();
-            return this.setupConfig;
         } else {
             throw new SeMoDeException("Setup with name " + setupName + " is not present!!");
         }
+    }
+
+    // TODO document only source of truth is the DB
+    public SetupConfig getSetup(String setupName) throws SeMoDeException {
+        this.loadSetup(setupName);
+        return this.setupConfig;
     }
 
     public List<String> getSetupNames() {
@@ -239,6 +243,7 @@ public class SetupService {
         }
     }
 
+    // TODO refactor the string here...
     private CalibrationMethods getCalibrationMethod(String platform) throws SeMoDeException {
         CalibrationMethods calibration = null;
         if (CalibrationPlatform.LOCAL.getText().equals(platform)) {
