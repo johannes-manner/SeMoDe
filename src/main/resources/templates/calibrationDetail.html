@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <meta charset="UTF-8">
+    <title>SeMoDe - Benchmark</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+          integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+            integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+            integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+            integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
+            crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+
+<div th:replace="fragments/header :: header">...</div>
+<form th:action="@{/setups/{name}/calibration(name=${calibrationConfig.setupName})}" method="POST"
+      th:object="${calibrationConfig}">
+    <h3>Calibration Configuration</h3>
+    <table class="table table-sm">
+        <tr>
+            <td><label>For Setup</label></td>
+            <td><input readonly="readonly"
+                       th:field="*{setupName}"/></td>
+        </tr>
+    </table>
+    <h5>Local Configuration</h5>
+    <table class="table table-sm">
+        <div id="calibrationLocalSettings">
+            <tr>
+                <td>Local Steps in which CPU share is increased (e.g. 0.1)</td>
+                <td><input th:field="*{localConfig.localSteps}"/></td>
+            </tr>
+            <tr>
+                <td>Number of local calibrations</td>
+                <td><input th:field="*{localConfig.numberOfLocalCalibrations}"/></td>
+            </tr>
+            <tr>
+                <td>Enable local calibration</td>
+                <td><input th:field="*{localConfig.localEnabled}" type="checkbox"/>
+                </td>
+            </tr>
+            <tr>
+                <td>Docker Source Folder(Dockerfile location)</td>
+                <td><input th:field="*{localConfig.calibrationDockerSourceFolder}"/></td>
+            </tr>
+        </div>
+    </table>
+    <h5>AWS Configuration</h5>
+    <table class="table table-sm">
+        <div id="awsCalibrationSettings">
+            <tr>
+                <td>Bucket name to store calibration to</td>
+                <td><input th:readonly="${calibrationConfig.deployed}"
+                           th:field="*{awsCalibrationConfig.bucketName}"/></td>
+            </tr>
+            <tr>
+                <td>Number of aws executions</td>
+                <td><input th:readonly="${calibrationConfig.deployed}"
+                           th:field="*{awsCalibrationConfig.numberOfAWSExecutions}"/></td>
+            </tr>
+            <tr>
+                <td>Region</td>
+                <td><input th:readonly="${calibrationConfig.deployed}"
+                           th:field="*{awsCalibrationConfig.benchmarkConfig.region}"/></td>
+            </tr>
+            <tr>
+                <td>Runtime</td>
+                <td><input th:readonly="${calibrationConfig.deployed}"
+                           th:field="*{awsCalibrationConfig.benchmarkConfig.runtime}"/></td>
+            </tr>
+            <tr>
+                <td>AWS ARN Lambda Role</td>
+                <td><input th:readonly="${calibrationConfig.deployed}"
+                           th:field="*{awsCalibrationConfig.benchmarkConfig.awsArnLambdaRole}"/>
+                </td>
+            </tr>
+            <tr>
+                <td>Handler Class Name</td>
+                <td><input th:readonly="${calibrationConfig.deployed}"
+                           th:field="*{awsCalibrationConfig.benchmarkConfig.functionHandler}"/>
+                </td>
+            </tr>
+            <tr>
+                <td>Timeout in Seconds</td>
+                <td><input th:readonly="${calibrationConfig.deployed}"
+                           th:field="*{awsCalibrationConfig.benchmarkConfig.timeout}"/></td>
+            </tr>
+            <tr>
+                <td>Memory Sizes (comma separated List)</td>
+                <td><input th:readonly="${calibrationConfig.deployed}"
+                           th:field="*{awsCalibrationConfig.benchmarkConfig.memorySizes}"/></td>
+            </tr>
+            <tr>
+                <td>Path to ZIP Source (locally on your computer)</td>
+                <td><input th:readonly="${calibrationConfig.deployed}"
+                           th:field="*{awsCalibrationConfig.benchmarkConfig.pathToSource}"/></td>
+            </tr>
+            <tr>
+                <td>Target URL (filled by the tool)</td>
+                <td><input readonly="readonly"
+                           th:field="*{awsCalibrationConfig.benchmarkConfig.targetUrl}"/></td>
+            </tr>
+            <tr>
+                <td>API Key (filled by the tool)</td>
+                <td><input readonly="readonly"
+                           th:field="*{awsCalibrationConfig.benchmarkConfig.apiKey}"/>
+                </td>
+            </tr>
+        </div>
+    </table>
+    <h5>AWS specific Benchmark Settings - Deployment Internals</h5>
+    <table class="table table-sm">
+        <tr>
+            <td>REST API ID (filled by the tool)</td>
+            <td><input readonly="readonly"
+                       th:field="*{awsCalibrationConfig.benchmarkConfig.restApiId}"/></td>
+        </tr>
+        <tr>
+            <td>API Key ID (filled by the tool)</td>
+            <td><input readonly="readonly"
+                       th:field="*{awsCalibrationConfig.benchmarkConfig.apiKeyId}"/></td>
+        </tr>
+        <tr>
+            <td>Usage Plan ID (filled by the tool)</td>
+            <td><input readonly="readonly"
+                       th:field="*{awsCalibrationConfig.benchmarkConfig.usagePlanId}"/></td>
+        </tr>
+
+    </table>
+    <h5>Mapping Calibration Configuration</h5>
+    <table class="table table-sm">
+        <tr>
+            <td th:text="${'Local calibration configuration (Current ID: ' + (calibrationConfig.mappingCalibrationConfig.localCalibration != null ? calibrationConfig.mappingCalibrationConfig.localCalibration.id : '-') + ')' }"/>
+            <td>
+                <select id="localCalibrationConfig"
+                        th:field="*{mappingCalibrationConfig.localCalibrationId}">
+                    <option value=0>-- Select an option --</option>
+                    <option th:each="key: ${localCalibrations.keySet()}" th:value="${key}"
+                            th:text="${'Id:' + key + ' - ' + localCalibrations.get(key)}"></option>
+                </select>
+            </td>
+        </tr>
+        <td th:text="${'Provider calibration configuration (Current ID: ' + (calibrationConfig.mappingCalibrationConfig.providerCalibration != null ? calibrationConfig.mappingCalibrationConfig.providerCalibration.id : '-' ) + ')' }"></td>
+        <td>
+            <select id="providerCalibrationConfig"
+                    th:field="*{mappingCalibrationConfig.providerCalibrationId}">
+                <option value=0>-- Select an option --</option>
+                <option th:each="key: ${providerCalibrations.keySet()}" th:value="${key}"
+                        th:text="${'Id:' + key + ' - ' + providerCalibrations.get(key)}"></option>
+            </select>
+        </td>
+        <tr>
+            <td>Memory Sizes on Provider Platform (comma separated)</td>
+            <td><input
+                    th:field="*{mappingCalibrationConfig.memorySizesCalibration}"/></td>
+        </tr>
+    </table>
+    <h5>Run function locally with computed CPU share</h5>
+    <table class="table table-sm">
+        <tr>
+            <td>Folder, where the function and Dockerfile is located</td>
+            <td><input
+                    th:field="*{runningCalibrationConfig.functionDockerSourceFolder}"/></td>
+        </tr>
+        <tr>
+            <td>Environment variable file</td>
+            <td><input
+                    th:field="*{runningCalibrationConfig.environmentVariablesFile}"/></td>
+        </tr>
+        <tr>
+            <td>Number of Profiles</td>
+            <td><input
+                    th:field="*{runningCalibrationConfig.numberOfProfiles}"/></td>
+        </tr>
+    </table>
+    <div class="py-1 px-1">
+        <button class="btn btn-dark py-1 px-1">Update configuration</button>
+    </div>
+</form>
+
+<button id="startLocalCalibration">Start Local Calibration</button>
+<button id="deployCalibration">Deploy Calibration</button>
+<button id="startCalibration">Start Calibration</button>
+<button id="undeployCalibration">Undeploy Calibration</button>
+<button id="computeMapping">Compute Mapping for Calibrations (INFO only)</button>
+<button id="runFunction">Run function locally</button>
+
+<div th:replace="fragments/footer :: footer">...</div>
+<script type="text/javascript" th:src="@{/js/calibration.js}"></script>
+</body>
+</html>

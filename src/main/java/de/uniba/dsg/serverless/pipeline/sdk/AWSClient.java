@@ -14,13 +14,9 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.google.common.util.concurrent.Uninterruptibles;
-import de.uniba.dsg.serverless.ArgumentProcessor;
-import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSDeploymentInternals;
-import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSFunctionConfig;
-import de.uniba.dsg.serverless.util.FileLogger;
-import de.uniba.dsg.serverless.util.SeMoDeException;
-import de.uniba.dsg.serverless.util.SeMoDeProperty;
-import de.uniba.dsg.serverless.util.SeMoDePropertyManager;
+import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
@@ -42,9 +38,8 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class AWSClient {
-
-    private static final FileLogger logger = ArgumentProcessor.logger;
 
     private final AmazonS3 amazonS3Client;
     private final AmazonApiGateway amazonApiGatewayClient;
@@ -54,7 +49,8 @@ public class AWSClient {
     /**
      * Creates an AWSClient
      *
-     * @throws SeMoDeException if the AWS S3 Client could not be created (check credentials and resources/awsEndpointInfo.json)
+     * @throws SeMoDeException if the AWS S3 Client could not be created (check credentials and
+     *                         resources/awsEndpointInfo.json)
      */
     public AWSClient(final String region) throws SeMoDeException {
         try {
@@ -68,9 +64,8 @@ public class AWSClient {
     }
 
     /**
-     * Invokes an AWS Lambda function with respective memory.
-     * GET request, used for the calibration or for function which specify a storage location to an S3 bucket,
-     * when data is generated.
+     * Invokes an AWS Lambda function with respective memory. GET request, used for the calibration or for function
+     * which specify a storage location to an S3 bucket, when data is generated.
      *
      * @param path schema is linpack_MEMORY
      */
@@ -94,15 +89,15 @@ public class AWSClient {
     }
 
     /**
-     * Blocking function that waits for a file, if not already available, to be created in the S3 bucket.
-     * If the timeout is reached, an exception is thrown.
+     * Blocking function that waits for a file, if not already available, to be created in the S3 bucket. If the timeout
+     * is reached, an exception is thrown.
      *
      * @param keyName key of the file
      * @param timeout timeout in seconds
      * @throws SeMoDeException thrown if the S3 bucket is not available or the timeout is exceeded.
      */
     public void waitForBucketObject(final String bucketName, final String keyName, long timeout) throws SeMoDeException {
-        logger.info("Waiting for object " + keyName);
+        log.info("Waiting for object " + keyName);
         timeout *= 1_000; // convert to ms
         final long startTime = System.currentTimeMillis();
         while (System.currentTimeMillis() < startTime + timeout) {
@@ -112,6 +107,10 @@ public class AWSClient {
             Uninterruptibles.sleepUninterruptibly(5, TimeUnit.SECONDS);
         }
         throw new SeMoDeException("Timeout exceeded, no object found.");
+    }
+
+    public boolean doesS3ObjectExist(String bucketName, String keyName) {
+        return this.amazonS3Client.doesObjectExist(bucketName, keyName);
     }
 
     /**
@@ -160,7 +159,7 @@ public class AWSClient {
                 throw new SeMoDeException("Can't deploy lambda function. Inspect it: " + createFunctionRequest.toString());
             }
         } catch (final ResourceConflictException e) {
-            logger.warning("Lambda function already exists! Check if you need an update!");
+            log.warn("Lambda function already exists! Check if you need an update!");
         }
     }
 
@@ -184,9 +183,6 @@ public class AWSClient {
 
     /**
      * Returns the parent resource ('/') of the ApiGateway RestAPI.
-     *
-     * @param restApiId
-     * @return
      */
     public String getParentResource(final String restApiId) throws SeMoDeException {
         final GetResourcesRequest getResourcesRequest = new GetResourcesRequest()
@@ -207,11 +203,6 @@ public class AWSClient {
 
     /**
      * Creates the AWS Gateway Resource.
-     *
-     * @param restApiId
-     * @param parentResourceId
-     * @param resourcePath
-     * @return
      */
     public String createRestResource(final String restApiId, final String parentResourceId, final String resourcePath) throws SeMoDeException {
         final CreateResourceRequest createResourceRequest = new CreateResourceRequest()
@@ -227,12 +218,8 @@ public class AWSClient {
     }
 
     /**
-     * Creates the method and corresponding method response.
-     * ANY method is configured at this point for simplicity reasons.
-     *
-     * @param restApiId
-     * @param resourceId
-     * @throws SeMoDeException
+     * Creates the method and corresponding method response. ANY method is configured at this point for simplicity
+     * reasons.
      */
     public void putMethodAndMethodResponse(final String restApiId, final String resourceId) throws SeMoDeException {
         this.putMethod(restApiId, resourceId);
@@ -280,7 +267,7 @@ public class AWSClient {
                 .withType("AWS")
                 .withIntegrationHttpMethod("POST")
                 .withUri("arn:aws:apigateway:" + region + ":lambda:path/2015-03-31/functions/arn:aws:lambda:" + region + ":"
-                        + this.iamClient.getUser().getUser().getUserId()
+                        + this.extractAWSAccountId()
                         + ":function:" + functionName + "/invocations")
                 .withPassthroughBehavior("WHEN_NO_MATCH");
 
@@ -289,6 +276,14 @@ public class AWSClient {
             throw new SeMoDeException("Can't create integration for api " + restApiId + " and resource " + resourceId
                     + " with uri " + putIntegrationRequest.getUri());
         }
+    }
+
+    /**
+     * The extraction here is somehow buddy, but if the user is not the root user, the user id of the subuser is not the
+     * account id
+     */
+    private String extractAWSAccountId() {
+        return this.iamClient.getUser().getUser().getArn().split(":")[4];
     }
 
     private void putIntegrationResponse(final String restApiId, final String resourceId) throws SeMoDeException {
@@ -317,7 +312,6 @@ public class AWSClient {
 
         return result.getId();
     }
-
 
     public String createUsagePlanAndUsagePlanKey(final String usagePlanName, final String restApiId, final String stageName, final String apiKeyId) throws SeMoDeException {
         final String usagePlanId = this.createUsagePlan(usagePlanName, restApiId, stageName);
@@ -370,19 +364,18 @@ public class AWSClient {
                 .withStatementId("default")
                 .withAction("lambda:InvokeFunction")
                 .withPrincipal("apigateway.amazonaws.com")
-                .withSourceArn("arn:aws:execute-api:" + region + ":" + this.iamClient.getUser().getUser().getUserId()
+                .withSourceArn("arn:aws:execute-api:" + region + ":" + this.extractAWSAccountId()
                         + ":" + restApiId + "/*/*/" + functionName);
 
         try {
             final AddPermissionResult result = this.amazonLambdaClient.addPermission(addPermissionRequest);
-            logger.info("update lambda permission: " + result.getSdkHttpMetadata().getHttpStatusCode());
+            log.info("update lambda permission: " + result.getSdkHttpMetadata().getHttpStatusCode());
             if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {
-                logger.warning("Lambda function already exists! Permission update was not possible! Probably already there!");
+                log.warn("Lambda function already exists! Permission update was not possible! Probably already there!");
             }
         } catch (final ResourceConflictException e) {
-            logger.warning("Lambda function permission already exists! Check if you need an update!");
+            log.warn("Lambda function permission already exists! Check if you need an update!");
         }
-
     }
 
     public void deleteLambdaFunction(final String functionName) {
@@ -392,10 +385,10 @@ public class AWSClient {
         try {
             final DeleteFunctionResult result = this.amazonLambdaClient.deleteFunction(deleteFunctionRequest);
             if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                logger.info("AWS Lambda function " + functionName + " deleted");
+                log.info("AWS Lambda function " + functionName + " deleted");
             }
         } catch (final ResourceNotFoundException e) {
-            logger.warning("AWS Lambda function " + functionName + " deleted or not present!");
+            log.warn("AWS Lambda function " + functionName + " deleted or not present!");
         }
     }
 
@@ -406,10 +399,10 @@ public class AWSClient {
         try {
             final DeleteApiKeyResult result = this.amazonApiGatewayClient.deleteApiKey(deleteApiKeyRequest);
             if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_ACCEPTED) {
-                logger.info("Amazon Api Gateway key " + apiKeyId + " deleted");
+                log.info("Amazon Api Gateway key " + apiKeyId + " deleted");
             }
         } catch (final NotFoundException e) {
-            logger.warning("Amazon Api Gateway key " + apiKeyId + " deleted or not present!");
+            log.warn("Amazon Api Gateway key " + apiKeyId + " deleted or not present!");
         }
     }
 
@@ -420,10 +413,10 @@ public class AWSClient {
         try {
             final DeleteRestApiResult result = this.amazonApiGatewayClient.deleteRestApi(deleteRestApiRequest);
             if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_ACCEPTED) {
-                logger.info("Amazon Api Gateway rest api " + restApiId + " deleted");
+                log.info("Amazon Api Gateway rest api " + restApiId + " deleted");
             }
         } catch (final NotFoundException e) {
-            logger.warning("Amazon Api Gateway rest api " + restApiId + "deleted or not present!");
+            log.warn("Amazon Api Gateway rest api " + restApiId + "deleted or not present!");
         }
     }
 
@@ -434,31 +427,30 @@ public class AWSClient {
         try {
             final DeleteUsagePlanResult result = this.amazonApiGatewayClient.deleteUsagePlan(deleteUsagePlanRequest);
             if (result.getSdkHttpMetadata().getHttpStatusCode() == HttpStatus.SC_ACCEPTED) {
-                logger.info("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted");
+                log.info("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted");
             }
         } catch (final NotFoundException e) {
-            logger.warning("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted or not present!");
+            log.warn("Amazon Api Gateway rest usage plan " + usagePlanId + " deleted or not present!");
         }
     }
 
-    public void deployLambdaFunctionAndHttpMethod(final String platformName, final Integer memorySize, final String restApiId, final AWSFunctionConfig functionConfig) throws SeMoDeException {
-        this.deployLambdaFunction(platformName, memorySize, functionConfig);
-        this.deployHttpMethodInRestApi(platformName, restApiId, functionConfig.region);
+    public void deployLambdaFunctionAndHttpMethod(final String platformName, final Integer memorySize, AWSBenchmarkConfig benchmarkConfig) throws SeMoDeException {
+        this.deployLambdaFunction(platformName, memorySize, benchmarkConfig);
+        this.deployHttpMethodInRestApi(platformName, benchmarkConfig.getRestApiId(), benchmarkConfig.getRegion());
     }
 
-    private void deployLambdaFunction(final String functionName, final int memorySize, final AWSFunctionConfig functionConfig) throws SeMoDeException {
+    private void deployLambdaFunction(final String functionName, final int memorySize, final AWSBenchmarkConfig benchmarkConfig) throws SeMoDeException {
         // change directory to the linpack directory and zip it
-        this.executeBashCommand("cd " + functionConfig.pathToSource + "; zip -r function.zip *");
-        this.deployLambdaFunction(functionName, functionConfig.runtime, functionConfig.awsArnLambdaRole,
-                functionConfig.functionHandler, functionConfig.timeout, memorySize,
-                Paths.get(functionConfig.pathToSource + "/function.zip"));
+        this.deployLambdaFunction(functionName, benchmarkConfig.getRuntime(), benchmarkConfig.getAwsArnLambdaRole(),
+                benchmarkConfig.getFunctionHandler(), benchmarkConfig.getTimeout(), memorySize,
+                Paths.get(benchmarkConfig.getPathToSource()));
 
-        logger.info("Function deployment successfully completed for " + memorySize + " MB! (AWS Lambda)");
+        log.info("Function deployment successfully completed for " + memorySize + " MB! (AWS Lambda)");
     }
 
     /**
-     * Deploys an API Gateway endpoint and secures this endpoint via a x-api-key.
-     * The x-api-key is also included in the settings.json and generated by this deployment.
+     * Deploys an API Gateway endpoint and secures this endpoint via a x-api-key. The x-api-key is also included in the
+     * settings.json and generated by this deployment.
      */
     private void deployHttpMethodInRestApi(final String resourcePath, final String restApiId, final String region) throws SeMoDeException {
         final String parentResourceId = this.getParentResource(restApiId);
@@ -467,72 +459,59 @@ public class AWSClient {
         this.putIntegrationAndIntegrationResponse(restApiId, resourceId, resourcePath, region);
     }
 
-    private void executeBashCommand(final String command) throws SeMoDeException {
-        final ProcessBuilder processBuilder = new ProcessBuilder(SeMoDePropertyManager.getInstance().getProperty(SeMoDeProperty.BASH_LOCATION), "-c", command);
-        Process process = null;
-        try {
-            process = processBuilder.start();
-            final int errCode = process.waitFor();
-            logger.info("Command " + command + " executed without errors? " + (errCode == 0 ? "Yes" : "No(code=" + errCode + ")"));
-        } catch (final IOException | InterruptedException e) {
-            e.printStackTrace();
-            process.destroy();
-        }
-    }
-
-    public void enableRestApiUsage(final String restApiId, final String setupName, final AWSFunctionConfig functionConfig, final AWSDeploymentInternals deploymentInternals) throws SeMoDeException {
+    public void enableRestApiUsage(final String restApiId, final String setupName, AWSBenchmarkConfig benchmarkConfig) throws SeMoDeException {
         final String stageName = setupName + "_stage";
         final String deploymentId = this.createStage(restApiId, stageName);
         final Pair<String, String> keyPair = this.createApiKey(setupName + "_key", restApiId, stageName);
         final String usagePlanId = this.createUsagePlanAndUsagePlanKey(setupName + "_plan", restApiId, stageName, keyPair.getKey());
-        logger.info("API Gateway deployment successfully completed!");
+        log.info("API Gateway deployment successfully completed!");
 
         // store x-api-key and targetUrl in pipeline configuration
-        functionConfig.targetUrl = "https://" + restApiId + ".execute-api." + functionConfig.region + ".amazonaws.com/" + setupName + "_stage";
-        deploymentInternals.apiKeyId = keyPair.getKey();
-        functionConfig.apiKey = keyPair.getValue();
-        deploymentInternals.usagePlanId = usagePlanId;
+        benchmarkConfig.setTargetUrl("https://" + restApiId + ".execute-api." + benchmarkConfig.getRegion() + ".amazonaws.com/" + setupName + "_stage");
+        benchmarkConfig.setApiKeyId(keyPair.getKey());
+        benchmarkConfig.setApiKey(keyPair.getValue());
+        benchmarkConfig.setUsagePlanId(usagePlanId);
     }
 
-    public void deleteApi(final AWSDeploymentInternals deploymentInternals) {
-        this.deleteApiKey(deploymentInternals.apiKeyId);
-        this.deleteRestApi(deploymentInternals.restApiId);
-        this.deleteUsagePlan(deploymentInternals.usagePlanId);
+    public void deleteApi(final AWSBenchmarkConfig deploymentInternals) {
+        this.deleteApiKey(deploymentInternals.getApiKeyId());
+        this.deleteRestApi(deploymentInternals.getRestApiId());
+        this.deleteUsagePlan(deploymentInternals.getUsagePlanId());
     }
 
-    public void deployFunctions(final String setupName, final List<Pair<String, Integer>> functionConfigs, final AWSFunctionConfig functionConfig, final AWSDeploymentInternals deploymentInternals) {
+    public void deployFunctions(final String setupName, final List<Pair<String, Integer>> functionConfigs, AWSBenchmarkConfig benchmarkConfig) {
         try {
             // Create a single rest api for all function endpoints
             final String restApiId = this.createRestAPI(setupName);
-            deploymentInternals.restApiId = restApiId;
+            benchmarkConfig.setRestApiId(restApiId);
 
             for (final Pair<String, Integer> f : functionConfigs) {
-                this.deployLambdaFunctionAndHttpMethod(f.getLeft(), f.getRight(), restApiId, functionConfig);
+                this.deployLambdaFunctionAndHttpMethod(f.getLeft(), f.getRight(), benchmarkConfig);
             }
             // set up rest api and stage
-            this.enableRestApiUsage(restApiId, setupName, functionConfig, deploymentInternals);
+            this.enableRestApiUsage(restApiId, setupName, benchmarkConfig);
 
             // update lambda permission due to the enabled rest api
             for (final Pair<String, Integer> f : functionConfigs) {
-                this.updateLambdaPermission(f.getLeft(), restApiId, functionConfig.region);
+                this.updateLambdaPermission(f.getLeft(), restApiId, benchmarkConfig.getRegion());
             }
 
-            logger.info("Deployment successfully completed!");
+            log.info("Deployment successfully completed!");
         } catch (final SeMoDeException e) {
-            this.removeAllDeployedResources(functionConfigs, deploymentInternals);
+            this.removeAllDeployedResources(functionConfigs, benchmarkConfig);
         }
     }
 
     /**
-     * Removes all resources from aws cloud platform. </br>
-     * Currently only the deployed lambda function and the api gateway, key and usage plan
+     * Removes all resources from aws cloud platform. </br> Currently only the deployed lambda function and the api
+     * gateway, key and usage plan
      */
-    public void removeAllDeployedResources(final List<Pair<String, Integer>> functionConfigs, final AWSDeploymentInternals deploymentInternals) {
+    public void removeAllDeployedResources(final List<Pair<String, Integer>> functionConfigs, final AWSBenchmarkConfig benchmarkConfig) {
 
         for (final Pair<String, Integer> f : functionConfigs) {
             this.deleteLambdaFunction(f.getLeft());
         }
 
-        this.deleteApi(deploymentInternals);
+        this.deleteApi(benchmarkConfig);
     }
 }

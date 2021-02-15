@@ -1,54 +1,67 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.annotations.Expose;
-import de.uniba.dsg.serverless.util.SeMoDeException;
+import lombok.Data;
 
-import java.io.IOException;
-import java.util.ArrayList;
+import javax.persistence.Embeddable;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
+// TODO check all transient classes
+
+/**
+ * All transient fields are not included in the hashCode and equals.
+ * Only when the object also changes in db the equals returns false.
+ */
+@Data
+@Embeddable
 public class MappingCalibrationConfig {
 
-    @Expose
-    public String localCalibrationFile;
-    @Expose
-    public String providerCalibrationFile;
-    @Expose
-    public List<Integer> memorySizes;
-    @Expose
-    public Map<Integer, Double> memorySizeCPUShare;
+    @OneToOne
+    private CalibrationConfig localCalibration;
+    @Transient
+    private Long localCalibrationId;
 
-    public MappingCalibrationConfig() {
+    @OneToOne
+    private CalibrationConfig providerCalibration;
+    @Transient
+    private Long providerCalibrationId;
 
+    private String memorySizesCalibration = "";
+    @Transient
+    private Map<Integer, Double> memorySizeCPUShare;
+
+    public List<Integer> getMemorySizeList() {
+        if (this.memorySizesCalibration == null) {
+            return List.of();
+        }
+        return Arrays.stream(this.memorySizesCalibration.split(","))
+                .map(String::trim)
+                .filter(Predicate.not(String::isEmpty))
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
     }
 
-    /**
-     * Copy constructor.
-     *
-     * @param mappingCalibrationConfig
-     */
-    public MappingCalibrationConfig(final MappingCalibrationConfig mappingCalibrationConfig) {
-        this.providerCalibrationFile = mappingCalibrationConfig.providerCalibrationFile;
-        this.localCalibrationFile = mappingCalibrationConfig.localCalibrationFile;
-        this.memorySizes = List.copyOf(mappingCalibrationConfig.memorySizes);
-        this.memorySizeCPUShare = Map.copyOf(mappingCalibrationConfig.memorySizeCPUShare);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || this.getClass() != o.getClass()) return false;
+        MappingCalibrationConfig that = (MappingCalibrationConfig) o;
+        return this.localCalibration.equals(that.localCalibration) && this.providerCalibration.equals(that.providerCalibration) && this.memorySizesCalibration.equals(that.memorySizesCalibration);
     }
 
-    public void update(final String localCalibrationFile, final String providerCalibrationFile, final String memoryJSON) throws SeMoDeException {
-        if (!"".equals(localCalibrationFile)) {
-            this.localCalibrationFile = localCalibrationFile;
-        }
-        if (!"".equals(providerCalibrationFile)) {
-            this.providerCalibrationFile = providerCalibrationFile;
-        }
-        if (!"".equals(memoryJSON)) {
-            try {
-                this.memorySizes = (List<Integer>) new ObjectMapper().readValue(memoryJSON, ArrayList.class);
-            } catch (final IOException e) {
-                throw new SeMoDeException("Error during memory size parsing: " + memoryJSON);
-            }
-        }
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.localCalibration, this.providerCalibration, this.memorySizesCalibration);
+    }
+
+    @Override
+    public String toString() {
+        return "";
     }
 }

@@ -1,100 +1,41 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.model;
 
+import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
-public class LocalRESTEvent implements WritableEvent {
+@Data
+@Entity
+@NoArgsConstructor
+@AllArgsConstructor
+public class LocalRESTEvent {
 
-    private String platformId;
-    private String containerId;
-    private String vmIdentification;
-    private String cpuModel;
-    private String cpuModelName;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+    @OneToOne(cascade = CascadeType.ALL)
+    private ProviderEvent providerEvent;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private boolean erroneous = false;
+    @ManyToOne(cascade = {})
+    private BenchmarkConfig benchmarkConfig;
 
-    public LocalRESTEvent() {
+    /**
+     * This method indicates if the data from the corresponding platform is already fetched (present in the database).
+     * Precondition is, that the ProviderEvent is also fetched from the db.
+     *
+     * @return true if the data is already fetched
+     */
+    public boolean dataAlreadyFetched() {
+        if (this.providerEvent != null && this.providerEvent.getPerformanceData() != null) {
+            return true;
+        } else {
+            return false;
+        }
     }
-
-    @Override
-    public String getPlatformId() {
-        return this.platformId;
-    }
-
-    public void setPlatformId(final String platformId) {
-        this.platformId = platformId;
-    }
-
-    @Override
-    public LocalDateTime getStartTime() {
-        return this.startTime;
-    }
-
-    public void setStartTime(final LocalDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalDateTime getEndTime() {
-        return this.endTime;
-    }
-
-    public void setEndTime(final LocalDateTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public String getContainerId() {
-        return this.containerId;
-    }
-
-    public void setContainerId(final String containerId) {
-        this.containerId = containerId;
-    }
-
-    public boolean isErroneous() {
-        return this.erroneous;
-    }
-
-    public void setErroneous(final boolean erroneous) {
-        this.erroneous = erroneous;
-    }
-
-    public String getVmIdentification() {
-        return this.vmIdentification;
-    }
-
-    public void setVmIdentification(final String vmIdentification) {
-        this.vmIdentification = vmIdentification;
-    }
-
-    public String getCpuModel() {
-        return this.cpuModel;
-    }
-
-    public void setCpuModel(final String cpuModel) {
-        this.cpuModel = cpuModel;
-    }
-
-    public String getCpuModelName() {
-        return this.cpuModelName;
-    }
-
-    public void setCpuModelName(final String cpuModelName) {
-        this.cpuModelName = cpuModelName;
-    }
-
-    @Override
-    public String getCSVMetadata() {
-        return "PlatformId" + CSV_SEPARATOR + "ContainerId" + CSV_SEPARATOR + "VM_Identification" + CSV_SEPARATOR
-                + "CPU_Model" + CSV_SEPARATOR + "CPU_Model_Name" + CSV_SEPARATOR + "StartRESTTime" + CSV_SEPARATOR
-                + "EndRESTTime" + CSV_SEPARATOR + "Erroneous" + CSV_SEPARATOR;
-    }
-
-    @Override
-    public String toCSVString() {
-        return this.platformId + CSV_SEPARATOR + this.containerId + CSV_SEPARATOR + this.vmIdentification
-                + CSV_SEPARATOR + this.cpuModel + CSV_SEPARATOR + this.cpuModelName + CSV_SEPARATOR
-                + this.startTime.format(CSV_FORMATTER) + CSV_SEPARATOR + this.endTime.format(CSV_FORMATTER)
-                + CSV_SEPARATOR + this.erroneous + CSV_SEPARATOR;
-    }
-
 }

@@ -2,11 +2,10 @@ package de.uniba.dsg.serverless.simulation.load;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.uniba.dsg.serverless.ArgumentProcessor;
 import de.uniba.dsg.serverless.cli.CustomUtility;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import de.uniba.dsg.serverless.simulation.load.model.SimulationInput;
-import de.uniba.dsg.serverless.util.FileLogger;
-import de.uniba.dsg.serverless.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,21 +16,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class SimulationUtility extends CustomUtility {
-
-    private static final FileLogger logger = ArgumentProcessor.logger;
+@Slf4j
+public class SimulationUtility implements CustomUtility {
 
     private Path file;
+    private final String name;
 
     public SimulationUtility(final String name) {
-        super(name);
+        this.name = name;
+    }
+
+    @Override
+    public String getName() {
+        return this.name;
     }
 
     @Override
     public void start(final List<String> args) {
 
         if (args == null || args.size() != 2) {
-            logger.warning("The provided element size is not correct! " + args);
+            log.warn("The provided element size is not correct! " + args);
             return;
         }
 
@@ -44,10 +48,10 @@ public class SimulationUtility extends CustomUtility {
 
         } catch (final IOException e) {
             e.printStackTrace();
-            logger.warning("Error reading simulation input json! " + args.get(1));
+            log.warn("Error reading simulation input json! " + args.get(1));
             return;
         } catch (final SeMoDeException e) {
-            logger.warning(e.getMessage());
+            log.warn(e.getMessage());
             return;
         }
     }

@@ -1,23 +1,22 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.model;
 
 import de.uniba.dsg.serverless.pipeline.benchmark.util.LoadPatternGenerator;
-import de.uniba.dsg.serverless.util.FileLogger;
-import de.uniba.dsg.serverless.util.SeMoDeException;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
+import lombok.extern.slf4j.Slf4j;
 import org.glassfish.jersey.client.ClientProperties;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
-public class FunctionTrigger implements Callable<String> {
-
-
-    private static final String CSV_SEPARATOR = System.getProperty("CSV_SEPARATOR");
+@Slf4j
+public class FunctionTrigger implements Callable<LocalRESTEvent> {
 
     private static final int REQUEST_PASSED_STATUS = 200;
 
@@ -28,14 +27,11 @@ public class FunctionTrigger implements Callable<String> {
     private final Map<String, String> queryParameters;
     private final Map<String, String> headerParameters;
 
-    private final FileLogger logger;
-
-    public FunctionTrigger(final String platform, final String jsonInput, final URL url, final Map<String, String> headerValues, final FileLogger fileLogger) {
+    public FunctionTrigger(final String platform, final String jsonInput, final URL url, final Map<String, String> headerValues) {
 
         this.platform = platform;
         this.jsonInput = jsonInput;
         this.headerParameters = headerValues;
-        this.logger = fileLogger;
 
         String tempHost = url.getProtocol() + "://" + url.getHost();
         if (url.getPort() != -1) {
@@ -57,10 +53,10 @@ public class FunctionTrigger implements Callable<String> {
     }
 
     @Override
-    public String call() throws SeMoDeException {
+    public LocalRESTEvent call() throws SeMoDeException {
 
+        LocalRESTEvent localRESTEvent = new LocalRESTEvent();
         final String uuid = UUID.randomUUID().toString();
-        this.logger.info(CSV_SEPARATOR + this.platform + CSV_SEPARATOR + "START" + CSV_SEPARATOR + uuid);
 
         final Client client = ClientBuilder.newClient();
         client.property(ClientProperties.CONNECT_TIMEOUT, LoadPatternGenerator.PLATFORM_FUNCTION_TIMEOUT * 1000);
@@ -79,33 +75,34 @@ public class FunctionTrigger implements Callable<String> {
             for (final String key : this.headerParameters.keySet()) {
                 invocation = invocation.header(key, this.headerParameters.get(key));
             }
+
+            log.info(uuid + "\tStart request on '" + this.platform + "'");
+            localRESTEvent.setStartTime(LocalDateTime.now());
+
             response = invocation.post(Entity.entity(this.jsonInput, MediaType.APPLICATION_JSON));
+
+            log.info(uuid + "\tEnd request on '" + this.platform + "'");
+            localRESTEvent.setEndTime(LocalDateTime.now());
         } catch (final RuntimeException e) {
-            this.logger.info(CSV_SEPARATOR + this.platform + CSV_SEPARATOR + "END" + CSV_SEPARATOR + uuid);
-            this.logger.warning(CSV_SEPARATOR + this.platform + CSV_SEPARATOR + "ERROR" + CSV_SEPARATOR + uuid);
+            log.warn(uuid + "\tRequest on '" + this.platform + "' returned an error");
+            localRESTEvent.setEndTime(LocalDateTime.now());
+
             throw new SeMoDeException("Can't submit request", e);
         }
-        this.logger.info(CSV_SEPARATOR + this.platform + CSV_SEPARATOR + "END" + CSV_SEPARATOR + uuid);
-
 
         if (response.getStatus() != REQUEST_PASSED_STATUS) {
-            this.logger.warning(CSV_SEPARATOR + this.platform + CSV_SEPARATOR + "ERROR" + CSV_SEPARATOR + uuid + CSV_SEPARATOR + response.getStatus() + " - "
-                    + response.getStatusInfo());
-            throw new SeMoDeException(
-                    "Request exited with an error: " + response.getStatus() + " - " + response.getStatusInfo());
+            log.warn(uuid + "\tRequest on '" + this.platform + "' returned an error" + response.getStatus() + " - " + response.getStatusInfo());
+            throw new SeMoDeException("Request exited with an error: " + response.getStatus() + " - " + response.getStatusInfo());
         }
 
-        // the response entity has to be a json representation with a platformId,
-        // result key and a containerId
-        final String responseEntity = response.readEntity(String.class);
+        try {
+            ProviderEvent responseEntity = response.readEntity(ProviderEvent.class);
+            localRESTEvent.setProviderEvent(responseEntity);
+        } catch (Exception e) {
+            log.warn("Terminate benchmark execution since the response does not map the ProviderEvent model class. Check your cloud function response!");
+            throw new SeMoDeException("Cloud function response does not map the ProviderEvent model of our application", e);
+        }
 
-        final CloudFunctionResponse functionResponse = new CloudFunctionResponse(responseEntity, uuid, this.logger);
-        functionResponse.extractMetadata();
-        functionResponse.logMetadata(this.platform);
-
-        final String responseValue = response.getStatus() + " " + responseEntity;
-
-        return responseValue;
+        return localRESTEvent;
     }
-
 }
