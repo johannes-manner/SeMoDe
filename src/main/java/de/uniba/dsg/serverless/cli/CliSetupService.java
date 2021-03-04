@@ -42,7 +42,7 @@ public class CliSetupService implements CustomUtility {
             this.setupService.loadSetup(args.get(0));
             this.executeRunCommand(args.get(1));
         } catch (SeMoDeException e) {
-            log.warn(e.getMessage(), e.getCause().toString());
+            log.warn(e.getMessage(), e.getCause() != null ? e.getCause().toString() : "");
         }
     }
 
