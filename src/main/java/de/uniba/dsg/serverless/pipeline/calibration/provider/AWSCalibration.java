@@ -93,6 +93,7 @@ public class AWSCalibration implements CalibrationMethods {
                 if (this.client.doesS3ObjectExist(this.calibrationConfig.getBucketName(), "linpack/" + fileName)) {
                     log.info("Calibration already there - if you want to reexecute it, you have to remove it!");
                 } else {
+                    // severe problem - rethrow exception and inform user
                     this.client.invokeLambdaFunction(config.getTargetUrl(), config.getApiKey(), pathForAPIGateway, fileName);
                     log.info("Invoke Lambda calibration function with " + memory + " MB");
                 }
@@ -100,10 +101,16 @@ public class AWSCalibration implements CalibrationMethods {
 
             for (final int memory : config.getMemorySizeList()) {
                 final String fileName = this.calibration.name + "/" + memory + "_" + i;
-                this.client.waitForBucketObject(this.calibrationConfig.getBucketName(), "linpack/" + fileName, 600);
-                final Path log = this.calibration.calibrationLogs.resolve(fileName);
-                this.client.getFileFromBucket(this.calibrationConfig.getBucketName(), "linpack/" + fileName, log);
-                results.add(new CalibrationEvent(i, memory, new LinpackParser(log).parseLinpack(), CalibrationPlatform.AWS));
+                // do not cancel the overall execution only when a single object is missing in the bucket
+                // try the next one and try to analyze the problems later
+                try {
+                    this.client.waitForBucketObject(this.calibrationConfig.getBucketName(), "linpack/" + fileName, 600);
+                    final Path log = this.calibration.calibrationLogs.resolve(fileName);
+                    this.client.getFileFromBucket(this.calibrationConfig.getBucketName(), "linpack/" + fileName, log);
+                    results.add(new CalibrationEvent(i, memory, new LinpackParser(log).parseLinpack(), CalibrationPlatform.AWS));
+                } catch (SeMoDeException e) {
+                    log.warn("Failed for " + fileName + ". Proceed with next calibration one!");
+                }
             }
         }
 
