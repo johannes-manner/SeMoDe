@@ -87,6 +87,7 @@ public class AWSCalibration implements CalibrationMethods {
 
         final List<CalibrationEvent> results = new ArrayList<>();
         for (int i = 0; i < this.calibrationConfig.getNumberOfAWSExecutions(); i++) {
+            log.info("Calibration run " + i);
             for (final int memory : config.getMemorySizeList()) {
                 final String fileName = this.calibration.name + "/" + memory + "_" + i;
                 final String pathForAPIGateway = platformPrefix + memory;
