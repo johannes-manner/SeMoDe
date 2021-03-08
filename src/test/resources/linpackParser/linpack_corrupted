@@ -1,0 +1,56 @@
+btime 1612447250
+
+model		: 63
+model name	: Intel(R) Xeon(R) Processor @ 2.50GHz
+model		: 63
+model name	: Intel(R) Xeon(R) Processor @ 2.50GHz
+
+This is a SAMPLE run script for SMP LINPACK. Change it to reflect
+the correct number of CPUs/threads, problem input files, etc..
+Thu Feb  4 16:36:55 UTC 2021
+Intel(R) Optimized LINPACK Benchmark data
+
+Current date/time: Thu Feb  4 16:36:55 2021
+
+CPU frequency:    3.085 GHz
+Number of CPUs: 1
+Number of cores: 2
+Number of threads: 2
+
+Parameters are set to:
+
+Number of tests: 11
+Number of equations to solve (problem size) : 1000  1500  2000  3000  4000  5000  6000  8000  10000 12000 15000
+Leading dimension of array                  : 1000  2000  5008  10000 15000 18008 20016 22008 25000 26000 27000
+Number of trials to run                     : 4     2     2     2     2     2     2     2     2     2     1    
+Data alignment value (in Kbytes)            : 4     4     4     4     4     4     4     4     4     4     4    
+
+Maximum memory requested that can be used=1408956256, at the size=8000
+
+=================== Timing linear equation system solver ===================
+
+Size   LDA    Align. Time(s)    GFlops   Residual     Residual(norm) Check
+1000   1000   4      0.045      14.9755  9.394430e-13 3.203742e-02   pass
+1000   1000   4      0.033      20.1457  9.394430e-13 3.203742e-02   pass
+1000   1000   4      0.038      17.5896  9.394430e-13 3.203742e-02   pass
+1000   1000   4      0.037      17.9116  9.394430e-13 3.203742e-02   pass
+1500   2000   4      0.099      22.7820  2.544909e-12 3.862628e-02   pass
+1500   2000   4      0.097      23.1978  2.544909e-12 3.862628e-02   pass
+2000   5008   4      0.214      24.9635  4.085732e-12 3.554086e-02   pass
+2000   5008   4      0.199      26.8981  4.085732e-12 3.554086e-02   pass
+3000   10000  4      0.697      25.8546  9.672485e-12 3.724642e-02   pass
+3000   10000  4      0.694      25.9616  9.672485e-12 3.724642e-02   pass
+4000   15000  4      1.582      26.9982  2.049588e-11 4.467271e-02   pass
+4000   15000  4      1.662      25.6881  2.049588e-11 4.467271e-02   pass
+5000   18008  4      3.022      27.5950  2.368622e-11 3.302852e-02   pass
+5000   18008  4      3.141      26.5427  2.368622e-11 3.302852e-02   pass
+6000   20016  4      5.198      27.7154  3.625171e-11 3.515639e-02   pass
+6000   20016  4      5.164      27.8975  3.625171e-11 3.515639e-02   pass
+8000   22008  4      12.142     28.1232  6.635287e-11 3.649983e-02   pass
+8000   22008  4      12.060     28.3140  6.635287e-11 3.649983e-02   pass
+
+Residual checks PASSED
+
+End of tests
+
+Done: Thu Feb  4 16:37:57 UTC 2021
