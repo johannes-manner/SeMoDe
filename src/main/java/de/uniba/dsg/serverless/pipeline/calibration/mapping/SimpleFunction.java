@@ -31,7 +31,9 @@ public class SimpleFunction {
      * @return
      */
     public double computeDependentResult(final SimpleFunction function, final double y) {
-        log.info("f(memorySize)= (" + function.slope + "* y + " + function.intercept + " - " + this.intercept + ") :0.001 " + this.slope);
+        log.info("cpuShare = f(memorySize)= (" + function.slope + "* y + " + function.intercept + " - " + this.intercept + ") / " + this.slope);
+        log.info("Compute the memory Setting (x-axis value) which represents one core on the machine - important for multithreaded apps.");
+        log.info("cpuShare = 1 => memorySetting: " + ((this.slope - function.intercept + this.intercept) / function.slope));
         return (function.slope * y + function.intercept - this.intercept) / this.slope;
     }
 

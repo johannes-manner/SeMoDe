@@ -19,16 +19,18 @@ public class CalibrationEvent {
     private int runNumber;
     private double cpuOrMemoryQuota;
     private double gflops;
+    private Double executionTimeInS;
 
     private CalibrationPlatform platform;
 
     @ManyToOne(cascade = {})
     private CalibrationConfig config;
 
-    public CalibrationEvent(int i, double quota, double executeBenchmark, CalibrationPlatform platform) {
+    public CalibrationEvent(int i, double quota, GflopsExecutionTime gflopsExecutionTime, CalibrationPlatform platform) {
         this.runNumber = i;
         this.cpuOrMemoryQuota = quota;
-        this.gflops = executeBenchmark;
+        this.gflops = gflopsExecutionTime.getGflops();
+        this.executionTimeInS = gflopsExecutionTime.getExecutionTimeInS();
         this.platform = platform;
     }
 }

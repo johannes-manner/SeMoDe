@@ -1,5 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.calibration;
 
+import de.uniba.dsg.serverless.pipeline.calibration.model.GflopsExecutionTime;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -165,7 +166,7 @@ public class LinpackParser {
      * @return the average GFLOPS performance for 10000 equations to solve with an array of 25000 leading dimensions.
      * @throws SeMoDeException if the file can't be read.
      */
-    public double parseLinpack() throws SeMoDeException {
+    public GflopsExecutionTime parseLinpack() throws SeMoDeException {
         if (!Files.exists(this.linpackCalibrationPath)) {
             throw new SeMoDeException("Calibration benchmark file does not exist.");
         }
@@ -193,30 +194,56 @@ public class LinpackParser {
      * @param i     start of the equations section withing the line file
      * @return
      */
-    private double extractAverageOfGflops(List<String> lines, int i) throws SeMoDeException, NoSuchElementException {
-        Map<Integer, List<Double>> sizeGlops = new HashMap<>();
+    private GflopsExecutionTime extractAverageOfGflops(List<String> lines, int i) throws SeMoDeException, NoSuchElementException {
+        // key is the number of size of the system solver
+        Map<Integer, GflopAndExecutionTimeLists> sizeMapTimeAndGlops = new HashMap<>();
         String[] lineSplit = lines.get(i).split("\\s+");
         while (lineSplit.length == 8) {
             int size = Integer.parseInt(lineSplit[0]);
+            double executionTime = Double.parseDouble(lineSplit[3]);
             double gflops = Double.parseDouble(lineSplit[4]);
 
-            if (!sizeGlops.containsKey(size)) {
-                sizeGlops.put(size, new ArrayList<>());
+            if (!sizeMapTimeAndGlops.containsKey(size)) {
+                sizeMapTimeAndGlops.put(size, new GflopAndExecutionTimeLists());
             }
 
-            sizeGlops.get(size).add(gflops);
+            sizeMapTimeAndGlops.get(size).addGflopsAndExecTime(gflops, executionTime);
 
             // reinitialize
             i++;
             lineSplit = lines.get(i).split("\\s+");
         }
 
-        Optional<Integer> maxSize = sizeGlops.keySet().stream().max(Integer::compareTo);
+        Optional<Integer> maxSize = sizeMapTimeAndGlops.keySet().stream().max(Integer::compareTo);
         if (maxSize.isEmpty()) {
             throw new SeMoDeException();
         }
 
-        return sizeGlops.get(maxSize.get()).stream().mapToDouble(d -> d).average().getAsDouble();
+        GflopAndExecutionTimeLists summary = sizeMapTimeAndGlops.get(maxSize.get());
+        return new GflopsExecutionTime(summary.getGflopsAverage(), summary.getExecutionTimeAverage());
+    }
+
+    private class GflopAndExecutionTimeLists {
+        private List<Double> gflops;
+        private List<Double> executionTime;
+
+        GflopAndExecutionTimeLists() {
+            this.gflops = new ArrayList<>();
+            this.executionTime = new ArrayList<>();
+        }
+
+        void addGflopsAndExecTime(double gflops, double execTime) {
+            this.gflops.add(gflops);
+            this.executionTime.add(execTime);
+        }
+
+        double getGflopsAverage() {
+            return this.gflops.stream().mapToDouble(d -> d).average().getAsDouble();
+        }
+
+        double getExecutionTimeAverage() {
+            return this.executionTime.stream().mapToDouble(d -> d).average().getAsDouble();
+        }
     }
 
 }
