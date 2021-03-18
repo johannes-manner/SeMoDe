@@ -31,8 +31,9 @@ public class MappingMaster {
 
         final Map<Integer, Double> memorySettingCPUShare = new HashMap<>();
         for (final Integer memorySize : memorySizes) {
-            log.info("Compute CPU quota for memory size: " + memorySize);
-            memorySettingCPUShare.put(memorySize, this.localRegressionFunction.computeDependentResult(this.providerRegressionFunction, memorySize));
+            double cpuShare = this.localRegressionFunction.computeDependentResult(this.providerRegressionFunction, memorySize);
+            log.info("Compute CPU quota for memory size: " + memorySize + " CPU share: " + cpuShare);
+            memorySettingCPUShare.put(memorySize, cpuShare);
         }
         return memorySettingCPUShare;
     }

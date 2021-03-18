@@ -47,6 +47,7 @@ public class SetupService {
     private final SetupConfigRepository setupConfigRepository;
     private final LocalRESTEventRepository localRESTEventRepository;
     private final ProviderEventRepository providerEventRepository;
+    private final PerformanceDataRepository performanceDataRepository;
     private final CalibrationEventRepository calibrationEventRepository;
     private final BenchmarkConfigRepository benchmarkConfigRepository;
     private final CalibrationConfigRepository calibrationConfigRepository;
@@ -56,6 +57,7 @@ public class SetupService {
     public SetupService(SetupConfigRepository setupConfigRepository,
                         LocalRESTEventRepository localRESTEventRepository,
                         ProviderEventRepository providerEventRepository,
+                        PerformanceDataRepository performanceDataRepository,
                         CalibrationEventRepository calibrationEventRepository,
                         BenchmarkConfigRepository benchmarkConfigRepository,
                         CalibrationConfigRepository calibrationConfigRepository,
@@ -63,6 +65,7 @@ public class SetupService {
         this.setupConfigRepository = setupConfigRepository;
         this.localRESTEventRepository = localRESTEventRepository;
         this.providerEventRepository = providerEventRepository;
+        this.performanceDataRepository = performanceDataRepository;
         this.calibrationEventRepository = calibrationEventRepository;
         this.benchmarkConfigRepository = benchmarkConfigRepository;
         this.calibrationConfigRepository = calibrationConfigRepository;
@@ -288,6 +291,7 @@ public class SetupService {
     public void fetchPerformanceData() throws SeMoDeException {
         for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
             int numberOfPerformanceDataMappings = 0;
+            int numberOfUnassignedPerformanceData = 0;
             log.info("Fetch performance data for " + benchmark.getPlatform());
             List<PerformanceData> data = benchmark.getPerformanceDataFromPlatform(this.setupConfig.getBenchmarkConfig().getStartTime(), this.setupConfig.getBenchmarkConfig().getEndTime());
             for (PerformanceData performanceData : data) {
@@ -300,8 +304,14 @@ public class SetupService {
                         numberOfPerformanceDataMappings++;
                     }
                 }
+                // no matching of provider and performance data possible (due to timeouts etc.)
+                else {
+                    this.performanceDataRepository.save(performanceData);
+                    numberOfUnassignedPerformanceData++;
+                }
             }
             log.info("Successfully stored " + numberOfPerformanceDataMappings + " performance data to local benchmarking events");
+            log.info("Successfully stored " + numberOfUnassignedPerformanceData + " only performance data without local benchmarking events");
         }
     }
 
