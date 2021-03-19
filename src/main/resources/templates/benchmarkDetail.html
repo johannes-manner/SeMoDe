@@ -36,7 +36,7 @@
             <td>
                 <select id="benchmarkVersions">
                     <option th:each="version: ${benchmarkingVersions}" th:value="${version.versionNumber}"
-                            th:text="${version.versionNumber + ' - Local events: ' + version.numberOfLocalDbEvents + ' - Fetched events: ' + version.numberOfFetchedData}"></option>
+                            th:text="${version.versionNumber + ' - Local events: ' + version.localEvents + ' - Fetched events: ' + version.providerEvents}"></option>
                 </select>
             </td>
         </tr>

@@ -14,7 +14,6 @@ import java.util.List;
 @Service
 public class CliSetupService implements CustomUtility {
 
-    // TODO check if we can use service here
     private SetupService setupService;
 
     @Autowired

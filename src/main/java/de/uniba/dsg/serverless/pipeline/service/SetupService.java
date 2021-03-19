@@ -19,6 +19,7 @@ import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.pipeline.repo.*;
+import de.uniba.dsg.serverless.pipeline.repo.projection.IBenchmarkVersionAggregate;
 import de.uniba.dsg.serverless.pipeline.util.PipelineFileHandler;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
@@ -352,14 +353,8 @@ public class SetupService {
     }
 
 
-    public List<BenchmarkConfig> getBenchmarkVersions(String setupName) {
-        List<BenchmarkConfig> configs = this.benchmarkConfigRepository.findBySetupNameOrderByVersionNumberDesc(setupName);
-        configs.forEach(c -> c.setNumberOfLocalDbEvents(c.getLocalExecutionEvents().size()));
-        configs.forEach(
-                c -> c.setNumberOfFetchedData(
-                        c.getLocalExecutionEvents().stream().filter(LocalRESTEvent::dataAlreadyFetched).mapToInt(e -> 1).sum()
-                ));
-        return configs;
+    public List<IBenchmarkVersionAggregate> getBenchmarkVersions(String setupName) {
+        return this.benchmarkConfigRepository.countEventsByGroupingThemOnTheirVersionNumber(setupName);
     }
 
     private Map<Long, String> getCalibrations(String setupName, CalibrationPlatform platform) {
