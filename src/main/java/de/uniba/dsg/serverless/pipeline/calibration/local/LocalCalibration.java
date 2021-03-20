@@ -142,7 +142,8 @@ public class LocalCalibration implements CalibrationMethods {
      * @throws SeMoDeException when the command fails. (only supported on linux machines)
      * @see <a href="https://stackoverflow.com/questions/4759570/finding-number-of-cores-in-java">https://stackoverflow.com/questions/4759570/finding-number-of-cores-in-java</a>
      */
-    private int getPhysicalCores() throws SeMoDeException {
+    // TODO put this method in another class
+    public static int getPhysicalCores() throws SeMoDeException {
         final String command = "lscpu";
         final Process process;
         try {

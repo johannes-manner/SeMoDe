@@ -35,6 +35,7 @@ public class MappingMaster {
             log.info("Compute CPU quota for memory size: " + memorySize + " CPU share: " + cpuShare);
             memorySettingCPUShare.put(memorySize, cpuShare);
         }
+        this.localRegressionFunction.computeMemoryForCpuShares(this.providerRegressionFunction);
         return memorySettingCPUShare;
     }
 }

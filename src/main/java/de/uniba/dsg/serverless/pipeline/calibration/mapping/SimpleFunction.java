@@ -1,5 +1,7 @@
 package de.uniba.dsg.serverless.pipeline.calibration.mapping;
 
+import de.uniba.dsg.serverless.pipeline.calibration.local.LocalCalibration;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -32,9 +34,29 @@ public class SimpleFunction {
      */
     public double computeDependentResult(final SimpleFunction function, final double y) {
         log.info("cpuShare = f(memorySize)= (" + function.slope + "* y + " + function.intercept + " - " + this.intercept + ") / " + this.slope);
-        log.info("Compute the memory Setting (x-axis value) which represents one core on the machine - important for multithreaded apps.");
-        log.info("cpuShare = 1 => memorySetting: " + ((this.slope - function.intercept + this.intercept) / function.slope));
         return (function.slope * y + function.intercept - this.intercept) / this.slope;
+    }
+
+    /**
+     * Gets the number of cpus from the calibration and logs the equivalent settings for the memory.
+     * <p>
+     * E.g.
+     * cpu 1 comparable to 1135 MB
+     * cpu 2 comparable to 2305 MB ...
+     * <p>
+     * This output is only valid, when executed on the machine, where also the calibration was executed. Otherwise the info is somehow corrupted,
+     * since the number of cores might be incorrect.
+     *
+     * @param function
+     */
+    public void computeMemoryForCpuShares(final SimpleFunction function) {
+        try {
+            for (int i = 1; i <= LocalCalibration.getPhysicalCores(); i++) {
+                log.info("cpu " + i + " comparable to " + ((i * this.slope + this.intercept - function.intercept) / function.slope) + " MB");
+            }
+        } catch (SeMoDeException e) {
+            log.warn("An error occurred during the determination of the physical cores, but that's not system critical!");
+        }
     }
 
     @Override
