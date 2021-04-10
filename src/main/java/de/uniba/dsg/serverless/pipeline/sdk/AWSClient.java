@@ -38,6 +38,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+
 @Slf4j
 public class AWSClient {
 
@@ -498,6 +499,7 @@ public class AWSClient {
 
             log.info("Deployment successfully completed!");
         } catch (final SeMoDeException e) {
+            log.warn(e.getMessage());
             this.removeAllDeployedResources(functionConfigs, benchmarkConfig);
         }
     }
