@@ -36,9 +36,19 @@ public class DockerContainer {
     private final List<String> logs = new ArrayList<>();
     private final DockerClient client;
     private String containerId;
-    private String imageId;
 
     /**
+     * Used when an image repository is already used, e.g. when pulling the linpack image from docker hub.
+     *
+     * @param imageTag
+     */
+    public DockerContainer(final String imageTag) throws SeMoDeException {
+        this("", imageTag);
+    }
+
+    /**
+     * Used when an image should be build during the pipeline procedure.
+     *
      * @param dockerSourceFolder - folder where the docker files are included. Dockerfile has to be called "Dockerfile" in this folder.
      * @param imageTag
      * @throws SeMoDeException
@@ -58,13 +68,13 @@ public class DockerContainer {
      */
     public String buildContainer() throws SeMoDeException {
         try {
-            this.imageId = this.client.buildImageCmd()
+            String imageId = this.client.buildImageCmd()
                     .withBaseDirectory(new File(this.dockerSourceFolder))
                     .withDockerfile(new File(this.dockerSourceFolder + "/Dockerfile"))
                     .withTags(Collections.singleton(this.imageTag))
                     .exec(new BuildImageResultCallback())
                     .awaitImageId();
-            return this.imageId;
+            return imageId;
         } catch (final DockerClientException e) {
             throw new SeMoDeException("Failed to build docker image.", e);
         }

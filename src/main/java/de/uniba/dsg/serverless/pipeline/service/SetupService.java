@@ -20,6 +20,7 @@ import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.pipeline.repo.*;
 import de.uniba.dsg.serverless.pipeline.repo.projection.IBenchmarkVersionAggregate;
+import de.uniba.dsg.serverless.pipeline.util.ConversionUtils;
 import de.uniba.dsg.serverless.pipeline.util.PipelineFileHandler;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +55,8 @@ public class SetupService {
     private final CalibrationConfigRepository calibrationConfigRepository;
     private final ProfileRecordRepository profileRecordRepository;
 
+    private final ConversionUtils conversionUtils;
+
     @Autowired
     public SetupService(SetupConfigRepository setupConfigRepository,
                         LocalRESTEventRepository localRESTEventRepository,
@@ -62,7 +65,8 @@ public class SetupService {
                         CalibrationEventRepository calibrationEventRepository,
                         BenchmarkConfigRepository benchmarkConfigRepository,
                         CalibrationConfigRepository calibrationConfigRepository,
-                        ProfileRecordRepository profileRecordRepository) {
+                        ProfileRecordRepository profileRecordRepository,
+                        ConversionUtils conversionUtils) {
         this.setupConfigRepository = setupConfigRepository;
         this.localRESTEventRepository = localRESTEventRepository;
         this.providerEventRepository = providerEventRepository;
@@ -71,6 +75,7 @@ public class SetupService {
         this.benchmarkConfigRepository = benchmarkConfigRepository;
         this.calibrationConfigRepository = calibrationConfigRepository;
         this.profileRecordRepository = profileRecordRepository;
+        this.conversionUtils = conversionUtils;
     }
 
     // TODO - really local and in DB?
@@ -316,25 +321,14 @@ public class SetupService {
         }
     }
 
-    private Map<Double, List<Double>> mapCalibrationEventList(List<CalibrationEvent> calibrationEvents) {
-        Map<Double, List<Double>> memoryOrCPUAndItsMeasures = new HashMap<>();
-        for (CalibrationEvent event : calibrationEvents) {
-            if (!memoryOrCPUAndItsMeasures.containsKey(event.getCpuOrMemoryQuota())) {
-                memoryOrCPUAndItsMeasures.put(event.getCpuOrMemoryQuota(), new ArrayList<>());
-            }
-            memoryOrCPUAndItsMeasures.get(event.getCpuOrMemoryQuota()).add(event.getGflops());
-        }
-        return memoryOrCPUAndItsMeasures;
-    }
-
     public Map<Integer, Double> computeMapping() throws SeMoDeException {
         MappingCalibrationConfig mappingConfig = this.setupConfig.getCalibrationConfig().getMappingCalibrationConfig();
 
         // compute mapping
         Map<Integer, Double> memorySizeCPUShare = new MappingMaster().computeMapping(
                 mappingConfig.getMemorySizeList(),
-                this.mapCalibrationEventList(this.calibrationEventRepository.findByConfigId(mappingConfig.getLocalCalibration().getId())),
-                this.mapCalibrationEventList(this.calibrationEventRepository.findByConfigId(mappingConfig.getProviderCalibration().getId())));
+                this.conversionUtils.mapCalibrationEventList(this.calibrationEventRepository.findByConfigId(mappingConfig.getLocalCalibration().getId())),
+                this.conversionUtils.mapCalibrationEventList(this.calibrationEventRepository.findByConfigId(mappingConfig.getProviderCalibration().getId())));
         // return it to the caller
         return memorySizeCPUShare;
     }

@@ -30,14 +30,23 @@ public class LocalCalibration implements CalibrationMethods {
     private final Path temporaryLog;
     private final LocalCalibrationConfig config;
 
-    // used for CLI feature
-    public LocalCalibration(final String name, final LocalCalibrationConfig config) throws SeMoDeException {
+    /**
+     * Used for the CLI feature when executing the hardware calibration.
+     *
+     * @param name
+     * @param config
+     * @throws SeMoDeException
+     */
+    public LocalCalibration(String name, final LocalCalibrationConfig config) throws SeMoDeException {
         this.calibration = new Calibration(name, CalibrationPlatform.LOCAL);
         this.temporaryLog = this.calibration.calibrationLogs.resolve("output").resolve("out.txt");
         this.config = config;
     }
 
-    // used within pipeline
+    /**
+     * used within pipeline, when the calibration is executed there.
+     * Depends on a setup.
+     */
     public LocalCalibration(final String name, final Path calibrationFolder, final LocalCalibrationConfig config) {
         this.calibration = new Calibration(name, CalibrationPlatform.LOCAL, calibrationFolder);
         this.temporaryLog = this.calibration.calibrationLogs.resolve("output").resolve("out.txt");
@@ -64,6 +73,17 @@ public class LocalCalibration implements CalibrationMethods {
         // prepare calibration - build container and compute quotas based on steps
         final DockerContainer linpackContainer = new DockerContainer(this.config.getCalibrationDockerSourceFolder(), LINPACK_IMAGE);
         linpackContainer.buildContainer();
+        final List<CalibrationEvent> subResults = this.executeCalibrations(linpackContainer);
+
+        return subResults;
+    }
+
+    public List<CalibrationEvent> startCliHardwareCalibration(String dockerRepository) throws SeMoDeException {
+        final DockerContainer linpackContainer = new DockerContainer(dockerRepository);
+        return this.executeCalibrations(linpackContainer);
+    }
+
+    private List<CalibrationEvent> executeCalibrations(DockerContainer linpackContainer) throws SeMoDeException {
         final int physicalCores = this.getPhysicalCores();
         log.info("Number of cores: " + physicalCores);
         final List<Double> quotas = IntStream
@@ -78,7 +98,6 @@ public class LocalCalibration implements CalibrationMethods {
         for (int i = 0; i < this.config.getNumberOfLocalCalibrations(); i++) {
             subResults.addAll(i, this.performCalibration(i, quotas, linpackContainer));
         }
-
         return subResults;
     }
 

@@ -10,10 +10,12 @@ import javax.persistence.OneToOne;
 @Embeddable
 public class LocalCalibrationConfig {
 
+    // TODO think if property is necessary
     @OneToOne(cascade = CascadeType.ALL)
     private MachineConfig localMachineConfig;
     private double localSteps;
     private int numberOfLocalCalibrations;
+    // TODO remove property
     private boolean localEnabled;
     private String calibrationDockerSourceFolder;
 

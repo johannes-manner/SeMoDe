@@ -36,7 +36,7 @@ public class ArgumentProcessor implements CommandLineRunner {
     @Override
     public void run(final String[] args) {
 
-        if (args == null || args.length < 2) {
+        if (args == null || args.length < 1) {
             log.warn("Please specify cli arguments. Program exited.");
             return;
         }

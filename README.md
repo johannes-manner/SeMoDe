@@ -19,6 +19,27 @@ contribute :)
 1. Run `docker-compose up` to start the PostgreSQL database
 2. Run `gradlew bootRun` to start the prototype and access the front page via `http://localhost:8080/setups
 
+## Hardware Calibration feature
+
+introduced in V0.4.
+
+This feature computes a linear regression of your used hardware when working on Linux OS. To run the hardware
+calibration go to the root directory of this project and execute the following commands.
+
+```
+./gradlew bootJar
+java -jar -Dspring.main.web-application-type=NONE build/libs/SeMoDe-0.4.jar hardwareCalibration
+```
+
+This will run the Spring Boot application in CLI mode without starting a web server.
+
+You can configure the calibration via the following properties, default configuration is also specified here:
+
+``` 
+-Dsemode.hardware.runs=3    # default is 1    - number how often the calibration is executed before computing a linear regression
+-Dsemode.hardware.steps=0.4 # default is 0.1  - increments (cpus) which are used to invoke the LINPACK benchmark
+```
+
 ### Publications
 
 - Overall idea of the research prototype and roadmap: <br/>
