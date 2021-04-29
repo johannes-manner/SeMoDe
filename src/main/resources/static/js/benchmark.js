@@ -1,5 +1,8 @@
-var selectElem = document.getElementById('benchmarkingMode')
+var benchmarkConfigID = document.getElementById('benchmarkConfigID');
+var selectElem = document.getElementById('benchmarkingMode');
 var benchmarkingParams = document.getElementById('benchmarkingParams');
+var benchmarkParamsInput = document.getElementById('benchmarkParamsInput');
+var requestBody = document.getElementById('requestBody');
 
 // When a new <option> is selected
 selectElem.addEventListener('change', function() {
@@ -19,6 +22,29 @@ selectElem.addEventListener('change', function() {
       } else {
           benchmarkingParams.innerHTML = ""
       }
+});
+
+// when the version changes
+var versionDropdown = document.getElementById('benchmarkVersions')
+versionDropdown.addEventListener('change', function() {
+      var version = versionDropdown.value;
+      if(versionDropdown.selectedIndex == 0) {
+        console.log(versionDropdown.selectedIndex)
+        document.getElementById('updateBenchmarkConfigButton').disabled = false;
+      } else {
+        console.log(versionDropdown.selectedIndex);
+        document.getElementById('updateBenchmarkConfigButton').disabled = true;
+
+      }
+      $.ajax({
+          url: "/benchmark/version/" + version,
+          success: function(result) {
+              console.log(result);
+              benchmarkConfigID.value = result.id;
+              selectElem.value = result.benchmarkMode;
+              benchmarkParamsInput.value = result.benchmarkParameters;
+              requestBody.value = result.postArgument;
+        }});
 });
 
 

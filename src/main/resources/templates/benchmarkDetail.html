@@ -25,7 +25,7 @@
 <div th:replace="fragments/header :: header">...</div>
 <form class="stabFull" th:action="@{/setups/{name}/benchmark(name=${benchmarkConfig.setupName})}" method="POST"
       th:object="${benchmarkConfig}">
-    <h3>Benchmark Configuration</h3>
+    <h3>Benchmark Configuration ID - <span id="benchmarkConfigID" th:text="${benchmarkConfig.id}"/></h3>
     <table class="table table-sm">
         <tr>
             <td><label>For Setup</label></td>
@@ -56,12 +56,12 @@
         </tr>
         <tr>
             <td><label id="benchmarkingParams">Benchmarking Parameters</label></td>
-            <td><input name="benchmarkParameters"
+            <td><input id="benchmarkParamsInput" name="benchmarkParameters"
                        th:field="*{benchmarkParameters}"/></td>
         </tr>
         <tr>
             <td>Post Body Argument (JSON)</td>
-            <td><textarea rows="5" cols="40"
+            <td><textarea id="requestBody" rows="5" cols="40"
                           th:field="*{postArgument}"></textarea></td>
         </tr>
         <tbody>
@@ -137,7 +137,7 @@
             </tr>
         </table>
         <div class="py-1 px-1">
-            <button class="btn btn-dark py-1 px-1">Update configuration</button>
+            <button id="updateBenchmarkConfigButton" class="btn btn-dark py-1 px-1">Update configuration</button>
         </div>
     </div>
 </form>

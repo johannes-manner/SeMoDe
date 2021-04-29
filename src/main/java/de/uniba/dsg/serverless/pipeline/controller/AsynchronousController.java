@@ -1,6 +1,5 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
-import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.service.SetupService;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
@@ -18,11 +17,6 @@ public class AsynchronousController {
 
     @Autowired
     private SetupService service;
-
-    @GetMapping("benchmark/mode/{tag}")
-    public BenchmarkMode getMode(@PathVariable(value = "tag") String tag) throws SeMoDeException {
-        return BenchmarkMode.fromString(tag);
-    }
 
     @GetMapping("deploy")
     public ResponseEntity deployFunction() throws SeMoDeException {

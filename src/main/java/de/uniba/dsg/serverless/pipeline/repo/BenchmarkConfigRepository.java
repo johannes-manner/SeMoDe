@@ -18,4 +18,5 @@ public interface BenchmarkConfigRepository extends JpaRepository<BenchmarkConfig
             "order by bc.version_number desc", nativeQuery = true)
     public List<IBenchmarkVersionAggregate> countEventsByGroupingThemOnTheirVersionNumber(String setupName);
 
+    BenchmarkConfig findBenchmarkConfigByVersionNumber(Integer version);
 }

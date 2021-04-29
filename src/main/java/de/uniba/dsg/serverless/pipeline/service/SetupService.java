@@ -382,4 +382,8 @@ public class SetupService {
     public Map<Long, String> getProviderCalibrations(String setupName) {
         return this.getCalibrations(setupName, CalibrationPlatform.AWS);
     }
+
+    public BenchmarkConfig getBenchmarkConfigByVersion(Integer version) {
+        return this.benchmarkConfigRepository.findBenchmarkConfigByVersionNumber(version);
+    }
 }
