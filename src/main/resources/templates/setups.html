@@ -8,6 +8,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
           integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link th:href="@{/css/semode.css}" rel="stylesheet"/>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
             integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
             crossorigin="anonymous"></script>
@@ -22,7 +23,7 @@
 
 <div th:replace="fragments/header :: header">...</div>
 
-<div class="table-responsive py-1 px-1">
+<div class="stabFull table-responsive">
     <table class="table table-sm">
         <thead>
         <tr>
@@ -48,7 +49,7 @@
     </table>
 </div>
 
-<div class="py-1 px-1">
+<div class="stabFull">
     <form th:action="@{/setups}" method="POST">
         <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
         Setup Name: <input name="setupName" th:object="${setupName}" type="text"/>

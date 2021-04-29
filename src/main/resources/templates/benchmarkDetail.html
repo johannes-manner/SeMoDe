@@ -8,6 +8,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
           integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link th:href="@{/css/semode.css}" rel="stylesheet"/>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
             integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
             crossorigin="anonymous"></script>
@@ -22,7 +23,7 @@
 <body>
 
 <div th:replace="fragments/header :: header">...</div>
-<form th:action="@{/setups/{name}/benchmark(name=${benchmarkConfig.setupName})}" method="POST"
+<form class="stabFull" th:action="@{/setups/{name}/benchmark(name=${benchmarkConfig.setupName})}" method="POST"
       th:object="${benchmarkConfig}">
     <h3>Benchmark Configuration</h3>
     <table class="table table-sm">
@@ -66,75 +67,78 @@
         <tbody>
         </tbody>
     </table>
-    <h5>AWS specific Benchmark Settings - Function Configuration</h5>
-    <table class="table table-sm">
-        <tr>
-            <td>Region</td>
-            <td><input th:readonly="${benchmarkConfig.deployed}"
-                       th:field="*{awsBenchmarkConfig.region}"/></td>
-        </tr>
-        <tr>
-            <td>Runtime</td>
-            <td><input th:readonly="${benchmarkConfig.deployed}"
-                       th:field="*{awsBenchmarkConfig.runtime}"/></td>
-        </tr>
-        <tr>
-            <td>AWS ARN Lambda Role</td>
-            <td><input th:readonly="${benchmarkConfig.deployed}"
-                       th:field="*{awsBenchmarkConfig.awsArnLambdaRole}"/></td>
-        </tr>
-        <tr>
-            <td>Handler Class Name</td>
-            <td><input th:readonly="${benchmarkConfig.deployed}"
-                       th:field="*{awsBenchmarkConfig.functionHandler}"/></td>
-        </tr>
-        <tr>
-            <td>Timeout in Seconds</td>
-            <td><input th:readonly="${benchmarkConfig.deployed}"
-                       th:field="*{awsBenchmarkConfig.timeout}"/></td>
-        </tr>
-        <tr>
-            <td>Memory Sizes (comma separated List)</td>
-            <td><input th:readonly="${benchmarkConfig.deployed}"
-                       th:field="*{awsBenchmarkConfig.memorySizes}"/></td>
-        </tr>
-        <tr>
-            <td>Path to ZIP Source (locally on your computer)</td>
-            <td><input th:readonly="${benchmarkConfig.deployed}"
-                       th:field="*{awsBenchmarkConfig.pathToSource}"/></td>
-        </tr>
-    </table>
-
-    <h5>AWS specific Benchmark Settings - Deployment Internals</h5>
-    <table class="table table-sm">
-        <tr>
-            <td>Target URL (filled by the tool)</td>
-            <td><input readonly="readonly"
-                       th:field="*{awsBenchmarkConfig.targetUrl}"/></td>
-        </tr>
-        <tr>
-            <td>API Key (filled by the tool)</td>
-            <td><input readonly="readonly" th:field="*{awsBenchmarkConfig.apiKey}"/>
-            </td>
-        </tr>
-        <tr>
-            <td>REST API ID (filled by the tool)</td>
-            <td><input readonly="readonly"
-                       th:field="*{awsBenchmarkConfig.restApiId}"/></td>
-        </tr>
-        <tr>
-            <td>API Key ID (filled by the tool)</td>
-            <td><input readonly="readonly"
-                       th:field="*{awsBenchmarkConfig.apiKeyId}"/></td>
-        </tr>
-        <tr>
-            <td>Usage Plan ID (filled by the tool)</td>
-            <td><input readonly="readonly"
-                       th:field="*{awsBenchmarkConfig.usagePlanId}"/></td>
-        </tr>
-    </table>
-    <div class="py-1 px-1">
-        <button class="btn btn-dark py-1 px-1">Update configuration</button>
+    <div class="stabY">
+        <h5>AWS specific Benchmark Settings - Function Configuration</h5>
+        <table class="table table-sm">
+            <tr>
+                <td>Region</td>
+                <td><input th:readonly="${benchmarkConfig.deployed}"
+                           th:field="*{awsBenchmarkConfig.region}"/></td>
+            </tr>
+            <tr>
+                <td>Runtime</td>
+                <td><input th:readonly="${benchmarkConfig.deployed}"
+                           th:field="*{awsBenchmarkConfig.runtime}"/></td>
+            </tr>
+            <tr>
+                <td>AWS ARN Lambda Role</td>
+                <td><input th:readonly="${benchmarkConfig.deployed}"
+                           th:field="*{awsBenchmarkConfig.awsArnLambdaRole}"/></td>
+            </tr>
+            <tr>
+                <td>Handler Class Name</td>
+                <td><input th:readonly="${benchmarkConfig.deployed}"
+                           th:field="*{awsBenchmarkConfig.functionHandler}"/></td>
+            </tr>
+            <tr>
+                <td>Timeout in Seconds</td>
+                <td><input th:readonly="${benchmarkConfig.deployed}"
+                           th:field="*{awsBenchmarkConfig.timeout}"/></td>
+            </tr>
+            <tr>
+                <td>Memory Sizes (comma separated List)</td>
+                <td><input th:readonly="${benchmarkConfig.deployed}"
+                           th:field="*{awsBenchmarkConfig.memorySizes}"/></td>
+            </tr>
+            <tr>
+                <td>Path to ZIP Source (locally on your computer)</td>
+                <td><input th:readonly="${benchmarkConfig.deployed}"
+                           th:field="*{awsBenchmarkConfig.pathToSource}"/></td>
+            </tr>
+        </table>
+    </div>
+    <div class="stabY">
+        <h5>AWS specific Benchmark Settings - Deployment Internals</h5>
+        <table class="table table-sm">
+            <tr>
+                <td>Target URL (filled by the tool)</td>
+                <td><input readonly="readonly"
+                           th:field="*{awsBenchmarkConfig.targetUrl}"/></td>
+            </tr>
+            <tr>
+                <td>API Key (filled by the tool)</td>
+                <td><input readonly="readonly" th:field="*{awsBenchmarkConfig.apiKey}"/>
+                </td>
+            </tr>
+            <tr>
+                <td>REST API ID (filled by the tool)</td>
+                <td><input readonly="readonly"
+                           th:field="*{awsBenchmarkConfig.restApiId}"/></td>
+            </tr>
+            <tr>
+                <td>API Key ID (filled by the tool)</td>
+                <td><input readonly="readonly"
+                           th:field="*{awsBenchmarkConfig.apiKeyId}"/></td>
+            </tr>
+            <tr>
+                <td>Usage Plan ID (filled by the tool)</td>
+                <td><input readonly="readonly"
+                           th:field="*{awsBenchmarkConfig.usagePlanId}"/></td>
+            </tr>
+        </table>
+        <div class="py-1 px-1">
+            <button class="btn btn-dark py-1 px-1">Update configuration</button>
+        </div>
     </div>
 </form>
 
