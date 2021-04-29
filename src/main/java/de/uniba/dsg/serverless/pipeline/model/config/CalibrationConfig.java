@@ -16,9 +16,6 @@ import java.util.List;
 @Data
 @Entity
 @NoArgsConstructor
-// TODO check if needed...
-@NamedEntityGraph(name = "CalibrationConfig.calibrationEvents",
-        attributeNodes = @NamedAttributeNode(value = "calibrationEvents"))
 public class CalibrationConfig {
 
     @Id

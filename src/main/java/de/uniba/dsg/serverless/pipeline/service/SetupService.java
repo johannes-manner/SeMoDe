@@ -20,6 +20,7 @@ import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.pipeline.repo.*;
 import de.uniba.dsg.serverless.pipeline.repo.projection.IBenchmarkVersionAggregate;
+import de.uniba.dsg.serverless.pipeline.repo.projection.ICalibrationConfigEventAggregate;
 import de.uniba.dsg.serverless.pipeline.util.ConversionUtils;
 import de.uniba.dsg.serverless.pipeline.util.PipelineFileHandler;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
@@ -351,23 +352,22 @@ public class SetupService {
         return this.benchmarkConfigRepository.countEventsByGroupingThemOnTheirVersionNumber(setupName);
     }
 
+    /**
+     * Returns a Map, where the ID of the calibration and the memory sizes are included.
+     *
+     * @param setupName
+     * @param platform
+     * @return
+     */
     private Map<Long, String> getCalibrations(String setupName, CalibrationPlatform platform) {
-        List<CalibrationConfig> configList = this.calibrationConfigRepository.findDistinctCalibrationConfigBySetupName(setupName);
+        List<ICalibrationConfigEventAggregate> calibrationEvents = this.calibrationConfigRepository.findCalibrationEventsBySetupName(setupName);
         Map<Long, String> configInformation = new HashMap<>();
-        for (CalibrationConfig config : configList) {
-            String info = config.getCalibrationEvents().stream()
-                    .filter(e -> e.getPlatform().equals(platform))
-                    .map(CalibrationEvent::getCpuOrMemoryQuota)
-                    .distinct()
-                    .sorted()
-                    .map(d -> d.toString())
-                    .collect(Collectors.joining(","));
-            if (!info.isBlank()) {
-                configInformation.put(config.getId(), platform.getText() + " - " + info);
-            }
-        }
+        calibrationEvents.stream().filter(a -> a.getPlatform().equals(platform)).forEach(a -> {
+            configInformation.put(a.getId(), "Calibration Config Version: " + a.getVersionNumber());
+        });
         return configInformation;
     }
+
 
     public Map<Long, String> getLocalCalibrations(String setupName) {
         return this.getCalibrations(setupName, CalibrationPlatform.LOCAL);
