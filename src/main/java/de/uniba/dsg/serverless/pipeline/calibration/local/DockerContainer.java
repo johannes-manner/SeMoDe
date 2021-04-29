@@ -5,6 +5,7 @@ import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.LogContainerCmd;
 import com.github.dockerjava.api.exception.DockerClientException;
+import com.github.dockerjava.api.exception.InternalServerErrorException;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
@@ -13,6 +14,7 @@ import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.InvocationBuilder.AsyncResultCallback;
 import com.github.dockerjava.core.command.BuildImageResultCallback;
 import com.github.dockerjava.core.command.LogContainerResultCallback;
+import com.github.dockerjava.core.command.PullImageResultCallback;
 import com.github.dockerjava.core.command.WaitContainerResultCallback;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -25,12 +27,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class DockerContainer {
 
     public static final long DEFAULT_CPU_PERIOD = 100000;
     public static final long CPU_QUOTA_CONST = 100000;
+    public static final long DOCKER_PULL_TIMEOUT = 600;
     public final String dockerSourceFolder;
     public final String imageTag;
     private final List<String> logs = new ArrayList<>();
@@ -85,7 +89,7 @@ public class DockerContainer {
      *
      * @return container id
      */
-    public String startContainer() {
+    public String startContainer() throws SeMoDeException {
         return this.startContainer(Collections.emptyMap(), ResourceLimit.unlimited());
     }
 
@@ -96,7 +100,7 @@ public class DockerContainer {
      * @param limits resource limits
      * @return container id
      */
-    public String startContainer(final ResourceLimit limits) {
+    public String startContainer(final ResourceLimit limits) throws SeMoDeException {
         return this.startContainer(Collections.emptyMap(), limits);
     }
 
@@ -106,7 +110,7 @@ public class DockerContainer {
      * @param envParams environment parameters
      * @return container id
      */
-    public String startContainer(final Map<String, String> envParams) {
+    public String startContainer(final Map<String, String> envParams) throws SeMoDeException {
         return this.startContainer(envParams, ResourceLimit.unlimited());
     }
 
@@ -117,16 +121,35 @@ public class DockerContainer {
      * @param envParams environment parameters
      * @return container id
      */
-    public String startContainer(final Map<String, String> envParams, final ResourceLimit limits) {
+    public String startContainer(final Map<String, String> envParams, final ResourceLimit limits) throws SeMoDeException {
+
+        // image not present locally
+        if (this.client.listImagesCmd().withImageNameFilter(this.imageTag).exec().isEmpty()) {
+            this.pullImageFromRegistry(this.imageTag);
+        }
+
         final CreateContainerResponse container = this.client
                 .createContainerCmd(this.imageTag)
                 .withEnv(envParams.entrySet().stream().map(a -> a.getKey() + "=" + a.getValue()).collect(Collectors.toList()))
                 .withHostConfig(this.getHostConfig(limits))
                 .withAttachStdin(true)
                 .exec();
+
         this.containerId = container.getId();
         this.client.startContainerCmd(this.containerId).exec();
         return this.containerId;
+    }
+
+    private void pullImageFromRegistry(String imageAndTagName) throws SeMoDeException {
+        try {
+            this.client.pullImageCmd(imageAndTagName).exec(new PullImageResultCallback()).awaitCompletion(DOCKER_PULL_TIMEOUT, TimeUnit.SECONDS);
+        } catch (InterruptedException e1) {
+            // ignore it
+        } catch (InternalServerErrorException e) {
+            // exception thrown due to timeout etc.
+            // errors during development were not reproducible, easy fix - restarting docker
+            throw new SeMoDeException("Timeout when searching or pulling images, contact the DSG team!");
+        }
     }
 
 
