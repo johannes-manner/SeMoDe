@@ -32,6 +32,16 @@
             <td><input readonly="readonly"
                        th:field="*{setupName}"/></td>
         </tr>
+        <tr>
+            <td>Versions</td>
+            <td>
+                <select id="calibrationVersions">
+                    <option th:each="version: ${#numbers.sequence(calibrationConfig.versionNumber, 1)}"
+                            th:value="${calibrationConfig.versionNumber}"
+                            th:text="${version}"></option>
+                </select>
+            </td>
+        </tr>
     </table>
     <div class="stabY">
         <h5>Local Configuration</h5>
