@@ -21,6 +21,7 @@ import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.pipeline.repo.*;
 import de.uniba.dsg.serverless.pipeline.repo.projection.IBenchmarkVersionAggregate;
 import de.uniba.dsg.serverless.pipeline.repo.projection.ICalibrationConfigEventAggregate;
+import de.uniba.dsg.serverless.pipeline.repo.projection.IPointDto;
 import de.uniba.dsg.serverless.pipeline.util.ConversionUtils;
 import de.uniba.dsg.serverless.pipeline.util.PipelineFileHandler;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
@@ -385,5 +386,9 @@ public class SetupService {
 
     public BenchmarkConfig getBenchmarkConfigByVersion(Integer version) {
         return this.benchmarkConfigRepository.findBenchmarkConfigByVersionNumber(version);
+    }
+
+    public IPointDto[] getBenchmarkDataByVersion(String setupName, Integer version) {
+        return this.benchmarkConfigRepository.getBenchmarkExecutionPointsProviderView(setupName, version).toArray(IPointDto[]::new);
     }
 }

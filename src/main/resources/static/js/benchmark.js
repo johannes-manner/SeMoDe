@@ -1,3 +1,4 @@
+var setupName = document.getElementById('setupName').innerHTML;
 var benchmarkConfigID = document.getElementById('benchmarkConfigID');
 var versionDropdown = document.getElementById('benchmarkVersions')
 var selectElem = document.getElementById('benchmarkingMode');
@@ -28,6 +29,10 @@ var executeBenchmark = document.getElementById('executeBenchmark');
 var executeButtonInfo = document.getElementById('executeButtonInfo');
 var fetchData = document.getElementById('fetchData');
 var fetchButtonInfo = document.getElementById('fetchButtonInfo');
+
+// chart
+var benchmarkChart = document.getElementById('benchmarkChart');
+var removeDataset = document.getElementById('removeDataset');
 
 function disableButtons(boolDisabled) {
     updateConfigButton.disabled = boolDisabled;
@@ -95,6 +100,7 @@ versionDropdown.addEventListener('change', function() {
               awsBenchmarkConfigApiKeyId.value = result.awsBenchmarkConfig.apiKeyId;
               awsBenchmarkConfigUsagePlanId.value = result.awsBenchmarkConfig.usagePlanId;
         }});
+      addBenchmarkDataToChart(version, myChart);
 });
 
 
@@ -157,3 +163,50 @@ fetchData.addEventListener('click', function() {
           }});
       }
 });
+
+// CHART HANDLING
+
+function addBenchmarkDataToChart(version, chart){
+    $.ajax({
+        url: "/"+ setupName + "/benchmark/version/" + version + "/data",
+        success: function(result) {
+            if(result.length > 1){
+                console.log(result);
+                const RGB = 255;
+                var benchmarkDataOf = {
+                    label: 'Version ' + version,
+                    data:  result,
+                    backgroundColor: 'rgb('+ Math.random() * RGB + ', '+ Math.random() * RGB + ', '+ Math.random() * RGB + ')'
+                };
+                chart.data.datasets.push(benchmarkDataOf);
+                chart.update();
+            }
+        }
+    });
+}
+var myChart = new Chart(benchmarkChart, {
+    type: 'scatter',
+      data: {
+        datasets: [],
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            beginAtZero: true,
+            type: 'linear',
+            position: 'bottom'
+          },
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+});
+
+removeDataset.addEventListener('click', function(){
+    myChart.data.datasets.pop();
+    myChart.update();
+});
+
+addBenchmarkDataToChart(versionDropdown.value, myChart);
