@@ -64,6 +64,11 @@
             <td><textarea id="requestBody" rows="5" cols="40"
                           th:field="*{postArgument}"></textarea></td>
         </tr>
+        <tr>
+            <td>Experiment Time</td>
+            <td><span id="benchmarkExperimentDesign"
+                      th:text="${benchmarkConfig.startTime + ' - ' + benchmarkConfig.endTime}"/></td>
+        </tr>
         <tbody>
         </tbody>
     </table>
@@ -72,37 +77,44 @@
         <table class="table table-sm">
             <tr>
                 <td>Region</td>
-                <td><input th:readonly="${benchmarkConfig.deployed}"
+                <td><input id="awsBenchmarkConfigRegion"
+                           th:readonly="${benchmarkConfig.deployed}"
                            th:field="*{awsBenchmarkConfig.region}"/></td>
             </tr>
             <tr>
                 <td>Runtime</td>
-                <td><input th:readonly="${benchmarkConfig.deployed}"
+                <td><input id="awsBenchmarkConfigRuntime"
+                           th:readonly="${benchmarkConfig.deployed}"
                            th:field="*{awsBenchmarkConfig.runtime}"/></td>
             </tr>
             <tr>
                 <td>AWS ARN Lambda Role</td>
-                <td><input th:readonly="${benchmarkConfig.deployed}"
+                <td><input id="awsBenchmarkConfigARNRole"
+                           th:readonly="${benchmarkConfig.deployed}"
                            th:field="*{awsBenchmarkConfig.awsArnLambdaRole}"/></td>
             </tr>
             <tr>
                 <td>Handler Class Name</td>
-                <td><input th:readonly="${benchmarkConfig.deployed}"
+                <td><input id="awsBenchmarkConfigHandlerName"
+                           th:readonly="${benchmarkConfig.deployed}"
                            th:field="*{awsBenchmarkConfig.functionHandler}"/></td>
             </tr>
             <tr>
                 <td>Timeout in Seconds</td>
-                <td><input th:readonly="${benchmarkConfig.deployed}"
+                <td><input id="awsBenchmarkConfigTimeout"
+                           th:readonly="${benchmarkConfig.deployed}"
                            th:field="*{awsBenchmarkConfig.timeout}"/></td>
             </tr>
             <tr>
                 <td>Memory Sizes (comma separated List)</td>
-                <td><input th:readonly="${benchmarkConfig.deployed}"
+                <td><input id="awsBenchmarkConfigMemorySizes"
+                           th:readonly="${benchmarkConfig.deployed}"
                            th:field="*{awsBenchmarkConfig.memorySizes}"/></td>
             </tr>
             <tr>
                 <td>Path to ZIP Source (locally on your computer)</td>
-                <td><input th:readonly="${benchmarkConfig.deployed}"
+                <td><input id="awsBenchmarkConfigPathToZip"
+                           th:readonly="${benchmarkConfig.deployed}"
                            th:field="*{awsBenchmarkConfig.pathToSource}"/></td>
             </tr>
         </table>
@@ -112,40 +124,63 @@
         <table class="table table-sm">
             <tr>
                 <td>Target URL (filled by the tool)</td>
-                <td><input readonly="readonly"
+                <td><input id="awsBenchmarkConfigTargetUrl"
+                           readonly="readonly"
                            th:field="*{awsBenchmarkConfig.targetUrl}"/></td>
             </tr>
             <tr>
                 <td>API Key (filled by the tool)</td>
-                <td><input readonly="readonly" th:field="*{awsBenchmarkConfig.apiKey}"/>
+                <td><input id="awsBenchmarkConfigApiKey"
+                           readonly="readonly"
+                           th:field="*{awsBenchmarkConfig.apiKey}"/>
                 </td>
             </tr>
             <tr>
                 <td>REST API ID (filled by the tool)</td>
-                <td><input readonly="readonly"
+                <td><input id="awsBenchmarkConfigRestApiId"
+                           readonly="readonly"
                            th:field="*{awsBenchmarkConfig.restApiId}"/></td>
             </tr>
             <tr>
                 <td>API Key ID (filled by the tool)</td>
-                <td><input readonly="readonly"
+                <td><input id="awsBenchmarkConfigApiKeyId"
+                           readonly="readonly"
                            th:field="*{awsBenchmarkConfig.apiKeyId}"/></td>
             </tr>
             <tr>
                 <td>Usage Plan ID (filled by the tool)</td>
-                <td><input readonly="readonly"
+                <td><input id="awsBenchmarkConfigUsagePlanId"
+                           readonly="readonly"
                            th:field="*{awsBenchmarkConfig.usagePlanId}"/></td>
             </tr>
         </table>
         <div class="py-1 px-1">
-            <button id="updateBenchmarkConfigButton" class="btn btn-dark py-1 px-1">Update configuration</button>
+            <button id="updateBenchmarkConfigButton" class="btn btn-dark py-1 px-1" style="width:200px">Update
+                configuration
+            </button>
         </div>
     </div>
 </form>
 
-<button id="deployFunction">Deploy</button>
-<button id="undeployFunction">Undeploy</button>
-<button id="executeBenchmark">Execute Benchmark</button>
-<button id="fetchData">Fetch Data</button>
+<div class="stabX py-1">
+    <h5>Pipeline Commands</h5>
+    <button class="btn btn-dark py-1 px-1" style="width:200px" id="deployFunction">Deploy</button>
+    <span id="deployButtonInfo"></span>
+</div>
+<div class="stabX py-1">
+    <button class="btn btn-dark py-1 px-1" style="width:200px" id="undeployFunction">Undeploy</button>
+    <span id="undeployButtonInfo"></span>
+</div>
+<div class="stabX py-1">
+    <button class="btn btn-dark py-1 px-1" style="width:200px" id="executeBenchmark">Execute Benchmark</button>
+    <span id="executeButtonInfo"></span>
+</div>
+<div class="stabX py-1">
+    <button class="btn btn-dark py-1 px-1" style="width:200px" id="fetchData">Fetch Data</button>
+    <span id="fetchButtonInfo"></span>
+</div>
+
+
 <div th:replace="fragments/footer :: footer">...</div>
 <script type="text/javascript" th:src="@{/js/benchmark.js}"></script>
 </body>

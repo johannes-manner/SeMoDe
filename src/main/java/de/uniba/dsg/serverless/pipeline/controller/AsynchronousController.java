@@ -18,30 +18,6 @@ public class AsynchronousController {
     @Autowired
     private SetupService service;
 
-    @GetMapping("deploy")
-    public ResponseEntity deployFunction() throws SeMoDeException {
-        log.info("Start deployment...");
-        this.service.deployFunctions();
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("undeploy")
-    public ResponseEntity undeployFunction() throws SeMoDeException {
-        this.service.undeployFunctions();
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("benchmark")
-    public ResponseEntity benchmark() throws SeMoDeException {
-        this.service.executeBenchmark();
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("fetch")
-    public ResponseEntity fetch() throws SeMoDeException {
-        this.service.fetchPerformanceData();
-        return ResponseEntity.ok().build();
-    }
 
     @GetMapping("/calibration/start/{platform}")
     public ResponseEntity startCalibration(@PathVariable("platform") String platform) throws SeMoDeException {
