@@ -29,7 +29,8 @@
     <table class="table table-sm">
         <tr>
             <td><label>For Setup</label></td>
-            <td><input readonly="readonly"
+            <td><input id="setupName"
+                       readonly="readonly"
                        th:field="*{setupName}"/></td>
         </tr>
         <tr>
@@ -203,19 +204,41 @@
             </tr>
         </table>
         <div class="py-1 px-1">
-            <button class="btn btn-dark py-1 px-1">Update configuration</button>
+            <button class="btn btn-dark py-1 px-1" style="width:200px">Update configuration</button>
         </div>
     </div>
 </form>
 
-<button id="startLocalCalibration">Start Local Calibration</button>
-<button id="deployCalibration">Deploy Calibration</button>
-<button id="startCalibration">Start Calibration</button>
-<button id="undeployCalibration">Undeploy Calibration</button>
-<button id="computeMapping">Compute Mapping for Calibrations (INFO only)</button>
-<button id="runFunction">Run function locally</button>
+<div class="stabX py-1">
+    <h5>Pipeline Commands</h5>
+    <button class="btn btn-dark py-1 px-1" style="width:200px" id="startLocalCalibration">Start Local Calibration
+    </button>
+    <span id="startLocalCalibrationInfo"></span>
+</div>
+<div class="stabX py-1">
+    <button id="deployCalibration" class="btn btn-dark py-1 px-1" style="width:200px">Deploy Calibration</button>
+    <span id="deployCalibrationInfo"></span>
+</div>
+<div class="stabX py-1">
+    <button id="startCalibration" class="btn btn-dark py-1 px-1" style="width:200px">Start Calibration</button>
+    <span id="startCalibrationInfo"></span>
+</div>
+<div class="stabX py-1">
+    <button id="undeployCalibration" class="btn btn-dark py-1 px-1" style="width:200px">Undeploy Calibration</button>
+    <span id="undeployCalibrationInfo"></span>
+</div>
+<div class="stabX py-1">
+    <button id="computeMapping" class="btn btn-dark py-1 px-1" style="width:200px">Mapping (INFO only)</button>
+    <span id="computeMappingInfo"></span>
+</div>
+<div class="stabX py-1">
+    <button id="runFunction" class="btn btn-dark py-1 px-1" style="width:200px">Run function locally</button>
+    <span id="runFunctionInfo"></span>
+</div>
+
 
 <div th:replace="fragments/footer :: footer">...</div>
+<script th:src="@{/js/node_modules/chart.js/dist/chart.js}"></script>
 <script type="text/javascript" th:src="@{/js/calibration.js}"></script>
 </body>
 </html>

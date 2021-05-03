@@ -37,12 +37,6 @@ public class AsynchronousController {
         return ResponseEntity.ok().build();
     }
 
-    // TODO Currently only for information purposes
-    @GetMapping("/mapping")
-    public ResponseEntity mapping() throws SeMoDeException {
-        log.info("Mapping: " + this.service.computeMapping());
-        return ResponseEntity.ok().build();
-    }
 
     @GetMapping("/run")
     public ResponseEntity runFunction() throws SeMoDeException {
