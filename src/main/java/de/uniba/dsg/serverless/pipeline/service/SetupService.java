@@ -21,6 +21,7 @@ import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.pipeline.repo.*;
 import de.uniba.dsg.serverless.pipeline.repo.projection.IBenchmarkVersionAggregate;
 import de.uniba.dsg.serverless.pipeline.repo.projection.ICalibrationConfigEventAggregate;
+import de.uniba.dsg.serverless.pipeline.repo.projection.ICalibrationConfigId;
 import de.uniba.dsg.serverless.pipeline.repo.projection.IPointDto;
 import de.uniba.dsg.serverless.pipeline.util.ConversionUtils;
 import de.uniba.dsg.serverless.pipeline.util.PipelineFileHandler;
@@ -398,5 +399,13 @@ public class SetupService {
 
     public IPointDto[] getCalibrationDataBySetupAndId(String setup, Integer calibrationId) {
         return this.calibrationEventRepository.getCalibrationPoints(calibrationId, setup).toArray(IPointDto[]::new);
+    }
+
+    public List<ICalibrationConfigId> getProfilesForSetup(String setup) {
+        return this.calibrationConfigRepository.getCalibrationConfigIdsWithAssociatedProfiles(setup);
+    }
+
+    public List<IPointDto> getProfilePointsForSetupAndCalibration(String setup, Integer id) {
+        return this.calibrationConfigRepository.getProfilePointsBySetupAndCalibrationId(setup, id);
     }
 }

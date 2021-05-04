@@ -21,6 +21,7 @@ var mappingProviderPlatform = document.getElementById('mappingProviderPlatform')
 var runConfigDockerSourceFolder = document.getElementById('runConfigDockerSourceFolder');
 var runConfigEnvironmentVariableFile = document.getElementById('runConfigEnvironmentVariableFile');
 var runConfigNumberOfProfiles = document.getElementById('runConfigNumberOfProfiles');
+var executedProfilesSelection = document.getElementById('executedProfilesSelection');
 
 // pipeline buttons
 var startLocalCalibration = document.getElementById('startLocalCalibration');
@@ -40,6 +41,8 @@ var localCalibrationChart = document.getElementById('localCalibrationChart');
 var removeDatasetLocalCalibration = document.getElementById('removeDatasetLocalCalibration');
 var providerCalibrationChart = document.getElementById('providerCalibrationChart');
 var removeDatasetProviderCalibration = document.getElementById('removeDatasetProviderCalibration');
+var profilesChart = document.getElementById('profilesChart');
+var removeDatasetProfiles = document.getElementById('removeDatasetProfiles');
 
 function setButtonDisabledProperty(boolDisabled){
     startLocalCalibration.disabled = boolDisabled;
@@ -204,28 +207,9 @@ var chartConfig = {
     }
 };
 
-var chartConfig2 = {
-  type: 'scatter',
-    data: {
-      datasets: [],
-    },
-    options: {
-      responsive: true,
-      scales: {
-        x: {
-          beginAtZero: true,
-          type: 'linear',
-          position: 'bottom'
-        },
-        y: {
-          beginAtZero: true
-        }
-      }
-    }
-};
-
 var localCalibrationChartHandle = new Chart(localCalibrationChart, chartConfig);
-var providerCalibrationChartHandle = new Chart(providerCalibrationChart, chartConfig2);
+var providerCalibrationChartHandle = new Chart(providerCalibrationChart, JSON.parse(JSON.stringify(chartConfig)));
+var profilesChartHandle = new Chart(profilesChart, JSON.parse(JSON.stringify(chartConfig)))
 
 removeDatasetLocalCalibration.addEventListener('click', function(){
     localCalibrationChartHandle.data.datasets.pop();
@@ -235,6 +219,11 @@ removeDatasetLocalCalibration.addEventListener('click', function(){
 removeDatasetProviderCalibration.addEventListener('click', function(){
     providerCalibrationChartHandle.data.datasets.pop();
     providerCalibrationChartHandle.update();
+});
+
+removeDatasetProfiles.addEventListener('click', function(){
+    profilesChartHandle.data.datasets.pop();
+    profilesChartHandle.update();
 });
 
 localCalibrationConfig.addEventListener('change', function() {
@@ -247,3 +236,36 @@ providerCalibrationConfig.addEventListener('change', function(){
 
 addCalibrationDataToChart(localCalibrationConfig.value, localCalibrationChartHandle);
 addCalibrationDataToChart(providerCalibrationConfig.value, providerCalibrationChartHandle);
+
+// update already executed profiles selection
+$.ajax({
+    url: "/"+ setupName + "/profiles",
+    success: function(result) {
+      for(const cId of result){
+        var option = document.createElement("option");
+        option.text = "Profile from Calibration " + cId.calibrationId;
+        option.value = cId.calibrationId;
+        executedProfilesSelection.add(option);
+      }
+    }
+});
+
+executedProfilesSelection.addEventListener('change', function(){
+    var selectedProfileCalibration = executedProfilesSelection.value;
+    if(selectedProfileCalibration > 0) {
+        $.ajax({
+            url: "/"+ setupName + "/profiles/" + selectedProfileCalibration,
+            success: function(result) {
+                console.log(result);
+                const RGB = 255;
+                var calibrationDataOf = {
+                    label: 'Profile ' + selectedProfileCalibration,
+                    data:  result,
+                    backgroundColor: 'rgb('+ Math.random() * RGB + ', '+ Math.random() * RGB + ', '+ Math.random() * RGB + ')'
+                };
+                profilesChartHandle.data.datasets.push(calibrationDataOf);
+                profilesChartHandle.update();
+            }
+        });
+    }
+});

@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
+import de.uniba.dsg.serverless.pipeline.repo.projection.ICalibrationConfigId;
 import de.uniba.dsg.serverless.pipeline.repo.projection.IPointDto;
 import de.uniba.dsg.serverless.pipeline.service.SetupService;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
@@ -10,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -34,5 +37,15 @@ public class AsynchronousCalibrationController {
     @GetMapping("{setup}/calibration/{calibrationId}/data")
     public IPointDto[] getCalibrationData(@PathVariable(value = "setup") String setup, @PathVariable(value = "calibrationId") Integer calibrationId) {
         return this.service.getCalibrationDataBySetupAndId(setup, calibrationId);
+    }
+
+    @GetMapping("{setup}/profiles")
+    public List<ICalibrationConfigId> getProfilesForSetup(@PathVariable(value = "setup") String setup) {
+        return this.service.getProfilesForSetup(setup);
+    }
+
+    @GetMapping("{setup}/profiles/{calibrationConfigId}")
+    public IPointDto[] getProfilePointsForSetupAndCalibration(@PathVariable(value = "setup") String setup, @PathVariable("calibrationConfigId") Integer id) {
+        return this.service.getProfilePointsForSetupAndCalibration(setup, id).toArray(IPointDto[]::new);
     }
 }

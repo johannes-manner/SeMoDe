@@ -234,7 +234,22 @@
                 <td><input id="runConfigNumberOfProfiles"
                            th:field="*{runningCalibrationConfig.numberOfProfiles}"/></td>
             </tr>
+            <tr>
+                <td>Previous Profiles</td>
+                <td>
+                    <select id="executedProfilesSelection">
+                        <option value="0"> --- Select an Option ---</option>
+                    </select>
+                </td>
+            </tr>
         </table>
+        <div class="stabX py-1">
+            <h5>Profiles for Selected Calibration</h5>
+            <canvas id="profilesChart" width="400" height="400"></canvas>
+            <button type="button" class="btn btn-dark py-1 px-1" style="width:200px" id="removeDatasetProfiles">
+                Remove Dataset
+            </button>
+        </div>
         <div class="py-1 px-1">
             <button class="btn btn-dark py-1 px-1" style="width:200px">Update configuration</button>
         </div>
