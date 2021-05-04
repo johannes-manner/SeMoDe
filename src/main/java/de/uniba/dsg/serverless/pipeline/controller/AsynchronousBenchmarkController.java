@@ -50,9 +50,9 @@ public class AsynchronousBenchmarkController {
         return BenchmarkMode.fromString(tag);
     }
 
-    @GetMapping("benchmark/version/{version}")
-    public BenchmarkConfig getBenchmarkConfigByVersion(@PathVariable(value = "version") Integer version) {
-        return this.service.getBenchmarkConfigByVersion(version);
+    @GetMapping("{setup}/benchmark/version/{version}")
+    public BenchmarkConfig getBenchmarkConfigByVersion(@PathVariable("setup") String setup, @PathVariable(value = "version") Integer version) {
+        return this.service.getBenchmarkConfigBySetupAndVersion(setup, version);
     }
 
     @GetMapping("{setup}/benchmark/version/{version}/data")

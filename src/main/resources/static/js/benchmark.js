@@ -79,7 +79,7 @@ versionDropdown.addEventListener('change', function() {
         disableButtons(true);
       }
       $.ajax({
-          url: "/benchmark/version/" + version,
+          url: "/"+ setupName + "/benchmark/version/" + version,
           success: function(result) {
               console.log(result);
               benchmarkConfigID.innerHTML = result.id;

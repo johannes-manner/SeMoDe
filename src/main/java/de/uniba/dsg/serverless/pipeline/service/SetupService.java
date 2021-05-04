@@ -384,8 +384,8 @@ public class SetupService {
         return this.getCalibrations(setupName, CalibrationPlatform.AWS);
     }
 
-    public BenchmarkConfig getBenchmarkConfigByVersion(Integer version) {
-        return this.benchmarkConfigRepository.findBenchmarkConfigByVersionNumber(version);
+    public BenchmarkConfig getBenchmarkConfigBySetupAndVersion(String setup, Integer version) {
+        return this.benchmarkConfigRepository.findBenchmarkConfigBySetupNameAndVersionNumber(setup, version);
     }
 
     public IPointDto[] getBenchmarkDataByVersion(String setupName, Integer version) {

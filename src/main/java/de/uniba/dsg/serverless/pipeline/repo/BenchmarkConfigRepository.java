@@ -19,7 +19,7 @@ public interface BenchmarkConfigRepository extends JpaRepository<BenchmarkConfig
             "order by bc.version_number desc", nativeQuery = true)
     public List<IBenchmarkVersionAggregate> countEventsByGroupingThemOnTheirVersionNumber(String setupName);
 
-    BenchmarkConfig findBenchmarkConfigByVersionNumber(Integer version);
+    BenchmarkConfig findBenchmarkConfigBySetupNameAndVersionNumber(String setup, Integer version);
 
     @Query(value = "SELECT pd.memory_size as x, pd.precise_duration as y\n" +
             "FROM benchmark_config bc LEFT OUTER JOIN localrestevent lre ON bc.id = lre.benchmark_config_id\n" +
