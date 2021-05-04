@@ -391,4 +391,12 @@ public class SetupService {
     public IPointDto[] getBenchmarkDataByVersion(String setupName, Integer version) {
         return this.benchmarkConfigRepository.getBenchmarkExecutionPointsProviderView(setupName, version).toArray(IPointDto[]::new);
     }
+
+    public CalibrationConfig getCalibrationBySetupAndVersion(String setup, Integer version) {
+        return this.calibrationConfigRepository.findCalibrationConfigBySetupNameAndVersionNumber(setup, version);
+    }
+
+    public IPointDto[] getCalibrationDataBySetupAndId(String setup, Integer calibrationId) {
+        return this.calibrationEventRepository.getCalibrationPoints(calibrationId, setup).toArray(IPointDto[]::new);
+    }
 }

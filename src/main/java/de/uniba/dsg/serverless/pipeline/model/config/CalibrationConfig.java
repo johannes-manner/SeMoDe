@@ -23,6 +23,7 @@ public class CalibrationConfig {
     private Long id;
     // attribute for easy finding N calibration configs to a single setup no need for many to one and faster retrieval of
     // the actual benchmark config in the setup config
+    // TODO remove when updating DB the next time
     private boolean deployed;
     private int versionNumber;
     private String setupName;

@@ -1,5 +1,7 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
+import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
+import de.uniba.dsg.serverless.pipeline.repo.projection.IPointDto;
 import de.uniba.dsg.serverless.pipeline.service.SetupService;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
@@ -22,5 +24,15 @@ public class AsynchronousCalibrationController {
         String mappingResult = this.service.computeMapping().toString();
         log.info("Mapping: " + mappingResult);
         return ResponseEntity.ok(mappingResult);
+    }
+
+    @GetMapping("{setup}/calibration/version/{version}")
+    public CalibrationConfig getCalibrationConfig(@PathVariable(value = "setup") String setup, @PathVariable(value = "version") Integer version) {
+        return this.service.getCalibrationBySetupAndVersion(setup, version);
+    }
+
+    @GetMapping("{setup}/calibration/{calibrationId}/data")
+    public IPointDto[] getCalibrationData(@PathVariable(value = "setup") String setup, @PathVariable(value = "calibrationId") Integer calibrationId) {
+        return this.service.getCalibrationDataBySetupAndId(setup, calibrationId);
     }
 }

@@ -25,7 +25,7 @@
 <div th:replace="fragments/header :: header">...</div>
 <form class="stabFull" th:action="@{/setups/{name}/calibration(name=${calibrationConfig.setupName})}" method="POST"
       th:object="${calibrationConfig}">
-    <h3>Calibration Configuration</h3>
+    <h3>Calibration Configuration <span id="calibrationConfigID" th:text="${calibrationConfig.id}"/></h3>
     <table class="table table-sm">
         <tr>
             <td><label>For Setup</label></td>
@@ -38,7 +38,7 @@
             <td>
                 <select id="calibrationVersions">
                     <option th:each="version: ${#numbers.sequence(calibrationConfig.versionNumber, 1)}"
-                            th:value="${calibrationConfig.versionNumber}"
+                            th:value="${version}"
                             th:text="${version}"></option>
                 </select>
             </td>
@@ -50,20 +50,18 @@
             <div id="calibrationLocalSettings">
                 <tr>
                     <td>Local Steps in which CPU share is increased (e.g. 0.1)</td>
-                    <td><input th:field="*{localConfig.localSteps}"/></td>
+                    <td><input id="localSteps"
+                               th:field="*{localConfig.localSteps}"/></td>
                 </tr>
                 <tr>
                     <td>Number of local calibrations</td>
-                    <td><input th:field="*{localConfig.numberOfLocalCalibrations}"/></td>
-                </tr>
-                <tr>
-                    <td>Enable local calibration</td>
-                    <td><input th:field="*{localConfig.localEnabled}" type="checkbox"/>
-                    </td>
+                    <td><input id="numberOfLocalCalibration"
+                               th:field="*{localConfig.numberOfLocalCalibrations}"/></td>
                 </tr>
                 <tr>
                     <td>Docker Source Folder(Dockerfile location)</td>
-                    <td><input th:field="*{localConfig.calibrationDockerSourceFolder}"/></td>
+                    <td><input id="localCalibrationDockerSourceFolder"
+                               th:field="*{localConfig.calibrationDockerSourceFolder}"/></td>
                 </tr>
             </div>
         </table>
@@ -74,59 +72,70 @@
             <div id="awsCalibrationSettings">
                 <tr>
                     <td>Bucket name to store calibration to</td>
-                    <td><input th:readonly="${calibrationConfig.deployed}"
+                    <td><input id="awsBucketName"
+                               th:readonly="${calibrationConfig.deployed}"
                                th:field="*{awsCalibrationConfig.bucketName}"/></td>
                 </tr>
                 <tr>
                     <td>Number of aws executions</td>
-                    <td><input th:readonly="${calibrationConfig.deployed}"
+                    <td><input id="numberOfAWSExecutions"
+                               th:readonly="${calibrationConfig.deployed}"
                                th:field="*{awsCalibrationConfig.numberOfAWSExecutions}"/></td>
                 </tr>
                 <tr>
                     <td>Region</td>
-                    <td><input th:readonly="${calibrationConfig.deployed}"
+                    <td><input id="awsRegion"
+                               th:readonly="${calibrationConfig.deployed}"
                                th:field="*{awsCalibrationConfig.benchmarkConfig.region}"/></td>
                 </tr>
                 <tr>
                     <td>Runtime</td>
-                    <td><input th:readonly="${calibrationConfig.deployed}"
+                    <td><input id="awsRuntime"
+                               th:readonly="${calibrationConfig.deployed}"
                                th:field="*{awsCalibrationConfig.benchmarkConfig.runtime}"/></td>
                 </tr>
                 <tr>
                     <td>AWS ARN Lambda Role</td>
-                    <td><input th:readonly="${calibrationConfig.deployed}"
+                    <td><input id="awsLambdaRole"
+                               th:readonly="${calibrationConfig.deployed}"
                                th:field="*{awsCalibrationConfig.benchmarkConfig.awsArnLambdaRole}"/>
                     </td>
                 </tr>
                 <tr>
                     <td>Handler Class Name</td>
-                    <td><input th:readonly="${calibrationConfig.deployed}"
+                    <td><input id="awsHandlerName"
+                               th:readonly="${calibrationConfig.deployed}"
                                th:field="*{awsCalibrationConfig.benchmarkConfig.functionHandler}"/>
                     </td>
                 </tr>
                 <tr>
                     <td>Timeout in Seconds</td>
-                    <td><input th:readonly="${calibrationConfig.deployed}"
+                    <td><input id="awsTimeout"
+                               th:readonly="${calibrationConfig.deployed}"
                                th:field="*{awsCalibrationConfig.benchmarkConfig.timeout}"/></td>
                 </tr>
                 <tr>
                     <td>Memory Sizes (comma separated List)</td>
-                    <td><input th:readonly="${calibrationConfig.deployed}"
+                    <td><input id="awsMemorySizes"
+                               th:readonly="${calibrationConfig.deployed}"
                                th:field="*{awsCalibrationConfig.benchmarkConfig.memorySizes}"/></td>
                 </tr>
                 <tr>
                     <td>Path to ZIP Source (locally on your computer)</td>
-                    <td><input th:readonly="${calibrationConfig.deployed}"
+                    <td><input id="awsPathToZip"
+                               th:readonly="${calibrationConfig.deployed}"
                                th:field="*{awsCalibrationConfig.benchmarkConfig.pathToSource}"/></td>
                 </tr>
                 <tr>
                     <td>Target URL (filled by the tool)</td>
-                    <td><input readonly="readonly"
+                    <td><input id="awsTargetUrl"
+                               readonly="readonly"
                                th:field="*{awsCalibrationConfig.benchmarkConfig.targetUrl}"/></td>
                 </tr>
                 <tr>
                     <td>API Key (filled by the tool)</td>
-                    <td><input readonly="readonly"
+                    <td><input id="awsApiKey"
+                               readonly="readonly"
                                th:field="*{awsCalibrationConfig.benchmarkConfig.apiKey}"/>
                     </td>
                 </tr>
@@ -138,17 +147,20 @@
         <table class="table table-sm">
             <tr>
                 <td>REST API ID (filled by the tool)</td>
-                <td><input readonly="readonly"
+                <td><input id="awsRestApiId"
+                           readonly="readonly"
                            th:field="*{awsCalibrationConfig.benchmarkConfig.restApiId}"/></td>
             </tr>
             <tr>
                 <td>API Key ID (filled by the tool)</td>
-                <td><input readonly="readonly"
+                <td><input id="awsApiKeyId"
+                           readonly="readonly"
                            th:field="*{awsCalibrationConfig.benchmarkConfig.apiKeyId}"/></td>
             </tr>
             <tr>
                 <td>Usage Plan ID (filled by the tool)</td>
-                <td><input readonly="readonly"
+                <td><input id="awsUsagePlanId"
+                           readonly="readonly"
                            th:field="*{awsCalibrationConfig.benchmarkConfig.usagePlanId}"/></td>
             </tr>
 
@@ -162,7 +174,9 @@
                 <td>
                     <select id="localCalibrationConfig"
                             th:field="*{mappingCalibrationConfig.localCalibrationId}">
-                        <option value=0>-- Select an option --</option>
+                        <option th:value="${(calibrationConfig.mappingCalibrationConfig.localCalibration != null ? calibrationConfig.mappingCalibrationConfig.localCalibration.id : 0)}">
+                            -- Select an option --
+                        </option>
                         <option th:each="key: ${localCalibrations.keySet()}" th:value="${key}"
                                 th:text="${'Id:' + key + ' - ' + localCalibrations.get(key)}"></option>
                     </select>
@@ -172,7 +186,9 @@
             <td>
                 <select id="providerCalibrationConfig"
                         th:field="*{mappingCalibrationConfig.providerCalibrationId}">
-                    <option value=0>-- Select an option --</option>
+                    <option th:value="${(calibrationConfig.mappingCalibrationConfig.providerCalibration != null ? calibrationConfig.mappingCalibrationConfig.providerCalibration.id : 0 )}">
+                        -- Select an option --
+                    </option>
                     <option th:each="key: ${providerCalibrations.keySet()}" th:value="${key}"
                             th:text="${'Id:' + key + ' - ' + providerCalibrations.get(key)}"></option>
                 </select>
@@ -180,27 +196,43 @@
             <tr>
                 <td>Memory Sizes on Provider Platform (comma separated)</td>
                 <td><input
+                        id="mappingProviderPlatform"
                         th:field="*{mappingCalibrationConfig.memorySizesCalibration}"/></td>
             </tr>
         </table>
+    </div>
+    <div class="stabX py-1">
+        <h5>Local Calibration Configuration</h5>
+        <canvas id="localCalibrationChart" width="400" height="400"></canvas>
+        <button type="button" class="btn btn-dark py-1 px-1" style="width:200px" id="removeDatasetLocalCalibration">
+            Remove Dataset
+        </button>
+    </div>
+    <div class="stabX py-1">
+        <h5>Provider Calibration Configuration</h5>
+        <canvas id="providerCalibrationChart" width="400" height="400"></canvas>
+        <button type="button" class="btn btn-dark py-1 px-1" style="width:200px" id="removeDatasetProviderCalibration">
+            Remove
+            Dataset
+        </button>
     </div>
     <div class="stabY">
         <h5>Run function locally with computed CPU share</h5>
         <table class="table table-sm">
             <tr>
                 <td>Folder, where the function and Dockerfile is located</td>
-                <td><input
-                        th:field="*{runningCalibrationConfig.functionDockerSourceFolder}"/></td>
+                <td><input id="runConfigDockerSourceFolder"
+                           th:field="*{runningCalibrationConfig.functionDockerSourceFolder}"/></td>
             </tr>
             <tr>
                 <td>Environment variable file</td>
-                <td><input
-                        th:field="*{runningCalibrationConfig.environmentVariablesFile}"/></td>
+                <td><input id="runConfigEnvironmentVariableFile"
+                           th:field="*{runningCalibrationConfig.environmentVariablesFile}"/></td>
             </tr>
             <tr>
                 <td>Number of Profiles</td>
-                <td><input
-                        th:field="*{runningCalibrationConfig.numberOfProfiles}"/></td>
+                <td><input id="runConfigNumberOfProfiles"
+                           th:field="*{runningCalibrationConfig.numberOfProfiles}"/></td>
             </tr>
         </table>
         <div class="py-1 px-1">

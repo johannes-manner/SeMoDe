@@ -14,4 +14,6 @@ public interface CalibrationConfigRepository extends JpaRepository<CalibrationCo
             "WHERE cc.setup_name = ?1 and ce.id IS NOT NULL\n" +
             "ORDER BY version_number", nativeQuery = true)
     public List<ICalibrationConfigEventAggregate> findCalibrationEventsBySetupName(String setupName);
+
+    CalibrationConfig findCalibrationConfigBySetupNameAndVersionNumber(String setup, Integer version);
 }
