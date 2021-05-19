@@ -16,8 +16,9 @@ contribute :)
 
 ## Setup
 
-1. Run `docker-compose up` to start the PostgreSQL database
-2. Run `gradlew bootRun` to start the prototype and access the front page via `http://localhost:8080/setups
+1. Run `npm install` in `src/main/resources/static/js`
+2. Run `docker-compose up` to start the PostgreSQL database
+3. Run `gradlew bootRun` to start the prototype and access the front page via `http://localhost:8080/setups
 
 ## Hardware Calibration feature
 
