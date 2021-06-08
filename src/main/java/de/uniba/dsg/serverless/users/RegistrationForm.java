@@ -23,13 +23,10 @@ public class RegistrationForm {
     @NotNull
     @NotEmpty
     private String fullName;
-    private String phoneNumber;
     @Email
     private String mail;
-    @Size(min = 5, max = 5, message = "Postal Code has 5 numbers.")
-    private String postalCode;
 
     public User toUser(PasswordEncoder passwordEncoder, String role) {
-        return new User(this.username, passwordEncoder.encode(this.password), this.fullName, this.phoneNumber, this.postalCode, role, this.mail);
+        return new User(this.username, passwordEncoder.encode(this.password), this.fullName, role, this.mail);
     }
 }

@@ -30,8 +30,8 @@
             <li class="nav-item active">
                 <a class="nav-link text-white" href="/">Home<span class="sr-only">(current)</span></a>
             </li>
-            <li sec:authorize="isAnonymous()" class="nav-item active">
-                <a class="nav-link text-white" href="/setups">Setups<span class="sr-only">(current)</span></a>
+            <li sec:authorize="isAuthenticated()" class="nav-item active">
+                <a class="nav-link text-white" href="/users">Users<span class="sr-only">(current)</span></a>
             </li>
 
         </ul>
@@ -43,7 +43,6 @@
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
                 <label class="dropdown-item" sec:authentication="principal.authorities">Action</label>
                 <label class="dropdown-item" sec:authentication="principal.fullName">Action</label>
-                <label class="dropdown-item" sec:authentication="principal.phoneNumber">Action</label>
             </div>
         </div>
         <form sec:authorize="isAuthenticated()" class="form-inline my-2 my-lg-0" method="POST" th:action="@{/logout}">

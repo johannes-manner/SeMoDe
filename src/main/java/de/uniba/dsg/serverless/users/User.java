@@ -23,8 +23,6 @@ public class User implements UserDetails {          // interface from Spring Sec
     private final String username;
     private final String password;
     private String fullName;
-    private String phoneNumber;
-    private String postalCode;
     private String role;
     private String mail;
 
@@ -32,12 +30,10 @@ public class User implements UserDetails {          // interface from Spring Sec
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    public User(String username, String password, String fullName, String phoneNumber, String postalCode, String role, String mail) {
+    public User(String username, String password, String fullName, String role, String mail) {
         this.username = username;
         this.password = password;
         this.fullName = fullName;
-        this.phoneNumber = phoneNumber;
-        this.postalCode = postalCode;
         this.role = role;
         this.mail = mail;
     }

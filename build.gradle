@@ -26,6 +26,8 @@ ext {
 
 dependencies {
 
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
     // spring
     // html templating engine
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
