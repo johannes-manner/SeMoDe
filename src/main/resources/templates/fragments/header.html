@@ -31,6 +31,9 @@
                 <a class="nav-link text-white" href="/">Home<span class="sr-only">(current)</span></a>
             </li>
             <li sec:authorize="isAuthenticated()" class="nav-item active">
+                <a class="nav-link text-white" href="/setups">Setups<span class="sr-only">(current)</span></a>
+            </li>
+            <li sec:authorize="hasRole('ROLE_ADMIN')" class="nav-item active">
                 <a class="nav-link text-white" href="/users">Users<span class="sr-only">(current)</span></a>
             </li>
 

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"
       xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
 >
 <head>
     <meta charset="UTF-8">
@@ -28,6 +29,7 @@
         <thead>
         <tr>
             <th scope="col">Name</th>
+            <th scope="col">Owner</th>
             <th scope="col">Delete</th>
             <!--<th scope="col">Last</th>-->
             <!--<th scope="col">Handle</th>-->
@@ -35,9 +37,12 @@
         </thead>
         <tbody>
         <tr th:each="setup : ${setups}">
-            <td><a th:href="@{/setups/{name}(name=${setup})}">
-                <div th:text="${setup}"></div>
+            <td><a th:href="@{/setups/{name}(name=${setup.setupName})}">
+                <div th:text="${setup.setupName}"></div>
             </a></td>
+            <td sec:authorize="hasRole('ROLE_ADMIN')">
+                <div th:text="${setup.owner.username}"></div>
+            </td>
             <td>
                 <form th:action="@{/setups/{name}/delete(name=${setup})}">
                     <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>

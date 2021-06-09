@@ -26,13 +26,15 @@ import de.uniba.dsg.serverless.pipeline.repo.projection.IPointDto;
 import de.uniba.dsg.serverless.pipeline.util.ConversionUtils;
 import de.uniba.dsg.serverless.pipeline.util.PipelineFileHandler;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
+import de.uniba.dsg.serverless.users.User;
+import de.uniba.dsg.serverless.users.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.annotation.SessionScope;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Wrapper to change the attributes of the user config class. If the changes are made directly in the model classes,
@@ -40,6 +42,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
+@SessionScope
 public class SetupService {
 
     // model
@@ -57,6 +60,7 @@ public class SetupService {
     private final BenchmarkConfigRepository benchmarkConfigRepository;
     private final CalibrationConfigRepository calibrationConfigRepository;
     private final ProfileRecordRepository profileRecordRepository;
+    private final UserRepository userRepository;
 
     private final ConversionUtils conversionUtils;
 
@@ -69,6 +73,7 @@ public class SetupService {
                         BenchmarkConfigRepository benchmarkConfigRepository,
                         CalibrationConfigRepository calibrationConfigRepository,
                         ProfileRecordRepository profileRecordRepository,
+                        UserRepository userRepository,
                         ConversionUtils conversionUtils) {
         this.setupConfigRepository = setupConfigRepository;
         this.localRESTEventRepository = localRESTEventRepository;
@@ -78,12 +83,13 @@ public class SetupService {
         this.benchmarkConfigRepository = benchmarkConfigRepository;
         this.calibrationConfigRepository = calibrationConfigRepository;
         this.profileRecordRepository = profileRecordRepository;
+        this.userRepository = userRepository;
         this.conversionUtils = conversionUtils;
     }
 
     // TODO - really local and in DB?
-    public void createSetup(String setupName) throws SeMoDeException {
-        this.setupConfig = new SetupConfig(setupName);
+    public void createSetup(String setupName, User owner) throws SeMoDeException {
+        this.setupConfig = new SetupConfig(setupName, owner);
         this.fileHandler = new PipelineFileHandler(setupName, this.setups);
 
         this.setupConfigRepository.save(this.setupConfig);
@@ -105,8 +111,18 @@ public class SetupService {
         return this.setupConfig;
     }
 
-    public List<String> getSetupNames() {
-        return this.setupConfigRepository.findAll().stream().map(SetupConfig::getSetupName).collect(Collectors.toList());
+    /**
+     * Returns all setups, when the user is admin, otherwise only the setups he is the owner.
+     *
+     * @param user
+     * @return
+     */
+    public List<SetupConfig> getSetups(User user) {
+        if (user.isAdmin()) {
+            return this.setupConfigRepository.findAll();
+        } else {
+            return this.setupConfigRepository.findByOwner(user);
+        }
     }
 
     // TODO remove due to special pages
@@ -122,7 +138,6 @@ public class SetupService {
 
     private void saveSetup() throws SeMoDeException {
         this.setupConfig = this.setupConfigRepository.save(this.setupConfig);
-        this.fileHandler.saveUserConfigToFile(this.setupConfig);
     }
 
     /*
@@ -407,5 +422,21 @@ public class SetupService {
 
     public List<IPointDto> getProfilePointsForSetupAndCalibration(String setup, Integer id) {
         return this.calibrationConfigRepository.getProfilePointsBySetupAndCalibrationId(setup, id);
+    }
+
+    /**
+     * Checks, if the user is also the owner of the setup or if he is an admin.
+     * In both cases, he can access the setup otherwise he gets an error page (FORBIDDEN).
+     *
+     * @param setupName
+     * @param user
+     * @return
+     */
+    public boolean checkSetupAccessRights(String setupName, User user) {
+        SetupConfig config = this.setupConfigRepository.findBySetupName(setupName);
+        if (config != null && config.getOwner() != null && config.getOwner().equals(user)) {
+            return true;
+        }
+        return user.isAdmin();
     }
 }

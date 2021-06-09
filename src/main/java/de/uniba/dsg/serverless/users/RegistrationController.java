@@ -45,9 +45,9 @@ public class RegistrationController {
 
         // first user is admin
         if (this.userService.count() == 0) {
-            this.userService.save(registrationForm.toUser(this.passwordEncoder, "ROLE_ADMIN"));
+            this.userService.save(registrationForm.toUser(this.passwordEncoder, Role.ADMIN.getRole()));
         } else {
-            this.userService.save(registrationForm.toUser(this.passwordEncoder, "ROLE_USER"));
+            this.userService.save(registrationForm.toUser(this.passwordEncoder, Role.USER.getRole()));
         }
 
         return "login";

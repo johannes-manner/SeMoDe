@@ -20,15 +20,12 @@ import java.util.Collection;
 @Table(name = "USER_TABLE")
 public class User implements UserDetails {          // interface from Spring Security
 
+    @Id
     private final String username;
     private final String password;
     private String fullName;
     private String role;
     private String mail;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
 
     public User(String username, String password, String fullName, String role, String mail) {
         this.username = username;
@@ -71,5 +68,9 @@ public class User implements UserDetails {          // interface from Spring Sec
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public boolean isAdmin(){
+        return Role.ADMIN.getRole().equals(this.role);
     }
 }

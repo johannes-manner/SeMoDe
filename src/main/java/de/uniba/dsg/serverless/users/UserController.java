@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
@@ -27,7 +28,7 @@ public class UserController {
     public String getAllUsers(Model model) {
 
         model.addAttribute("users", this.userService.findAll());
-        model.addAttribute("roles", Arrays.asList("ROLE_ADMIN", "ROLE_USER"));
+        model.addAttribute("roles", Arrays.stream(Role.values()).map(Role::getRole).collect(Collectors.toList()));
         model.addAttribute("userUpdateForm", new UserUpdateForm());
 
         return "users";

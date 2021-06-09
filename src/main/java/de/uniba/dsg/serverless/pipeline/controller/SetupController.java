@@ -4,14 +4,14 @@ import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
-import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.pipeline.service.SetupService;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
+import de.uniba.dsg.serverless.users.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -23,20 +23,20 @@ public class SetupController {
     private SetupService setupService;
 
     @GetMapping
-    public String getSetups(Model model) {
+    public String getSetups(Model model, @AuthenticationPrincipal User user) {
 
         log.info("Get all setups...");
-        model.addAttribute("setups", this.setupService.getSetupNames());
+        model.addAttribute("setups", this.setupService.getSetups(user));
         model.addAttribute("setupName", new String());
 
         return "setups";
     }
 
     @PostMapping
-    public String createSetup(String setupName) {
+    public String createSetup(String setupName, @AuthenticationPrincipal User user) {
         // create setup
         try {
-            this.setupService.createSetup(setupName);
+            this.setupService.createSetup(setupName, user);
         } catch (SeMoDeException e) {
             e.printStackTrace();
         }
@@ -44,81 +44,95 @@ public class SetupController {
         return "redirect:/setups/" + setupName;
     }
 
-    @PostMapping("{name}/update")
-    // TODO valid
-    public String updateSetup(/*@Valid*/ SetupConfig setupConfig, @PathVariable("name") String setupName, Errors errors) throws SeMoDeException {
-        log.info("Setup update...");
-
-        log.info(setupConfig.toString());
-        this.setupService.updateSetup(setupConfig);
-
-        return "redirect:/setups/" + setupName;
-    }
-
     @PostMapping("{name}/delete")
-    public String deleteSetup(@PathVariable("name") String setupName) {
+    public String deleteSetup(@PathVariable("name") String setupName, @AuthenticationPrincipal User user) {
 
-        // TODO really delete setup
-        log.warn("Setup will be deleted. . . " + setupName);
+        if (this.setupService.checkSetupAccessRights(setupName, user)) {
+            // TODO really delete setup
+            log.warn("Setup will be deleted. . . " + setupName);
 
-        return "redirect:/setups";
+            return "redirect:/setups";
+        } else {
+            log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
+            return "403";
+        }
     }
 
     @GetMapping("{name}")
-    public String getSetting(@PathVariable("name") String setupName, Model model) throws SeMoDeException {
+    public String getSetting(@PathVariable("name") String setupName, Model model, @AuthenticationPrincipal User user) throws SeMoDeException {
 
         log.info("Setup detail page...");
-
-        model.addAttribute("setupConfig", this.setupService.getSetup(setupName));
-        model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);
-        model.addAttribute("calibrationPlatforms", CalibrationPlatform.values());
-
-        return "setupDetail";
+        if (this.setupService.checkSetupAccessRights(setupName, user)) {
+            model.addAttribute("setupConfig", this.setupService.getSetup(setupName));
+            model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);
+            model.addAttribute("calibrationPlatforms", CalibrationPlatform.values());
+            return "setupDetail";
+        } else {
+            log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
+            return "403";
+        }
     }
 
     @GetMapping("{name}/benchmark")
-    public String getBenchmark(@PathVariable("name") String setupName, Model model) throws SeMoDeException {
+    public String getBenchmark(@PathVariable("name") String setupName, Model model, @AuthenticationPrincipal User user) throws SeMoDeException {
 
         log.info("Setup detail benchmark page...");
 
-        model.addAttribute("benchmarkConfig", this.setupService.getCurrentBenchmark(setupName));
-        model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);
-        model.addAttribute("benchmarkingVersions", this.setupService.getBenchmarkVersions(setupName));
+        if (this.setupService.checkSetupAccessRights(setupName, user)) {
+            model.addAttribute("benchmarkConfig", this.setupService.getCurrentBenchmark(setupName));
+            model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);
+            model.addAttribute("benchmarkingVersions", this.setupService.getBenchmarkVersions(setupName));
 
-        return "benchmarkDetail";
+            return "benchmarkDetail";
+        } else {
+            log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
+            return "403";
+        }
     }
 
     @PostMapping("{name}/benchmark")
-    public String saveBenchmark(BenchmarkConfig config, @PathVariable("name") String setupName, Model model) throws SeMoDeException {
+    public String saveBenchmark(BenchmarkConfig config, @PathVariable("name") String setupName, Model model, @AuthenticationPrincipal User user) throws SeMoDeException {
 
         log.info("Save benchmark config...");
+        if (this.setupService.checkSetupAccessRights(setupName, user)) {
+            this.setupService.saveBenchmark(config, setupName);
 
-        this.setupService.saveBenchmark(config, setupName);
-
-        return "redirect:/setups/" + setupName + "/benchmark";
+            return "redirect:/setups/" + setupName + "/benchmark";
+        } else {
+            log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
+            return "403";
+        }
     }
 
     @GetMapping("{name}/calibration")
-    public String getCalibration(@PathVariable("name") String setupName, Model model) throws SeMoDeException {
+    public String getCalibration(@PathVariable("name") String setupName, Model model, @AuthenticationPrincipal User user) throws SeMoDeException {
 
         log.info("Setup detail calibration page...");
+        if (this.setupService.checkSetupAccessRights(setupName, user)) {
+            model.addAttribute("calibrationConfig", this.setupService.getCurrentCalibrationConfig(setupName));
+            model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);
+            model.addAttribute("localCalibrations", this.setupService.getLocalCalibrations(setupName));
+            model.addAttribute("providerCalibrations", this.setupService.getProviderCalibrations(setupName));
 
-        model.addAttribute("calibrationConfig", this.setupService.getCurrentCalibrationConfig(setupName));
-        model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);
-        model.addAttribute("localCalibrations", this.setupService.getLocalCalibrations(setupName));
-        model.addAttribute("providerCalibrations", this.setupService.getProviderCalibrations(setupName));
-
-        return "calibrationDetail";
+            return "calibrationDetail";
+        } else {
+            log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
+            return "403";
+        }
     }
 
     @PostMapping("{name}/calibration")
-    public String saveCalibration(CalibrationConfig config, @PathVariable("name") String setupName, Model model) throws SeMoDeException {
+    public String saveCalibration(CalibrationConfig config, @PathVariable("name") String setupName, Model model, @AuthenticationPrincipal User user) throws
+            SeMoDeException {
 
         log.info("Save calibration config...");
-
-        this.setupService.saveCalibration(config, setupName);
-
-        return "redirect:/setups/" + setupName + "/calibration";
+        if (this.setupService.checkSetupAccessRights(setupName, user)) {
+            this.setupService.saveCalibration(config, setupName);
+            return "redirect:/setups/" + setupName + "/calibration";
+        } else {
+            log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
+            return "403";
+        }
     }
 
     @ExceptionHandler({SeMoDeException.class})

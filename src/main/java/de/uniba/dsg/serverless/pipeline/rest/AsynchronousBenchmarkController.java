@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.pipeline.controller;
+package de.uniba.dsg.serverless.pipeline.rest;
 
 import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-// TODO get him standalone!!
 @Slf4j
 @RestController
 public class AsynchronousBenchmarkController {

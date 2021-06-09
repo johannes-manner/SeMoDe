@@ -82,4 +82,24 @@ public class BenchmarkConfig {
         this.id = null;
         this.versionNumber++;
     }
+
+    @Override
+    public String toString() {
+        return "BenchmarkConfig{" +
+                "id=" + id +
+                ", deployed=" + deployed +
+                ", benchmarkMode='" + benchmarkMode + '\'' +
+                ", benchmarkParameters='" + benchmarkParameters + '\'' +
+                ", postArgument='" + postArgument + '\'' +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", versionNumber=" + versionNumber +
+                ", setupName='" + setupName + '\'' +
+                ", setupConfig=" + setupConfig.getSetupName() +
+                ", awsBenchmarkConfig=" + awsBenchmarkConfig +
+                ", localExecutionEvents=" + localExecutionEvents.size() +
+                ", numberOfLocalDbEvents=" + numberOfLocalDbEvents +
+                ", numberOfFetchedData=" + numberOfFetchedData +
+                '}';
+    }
 }

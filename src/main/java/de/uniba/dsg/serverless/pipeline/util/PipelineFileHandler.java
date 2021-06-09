@@ -25,7 +25,6 @@ public class PipelineFileHandler {
     public final String name;
     // global pipeline paths
     public final Path pathToSetup;
-    public final Path pathToConfig;
     // for benchmarking
     public final Path pathToBenchmarkExecution;
     // for calibration
@@ -34,7 +33,6 @@ public class PipelineFileHandler {
     public PipelineFileHandler(final String name, String setupLocation) throws SeMoDeException {
         this.name = name;
         this.pathToSetup = Paths.get(setupLocation, name);
-        this.pathToConfig = this.pathToSetup.resolve("settings.json");
         this.pathToCalibration = this.pathToSetup.resolve("calibration");
         this.pathToBenchmarkExecution = this.pathToSetup.resolve("benchmark");
 
@@ -51,21 +49,8 @@ public class PipelineFileHandler {
             // for calibration
             Files.createDirectories(this.pathToCalibration);
 
-            this.saveUserConfigToFile(new SetupConfig(this.name));
         } catch (final IOException e) {
             throw new SeMoDeException(e);
-        }
-    }
-
-    public void saveUserConfigToFile(SetupConfig setupConfig) throws SeMoDeException {
-        try {
-            new ObjectMapper().writer().withDefaultPrettyPrinter().writeValue(this.pathToConfig.toFile(), setupConfig);
-        } catch (FileNotFoundException e) {
-            log.warn("Setup folder structure was not present. Create it now...");
-            this.createFolderStructure();
-            this.saveUserConfigToFile(setupConfig);
-        } catch (final IOException e) {
-            throw new SeMoDeException("Configuration could not be saved.", e);
         }
     }
 

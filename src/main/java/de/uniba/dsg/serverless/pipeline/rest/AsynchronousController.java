@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.pipeline.controller;
+package de.uniba.dsg.serverless.pipeline.rest;
 
 import de.uniba.dsg.serverless.pipeline.service.SetupService;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;

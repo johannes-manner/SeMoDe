@@ -1,12 +1,11 @@
 package de.uniba.dsg.serverless.pipeline.model.config;
 
+import de.uniba.dsg.serverless.users.User;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
 /**
  * <p>
@@ -30,10 +29,23 @@ public class SetupConfig {
     private BenchmarkConfig benchmarkConfig;
     @OneToOne(cascade = CascadeType.ALL)
     private CalibrationConfig calibrationConfig;
+    @ManyToOne
+    private User owner;
 
-    public SetupConfig(String name) {
+    public SetupConfig(String name, User owner) {
         this.setupName = name;
         this.benchmarkConfig = new BenchmarkConfig(this);
         this.calibrationConfig = new CalibrationConfig(this);
+        this.owner = owner;
+    }
+
+    @Override
+    public String toString() {
+        return "SetupConfig{" +
+                "setupName='" + setupName + '\'' +
+                ", benchmarkConfig=" + benchmarkConfig.getId() +
+                ", calibrationConfig=" + calibrationConfig.getId() +
+                ", owner=" + owner.getUsername() +
+                '}';
     }
 }
