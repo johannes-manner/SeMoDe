@@ -2,14 +2,13 @@ package de.uniba.dsg.serverless.pipeline.model.config;
 
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.Embeddable;
 
-@Entity
 @Data
+@Embeddable
 public class MachineConfig {
-    @Id
-    private String identifier;
+
+    private String machineName;
     private String cpuModelName;
     private String modelNr;
 }

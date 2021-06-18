@@ -21,10 +21,9 @@ public class CalibrationConfig {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    private boolean deployed;
     // attribute for easy finding N calibration configs to a single setup no need for many to one and faster retrieval of
     // the actual benchmark config in the setup config
-    // TODO remove when updating DB the next time
-    private boolean deployed;
     private int versionNumber;
     private String setupName;
 
@@ -43,6 +42,9 @@ public class CalibrationConfig {
     @Embedded
     private RunningCalibrationConfig runningCalibrationConfig;
 
+    @Embedded
+    private MachineConfig machineConfig;
+
     @JsonIgnore
     @OneToMany(cascade = {}, fetch = FetchType.LAZY, mappedBy = "config")
     private List<CalibrationEvent> calibrationEvents;
@@ -52,6 +54,7 @@ public class CalibrationConfig {
         this.awsCalibrationConfig = new AWSCalibrationConfig();
         this.mappingCalibrationConfig = new MappingCalibrationConfig();
         this.runningCalibrationConfig = new RunningCalibrationConfig();
+        this.machineConfig = new MachineConfig();
         this.setupName = config.getSetupName();
     }
 

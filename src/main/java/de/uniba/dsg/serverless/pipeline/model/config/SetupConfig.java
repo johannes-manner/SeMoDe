@@ -3,7 +3,6 @@ package de.uniba.dsg.serverless.pipeline.model.config;
 import de.uniba.dsg.serverless.users.User;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.persistence.*;
 
