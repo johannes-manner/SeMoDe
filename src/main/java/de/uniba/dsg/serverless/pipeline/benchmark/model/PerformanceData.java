@@ -1,11 +1,9 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.model;
 
+import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Data
@@ -25,6 +23,8 @@ public class PerformanceData {
     private int billedDuration;
     private int memorySize;
     private int memoryUsed;
+    @ManyToOne(cascade = {})
+    private BenchmarkConfig benchmarkConfig;
 
     public PerformanceData() {
         this.functionName = "";
@@ -52,5 +52,23 @@ public class PerformanceData {
         this.billedDuration = billedDuration;
         this.memorySize = memorySize;
         this.memoryUsed = memoryUsed;
+    }
+
+    @Override
+    public String toString() {
+        return "PerformanceData{" +
+                "id=" + id +
+                ", functionName='" + functionName + '\'' +
+                ", logStream='" + logStream + '\'' +
+                ", platformId='" + platformId + '\'' +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", startupDuration=" + startupDuration +
+                ", preciseDuration=" + preciseDuration +
+                ", billedDuration=" + billedDuration +
+                ", memorySize=" + memorySize +
+                ", memoryUsed=" + memoryUsed +
+                ", benchmarkConfig=" + benchmarkConfig.getId() +
+                '}';
     }
 }

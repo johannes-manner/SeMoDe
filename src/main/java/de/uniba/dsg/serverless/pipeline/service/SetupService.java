@@ -319,6 +319,12 @@ public class SetupService {
             log.info("Fetch performance data for " + benchmark.getPlatform());
             List<PerformanceData> data = benchmark.getPerformanceDataFromPlatform(this.setupConfig.getBenchmarkConfig().getStartTime(), this.setupConfig.getBenchmarkConfig().getEndTime());
             for (PerformanceData performanceData : data) {
+                /*
+                 * Add benchmark config to the performance Data to load all data associated with the benchmark
+                 * experiments either they have a local rest event (when the timeout of the API gateway was not
+                 * exceeded or when doing other experiments which are not related to API gateways.
+                 */
+                performanceData.setBenchmarkConfig(this.setupConfig.getBenchmarkConfig());
                 Optional<ProviderEvent> event = this.providerEventRepository.findByPlatformId(performanceData.getPlatformId());
                 if (event.isPresent()) {
                     ProviderEvent e = event.get();
@@ -438,5 +444,14 @@ public class SetupService {
             return true;
         }
         return user.isAdmin();
+    }
+
+    public void changePublicVisiblityPropertyForBenchmarkVersion(String setupName, Integer version) {
+
+        BenchmarkConfig config = this.getBenchmarkConfigBySetupAndVersion(setupName, version);
+        config.setVersionVisible(!config.isVersionVisible());
+        log.info("Change public visibility property for setup " + setupName + " and benchmark version " + version + " to: " + config.isVersionVisible());
+        this.benchmarkConfigRepository.save(config);
+        
     }
 }

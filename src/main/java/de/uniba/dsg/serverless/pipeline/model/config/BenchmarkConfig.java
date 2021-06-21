@@ -27,6 +27,7 @@ public class BenchmarkConfig {
     private Long id;
     //    @NotNull(message = "Select one of the benchmark modes")
     private boolean deployed = false;
+    private String description;
     private String benchmarkMode;
     private String benchmarkParameters;
     private String postArgument;
@@ -35,6 +36,9 @@ public class BenchmarkConfig {
     private LocalDateTime endTime;
 
     private int versionNumber;
+    // property to decide, if the version of the experiment is visible for all users which are
+    // not authenticated to make the experiments publicly available
+    private boolean versionVisible;
     // attribute for easy finding N benchmark configs to a single setup no need for many to one and faster retrieval of
     // the actual benchmark config in the setup config
     private String setupName;

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -57,5 +58,12 @@ public class AsynchronousBenchmarkController {
     @GetMapping("{setup}/benchmark/version/{version}/data")
     public IPointDto[] getBenchmarkData(@PathVariable(value = "setup") String setupName, @PathVariable(value = "version") Integer version) {
         return this.service.getBenchmarkDataByVersion(setupName, version);
+    }
+
+    @PostMapping("{setup}/benchmark/visible")
+    public ResponseEntity changePublicVisibility(@PathVariable(value = "setup") String setupName, Integer version) {
+        System.out.println(version);
+        this.service.changePublicVisiblityPropertyForBenchmarkVersion(setupName, version);
+        return ResponseEntity.ok().build();
     }
 }
