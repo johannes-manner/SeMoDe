@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.pipeline.rest;
+package de.uniba.dsg.serverless.pipeline.rest.controller;
 
 import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
@@ -55,14 +55,13 @@ public class AsynchronousBenchmarkController {
         return this.service.getBenchmarkConfigBySetupAndVersion(setup, version);
     }
 
-    @GetMapping("{setup}/benchmark/version/{version}/data")
+    @GetMapping("api/v1/{setup}/benchmark/version/{version}/data")
     public IPointDto[] getBenchmarkData(@PathVariable(value = "setup") String setupName, @PathVariable(value = "version") Integer version) {
         return this.service.getBenchmarkDataByVersion(setupName, version);
     }
 
-    @PostMapping("{setup}/benchmark/visible")
-    public ResponseEntity changePublicVisibility(@PathVariable(value = "setup") String setupName, Integer version) {
-        System.out.println(version);
+    @PostMapping("api/v1/{setup}/benchmark/visible/{version}")
+    public ResponseEntity changePublicVisibility(@PathVariable(value = "setup") String setupName, @PathVariable(value = "version") int version) {
         this.service.changePublicVisiblityPropertyForBenchmarkVersion(setupName, version);
         return ResponseEntity.ok().build();
     }

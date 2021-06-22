@@ -54,8 +54,7 @@ versionVisible.addEventListener('change', function () {
     console.log("change visibility of selected version");
     $.ajax({
         type: "POST",
-        url: "/" + setupName + "/benchmark/visible",
-        data: versionDropdown.value,
+        url: "/api/v1/" + setupName + "/benchmark/visible/" + versionDropdown.value,
         success: function () {
             document.getElementById('versionVisibleText').innerHTML = 'Changed visible property to ' + versionVisible.checked;
         }
