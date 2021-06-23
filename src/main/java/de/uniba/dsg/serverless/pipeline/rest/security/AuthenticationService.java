@@ -23,7 +23,7 @@ public class AuthenticationService {
     public JWTTokenResponse generateJWTToken(String username, String password) {
         User user = userRepository.findUserByUsername(username);
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            return new JWTTokenResponse(jwtTokenService.generateToken(username));
+            return new JWTTokenResponse(jwtTokenService.generateToken(username, user.getRole()));
         } else {
             throw new EntityNotFoundException("User not found");
         }

@@ -44,7 +44,7 @@ var removeDatasetProviderCalibration = document.getElementById('removeDatasetPro
 var profilesChart = document.getElementById('profilesChart');
 var removeDatasetProfiles = document.getElementById('removeDatasetProfiles');
 
-function setButtonDisabledProperty(boolDisabled){
+function setButtonDisabledProperty(boolDisabled) {
     startLocalCalibration.disabled = boolDisabled;
     deployCalibration.disabled = boolDisabled;
     startCalibration.disabled = boolDisabled;
@@ -54,131 +54,134 @@ function setButtonDisabledProperty(boolDisabled){
     runFunction.disabled = boolDisabled;
 }
 
-calibrationVersions.addEventListener('change', function() {
+calibrationVersions.addEventListener('change', function () {
     var version = calibrationVersions.value;
-    if(calibrationVersions.selectedIndex == 0) {
+    if (calibrationVersions.selectedIndex == 0) {
         setButtonDisabledProperty(false);
     } else {
         setButtonDisabledProperty(true);
     }
 
     $.ajax({
-      url: "/"+ setupName + "/calibration/version/" + version,
-      success: function(result) {
-        console.log(result);
-        calibrationConfigID.innerHTML = result.id;
-        localSteps.value = result.localConfig.localSteps;
-        numberOfLocalCalibration.value = result.localConfig.numberOfLocalCalibrations;
-        localCalibrationDockerSourceFolder.value = result.localConfig.calibrationDockerSourceFolder;
-        awsBucketName.value = result.awsCalibrationConfig.bucketName;
-        numberOfAWSExecutions.value = result.awsCalibrationConfig.numberOfAWSExecutions;
-        awsRegion.value = result.awsCalibrationConfig.benchmarkConfig.region;
-        awsRuntime.value = result.awsCalibrationConfig.benchmarkConfig.runtime;
-        awsLambdaRole.value = result.awsCalibrationConfig.benchmarkConfig.awsArnLambdaRole;
-        awsHandlerName.value = result.awsCalibrationConfig.benchmarkConfig.functionHandler;
-        awsTimeout.value = result.awsCalibrationConfig.benchmarkConfig.timeout;
-        awsMemorySizes.value = result.awsCalibrationConfig.benchmarkConfig.memorySizes;
-        awsPathToZip.value = result.awsCalibrationConfig.benchmarkConfig.pathToSource;
-        awsTargetUrl.value = result.awsCalibrationConfig.benchmarkConfig.targetUrl;
-        awsApiKey.value = result.awsCalibrationConfig.benchmarkConfig.apiKey;
-        awsRestApiId.value = result.awsCalibrationConfig.benchmarkConfig.restApiId;
-        awsApiKeyId.value = result.awsCalibrationConfig.benchmarkConfig.apiKeyId;
-        awsUsagePlanId.value = result.awsCalibrationConfig.benchmarkConfig.usagePlanId;
-        mappingProviderPlatform.value = result.mappingCalibrationConfig.memorySizesCalibration;
-        runConfigDockerSourceFolder.value = result.runningCalibrationConfig.functionDockerSourceFolder;
-        runConfigEnvironmentVariableFile.value = result.runningCalibrationConfig.environmentVariablesFile;
-        runConfigNumberOfProfiles.value = result.runningCalibrationConfig.numberOfProfiles;
-      }
+        url: "/semode/v1/" + setupName + "/calibration/version/" + version,
+        success: function (result) {
+            console.log(result);
+            calibrationConfigID.innerHTML = result.id;
+            localSteps.value = result.localConfig.localSteps;
+            numberOfLocalCalibration.value = result.localConfig.numberOfLocalCalibrations;
+            localCalibrationDockerSourceFolder.value = result.localConfig.calibrationDockerSourceFolder;
+            awsBucketName.value = result.awsCalibrationConfig.bucketName;
+            numberOfAWSExecutions.value = result.awsCalibrationConfig.numberOfAWSExecutions;
+            awsRegion.value = result.awsCalibrationConfig.benchmarkConfig.region;
+            awsRuntime.value = result.awsCalibrationConfig.benchmarkConfig.runtime;
+            awsLambdaRole.value = result.awsCalibrationConfig.benchmarkConfig.awsArnLambdaRole;
+            awsHandlerName.value = result.awsCalibrationConfig.benchmarkConfig.functionHandler;
+            awsTimeout.value = result.awsCalibrationConfig.benchmarkConfig.timeout;
+            awsMemorySizes.value = result.awsCalibrationConfig.benchmarkConfig.memorySizes;
+            awsPathToZip.value = result.awsCalibrationConfig.benchmarkConfig.pathToSource;
+            awsTargetUrl.value = result.awsCalibrationConfig.benchmarkConfig.targetUrl;
+            awsApiKey.value = result.awsCalibrationConfig.benchmarkConfig.apiKey;
+            awsRestApiId.value = result.awsCalibrationConfig.benchmarkConfig.restApiId;
+            awsApiKeyId.value = result.awsCalibrationConfig.benchmarkConfig.apiKeyId;
+            awsUsagePlanId.value = result.awsCalibrationConfig.benchmarkConfig.usagePlanId;
+            mappingProviderPlatform.value = result.mappingCalibrationConfig.memorySizesCalibration;
+            runConfigDockerSourceFolder.value = result.runningCalibrationConfig.functionDockerSourceFolder;
+            runConfigEnvironmentVariableFile.value = result.runningCalibrationConfig.environmentVariablesFile;
+            runConfigNumberOfProfiles.value = result.runningCalibrationConfig.numberOfProfiles;
+        }
     });
 });
 
-startLocalCalibration.addEventListener('click', function() {
-      var deployDecision = confirm("Do you really want to fetch benchmark?")
-      if(deployDecision == true) {
-          $.ajax({
-            url: "/calibration/start/local",
-            success: function(result) {
+startLocalCalibration.addEventListener('click', function () {
+    var deployDecision = confirm("Do you really want to fetch benchmark?")
+    if (deployDecision == true) {
+        $.ajax({
+            url: "/semode/v1/" + setupName + "/calibration/start/local",
+            success: function (result) {
                 location.reload();
-          }});
-      }
+            }
+        });
+    }
 });
 
 
-
-deployCalibration.addEventListener('click', function() {
-      var deployDecision = confirm("Do you really want to deploy calibration?")
-      if(deployDecision == true) {
-          $.ajax({
-            url: "/calibration/deploy/aws",
-            success: function(result) {
+deployCalibration.addEventListener('click', function () {
+    var deployDecision = confirm("Do you really want to deploy calibration?")
+    if (deployDecision == true) {
+        $.ajax({
+            url: "/semode/v1/" + setupName + "/calibration/deploy/aws",
+            success: function (result) {
                 location.reload();
-          }});
-      }
+            }
+        });
+    }
 });
 
 
-
-startCalibration.addEventListener('click', function() {
-      var deployDecision = confirm("Do you really want to deploy calibration?")
-      if(deployDecision == true) {
-          $.ajax({
-            url: "/calibration/start/aws",
-            success: function(result) {
+startCalibration.addEventListener('click', function () {
+    var deployDecision = confirm("Do you really want to deploy calibration?")
+    if (deployDecision == true) {
+        $.ajax({
+            url: "/semode/v1/" + setupName + "/calibration/start/aws",
+            success: function (result) {
                 location.reload();
-          }});
-      }
+            }
+        });
+    }
 });
 
 
-undeployCalibration.addEventListener('click', function() {
-      var deployDecision = confirm("Do you really want to undeploy calibration?")
-      if(deployDecision == true) {
-          $.ajax({
-            url: "/calibration/undeploy/aws",
-            success: function(result) {
+undeployCalibration.addEventListener('click', function () {
+    var deployDecision = confirm("Do you really want to undeploy calibration?")
+    if (deployDecision == true) {
+        $.ajax({
+            url: "/semode/v1/" + setupName + "/calibration/undeploy/aws",
+            success: function (result) {
                 location.reload();
-          }});
-      }
+            }
+        });
+    }
 });
 
 
-computeMapping.addEventListener('click', function() {
-      var deployDecision = confirm("Do you really want to undeploy calibration?")
-      if(deployDecision == true) {
-          $.ajax({
-            url: "/"+ setupName + "/calibration/mapping",
-            success: function(result) {
+computeMapping.addEventListener('click', function () {
+    var deployDecision = confirm("Do you really want to undeploy calibration?")
+    if (deployDecision == true) {
+        $.ajax({
+            url: "/semode/v1/" + setupName + "/calibration/mapping",
+            success: function (result) {
                 computeMappingInfo.innerHTML = result;
-          }});
-      }
+            }
+        });
+    }
 });
 
 
-
-runFunction.addEventListener('click', function() {
-      var deployDecision = confirm("Do you really want to undeploy calibration?")
-      if(deployDecision == true) {
-          $.ajax({
-            url: "/run",
-            success: function(result) {
+runFunction.addEventListener('click', function () {
+    var deployDecision = confirm("Do you really want to undeploy calibration?")
+    if (deployDecision == true) {
+        $.ajax({
+            url: "/semode/v1/" + setupName + "/simulation/run",
+            success: function (result) {
                 console.log('Refresh page to see the infos - undeployment successful')
-          }});
-      }
+            }
+        });
+    }
 });
 
 // CHART HANDLING
 
-function addCalibrationDataToChart(calibrationId, chart){
+function addCalibrationDataToChart(calibrationId, chart) {
     $.ajax({
-        url: "/"+ setupName + "/calibration/" + calibrationId + "/data",
-        success: function(result) {
-            if(result.length > 1){
+        url: "/semode/v1/" + setupName + "/calibration/" + calibrationId + "/data",
+        success: function (result) {
+            if (result.length > 1) {
                 console.log(result);
                 const RGB = 255;
                 var calibrationDataOf = {
                     label: 'Id ' + calibrationId,
-                    data:  result,
-                    backgroundColor: 'rgb('+ Math.random() * RGB + ', '+ Math.random() * RGB + ', '+ Math.random() * RGB + ')'
+                    data: result,
+                    backgroundColor: 'rgb(' + Math.random() * RGB + ', ' + Math.random() * RGB + ', ' + Math.random() * RGB + ')'
                 };
                 chart.data.datasets.push(calibrationDataOf);
                 chart.update();
@@ -188,22 +191,22 @@ function addCalibrationDataToChart(calibrationId, chart){
 }
 
 var chartConfig = {
-  type: 'scatter',
+    type: 'scatter',
     data: {
-      datasets: [],
+        datasets: [],
     },
     options: {
-      responsive: true,
-      scales: {
-        x: {
-          beginAtZero: true,
-          type: 'linear',
-          position: 'bottom'
-        },
-        y: {
-          beginAtZero: true
+        responsive: true,
+        scales: {
+            x: {
+                beginAtZero: true,
+                type: 'linear',
+                position: 'bottom'
+            },
+            y: {
+                beginAtZero: true
+            }
         }
-      }
     }
 };
 
@@ -211,26 +214,26 @@ var localCalibrationChartHandle = new Chart(localCalibrationChart, chartConfig);
 var providerCalibrationChartHandle = new Chart(providerCalibrationChart, JSON.parse(JSON.stringify(chartConfig)));
 var profilesChartHandle = new Chart(profilesChart, JSON.parse(JSON.stringify(chartConfig)))
 
-removeDatasetLocalCalibration.addEventListener('click', function(){
+removeDatasetLocalCalibration.addEventListener('click', function () {
     localCalibrationChartHandle.data.datasets.pop();
     localCalibrationChartHandle.update();
 });
 
-removeDatasetProviderCalibration.addEventListener('click', function(){
+removeDatasetProviderCalibration.addEventListener('click', function () {
     providerCalibrationChartHandle.data.datasets.pop();
     providerCalibrationChartHandle.update();
 });
 
-removeDatasetProfiles.addEventListener('click', function(){
+removeDatasetProfiles.addEventListener('click', function () {
     profilesChartHandle.data.datasets.pop();
     profilesChartHandle.update();
 });
 
-localCalibrationConfig.addEventListener('change', function() {
+localCalibrationConfig.addEventListener('change', function () {
     addCalibrationDataToChart(localCalibrationConfig.value, localCalibrationChartHandle);
 });
 
-providerCalibrationConfig.addEventListener('change', function(){
+providerCalibrationConfig.addEventListener('change', function () {
     addCalibrationDataToChart(providerCalibrationConfig.value, providerCalibrationChartHandle);
 });
 
@@ -239,29 +242,29 @@ addCalibrationDataToChart(providerCalibrationConfig.value, providerCalibrationCh
 
 // update already executed profiles selection
 $.ajax({
-    url: "/"+ setupName + "/profiles",
-    success: function(result) {
-      for(const cId of result){
-        var option = document.createElement("option");
-        option.text = "Profile from Calibration " + cId.calibrationId;
-        option.value = cId.calibrationId;
-        executedProfilesSelection.add(option);
-      }
+    url: "/semode/v1/" + setupName + "/profiles",
+    success: function (result) {
+        for (const cId of result) {
+            var option = document.createElement("option");
+            option.text = "Profile from Calibration " + cId.calibrationId;
+            option.value = cId.calibrationId;
+            executedProfilesSelection.add(option);
+        }
     }
 });
 
-executedProfilesSelection.addEventListener('change', function(){
+executedProfilesSelection.addEventListener('change', function () {
     var selectedProfileCalibration = executedProfilesSelection.value;
-    if(selectedProfileCalibration > 0) {
+    if (selectedProfileCalibration > 0) {
         $.ajax({
-            url: "/"+ setupName + "/profiles/" + selectedProfileCalibration,
-            success: function(result) {
+            url: "/semode/v1/" + setupName + "/profiles/" + selectedProfileCalibration,
+            success: function (result) {
                 console.log(result);
                 const RGB = 255;
                 var calibrationDataOf = {
                     label: 'Profile ' + selectedProfileCalibration,
-                    data:  result,
-                    backgroundColor: 'rgb('+ Math.random() * RGB + ', '+ Math.random() * RGB + ', '+ Math.random() * RGB + ')'
+                    data: result,
+                    backgroundColor: 'rgb(' + Math.random() * RGB + ', ' + Math.random() * RGB + ', ' + Math.random() * RGB + ')'
                 };
                 profilesChartHandle.data.datasets.push(calibrationDataOf);
                 profilesChartHandle.update();

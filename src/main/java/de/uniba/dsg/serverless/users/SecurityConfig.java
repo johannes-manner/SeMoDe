@@ -5,70 +5,105 @@ import de.uniba.dsg.serverless.pipeline.rest.security.JwtAuthenticationTokenFilt
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-@Configuration
+
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
-
-    @Autowired
-    private UserDetailsService userDetailsService;
-
-    @Autowired
-    private CustomAuthenticationProvider provider;
+public class SecurityConfig {
 
     @Bean
     public PasswordEncoder createEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        super.configure(auth);
-        auth.authenticationProvider(provider);
-        auth.userDetailsService(this.userDetailsService).passwordEncoder(this.createEncoder());
+    @Order(1)
+    @Configuration
+    public class ApiSecurityAdapter extends WebSecurityConfigurerAdapter {
+
+        private UserDetailsService userDetailsService;
+        private CustomAuthenticationProvider provider;
+        private PasswordEncoder encoder;
+
+        @Autowired
+        public ApiSecurityAdapter(UserDetailsService userDetailsService, CustomAuthenticationProvider provider, PasswordEncoder encoder) {
+            this.userDetailsService = userDetailsService;
+            this.provider = provider;
+            this.encoder = encoder;
+        }
+
+        @Override
+        protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+            super.configure(auth);
+            auth.authenticationProvider(provider);
+            auth.userDetailsService(userDetailsService).passwordEncoder(encoder);
+
+        }
+
+        @Bean
+        public JwtAuthenticationTokenFilter jwtAuthenticationTokenFilterBean() {
+            return new JwtAuthenticationTokenFilter();
+        }
+
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            http.antMatcher("/api/**")
+                    .authorizeRequests()
+                    .antMatchers("/api/login").permitAll()
+                    .antMatchers("/api/**").authenticated()
+                    .and()
+                    .addFilterBefore(jwtAuthenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class)
+                    .csrf().ignoringAntMatchers("/api/**")
+                    .and()
+                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        }
 
     }
 
-    @Bean
-    public JwtAuthenticationTokenFilter jwtAuthenticationTokenFilterBean() {
-        return new JwtAuthenticationTokenFilter();
-    }
+    @Order(2)
+    @Configuration
+    public class WebSecurityAdapter extends WebSecurityConfigurerAdapter {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .antMatchers("/users").hasAuthority(Role.ADMIN.getRole())
-                .antMatchers("/setups/**").hasAnyAuthority(Role.ADMIN.getRole(), Role.USER.getRole())
-                .antMatchers("/api/**").authenticated()
-                .antMatchers("/", "/auth/**", "/**").permitAll()
-                .and().addFilterBefore(jwtAuthenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class)
-                .formLogin().loginPage("/login")
-                .and()
-                .logout().logoutSuccessUrl("/")
-                .and().csrf().ignoringAntMatchers("/auth/**") // needed to access the h2-console after introducing security module;
-                .and().csrf().ignoringAntMatchers("/api/**")
-                .and().headers().frameOptions().sameOrigin() // needed to access the h2-console after introducing security module
-                .and().logout().invalidateHttpSession(true).deleteCookies("JSESSIONID").logoutSuccessUrl("/login");
-    }
+        private UserDetailsService userDetailsService;
+        private PasswordEncoder encoder;
 
-    /**
-     * Only for really simple cases.
-     */
-    @Override
-    public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addViewController("/login");
+        @Autowired
+        public WebSecurityAdapter(UserDetailsService userDetailsService, PasswordEncoder encoder) {
+            this.userDetailsService = userDetailsService;
+            this.encoder = encoder;
+        }
+
+        @Override
+        protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+            super.configure(auth);
+            auth.userDetailsService(userDetailsService).passwordEncoder(encoder);
+
+        }
+
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            http.authorizeRequests()
+                    .antMatchers("/users").hasAuthority(Role.ADMIN.getRole())
+                    .antMatchers("/setups/**", "/semode/**").hasAnyAuthority(Role.ADMIN.getRole(), Role.USER.getRole())
+                    .antMatchers("/", "/index").permitAll()
+                    .and()
+                    .csrf().ignoringAntMatchers("/semode/**")
+                    .and()
+                    .formLogin().loginPage("/login")
+                    .and()
+                    .logout().logoutSuccessUrl("/")
+                    .and().logout().invalidateHttpSession(true).deleteCookies("JSESSIONID").logoutSuccessUrl("/login");
+        }
     }
 }
 

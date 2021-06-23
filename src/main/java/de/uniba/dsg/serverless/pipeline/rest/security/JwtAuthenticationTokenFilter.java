@@ -1,5 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.rest.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +28,10 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         }
         try {
             chain.doFilter(request, response);
+        } catch (ExpiredJwtException ex) {
+            log.warn("Jwt expired!");
+            response.setStatus(HttpStatus.SC_UNAUTHORIZED);
+            response.getWriter().write(ex.getMessage());
         } catch (JwtTokenInvalidException ex) {
             log.warn("Jwt error!");
             response.setStatus(HttpStatus.SC_BAD_REQUEST);

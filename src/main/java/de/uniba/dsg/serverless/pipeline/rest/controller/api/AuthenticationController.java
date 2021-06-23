@@ -1,5 +1,7 @@
-package de.uniba.dsg.serverless.pipeline.rest.security;
+package de.uniba.dsg.serverless.pipeline.rest.controller.api;
 
+import de.uniba.dsg.serverless.pipeline.rest.security.AuthenticationRequest;
+import de.uniba.dsg.serverless.pipeline.rest.security.AuthenticationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +11,7 @@ import javax.persistence.EntityNotFoundException;
 
 @Slf4j
 @RestController
-@RequestMapping("auth")
+@RequestMapping("api")
 public class AuthenticationController {
 
     private AuthenticationService authenticationService;

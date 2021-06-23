@@ -1,5 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.rest.security;
 
+import de.uniba.dsg.serverless.users.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -23,13 +24,14 @@ public class JwtTokenService {
         this.expiration = expiration;
     }
 
-    public String generateToken(String username) {
+    public String generateToken(String username, String role) {
         final Date createdDate = new Date();
         final Date expirationDate = calculateExpirationDate(createdDate);
 
         return Jwts.builder()
                 .setClaims(new HashMap<>())
-                .setSubject(username)
+                .setIssuer(username)
+                .setSubject(role)
                 .setIssuedAt(createdDate)
                 .setExpiration(expirationDate)
                 .signWith(SignatureAlgorithm.HS512, secret)
@@ -38,15 +40,20 @@ public class JwtTokenService {
 
     // used for token validation
     private Date calculateExpirationDate(Date createdDate) {
-        return new Date(createdDate.getTime() + expiration * 10000);
+        return new Date(createdDate.getTime() + expiration);
     }
 
     public String getUsernameFromToken(String token) {
-        return getClaimFromToken(token, Claims::getSubject);
+        return getClaimFromToken(token, Claims::getIssuer);
     }
 
     public Date getExpirationDateFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration);
+    }
+
+    public Role getRoleFromToken(String token) throws IllegalArgumentException {
+        String role = getClaimFromToken(token, Claims::getSubject);
+        return Role.valueOf(role);
     }
 
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
@@ -61,19 +68,16 @@ public class JwtTokenService {
                 .getBody();
     }
 
-    private Boolean isTokenNotExpired(String token) {
-        final Date expiration = getExpirationDateFromToken(token);
-        return expiration.after(new Date());
-    }
-
     /**
-     * TODO better token validation!!!!
-     *
      * @param token
      * @return
      */
     public boolean validateToken(String token) {
-        return isTokenNotExpired(token);
+        return isTokenNotExpired(token) && Role.isValidRole(getClaimFromToken(token, Claims::getSubject));
     }
 
+    private Boolean isTokenNotExpired(String token) {
+        final Date expiration = getExpirationDateFromToken(token);
+        return expiration.after(new Date());
+    }
 }

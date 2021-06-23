@@ -7,12 +7,20 @@ public enum Role {
 
     private String role;
 
-    Role(String role){
+    Role(String role) {
         this.role = role;
     }
 
-    public String getRole(){
+    public String getRole() {
         return role;
     }
 
+    public static boolean isValidRole(String outsideRole) {
+        for (Role r : Role.values()) {
+            if (r.getRole().equals(outsideRole)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

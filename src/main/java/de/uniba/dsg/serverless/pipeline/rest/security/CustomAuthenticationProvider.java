@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.pipeline.rest.security;
 
 import de.uniba.dsg.serverless.users.UserService;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
      * @throws AuthenticationException
      */
     @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException, ExpiredJwtException {
         // spring security web & thymeleaf only accept UsernamePasswordAuthenticationTokens
         if (authentication instanceof UsernamePasswordAuthenticationToken) {
             return daoAuthenticationProvider.authenticate(authentication);
@@ -53,8 +54,10 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
                 if (tokenService.validateToken(jwtAuthenticationToken.getJwtToken())) {
                     jwtAuthenticationToken.setAuthenticated(true);
                 } else {
-                    throw new JwtTokenInvalidException("Token expired.");
+                    throw new JwtTokenInvalidException("Token errors.");
                 }
+            } catch (ExpiredJwtException e) {
+                throw e;
             } catch (JwtException e) {
                 throw new JwtTokenInvalidException("Token errors.");
             }

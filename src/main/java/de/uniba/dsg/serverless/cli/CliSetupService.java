@@ -38,8 +38,7 @@ public class CliSetupService implements CustomUtility {
         }
         try {
             log.info("Load setup '" + args.get(0) + "' and execute command '" + args.get(1) + "'...");
-            this.setupService.loadSetup(args.get(0));
-            this.executeRunCommand(args.get(1));
+            this.executeRunCommand(args.get(0), args.get(1));
         } catch (SeMoDeException e) {
             log.warn(e.getMessage(), e.getCause() != null ? e.getCause().toString() : "");
         }
@@ -51,27 +50,27 @@ public class CliSetupService implements CustomUtility {
     }
 
 
-    private void executeRunCommand(final String command) throws SeMoDeException {
+    private void executeRunCommand(final String setupName, final String command) throws SeMoDeException {
         switch (command) {
             case "executeBenchmark":
-                this.setupService.executeBenchmark();
+                this.setupService.executeBenchmark(setupName);
                 break;
             case "fetchBenchmark":
-                this.setupService.fetchPerformanceData();
+                this.setupService.fetchPerformanceData(setupName);
                 break;
             // calibration options
             case "startAwsCalibration":
-                this.setupService.startCalibration(CalibrationPlatform.AWS.getText());
+                this.setupService.startCalibration(setupName, CalibrationPlatform.AWS.getText());
                 break;
             case "startLocalCalibration":
-                this.setupService.startCalibration(CalibrationPlatform.LOCAL.getText());
+                this.setupService.startCalibration(setupName, CalibrationPlatform.LOCAL.getText());
                 break;
             // mapping and run function locally
             case "printMappingInfo":
-                this.setupService.computeMapping();
+                this.setupService.computeMapping(setupName);
                 break;
             case "runFunctionLocally":
-                this.setupService.runFunctionLocally();
+                this.setupService.runFunctionLocally(setupName);
                 break;
             default:
                 throw new SeMoDeException(

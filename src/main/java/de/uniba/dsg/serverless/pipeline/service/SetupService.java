@@ -95,7 +95,7 @@ public class SetupService {
         this.setupConfigRepository.save(this.setupConfig);
     }
 
-    public void loadSetup(String setupName) throws SeMoDeException {
+    private void loadSetup(String setupName) throws SeMoDeException {
         this.fileHandler = new PipelineFileHandler(setupName, this.setups);
         Optional<SetupConfig> config = this.setupConfigRepository.findById(setupName);
         if (config.isPresent()) {
@@ -205,7 +205,8 @@ public class SetupService {
 
 
     // TODO maybe DeploymentService?? handle Exception properly (cleanup)
-    public void deployFunctions() throws SeMoDeException {
+    public void deployFunctions(String setup) throws SeMoDeException {
+        this.loadSetup(setup);
         for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
             benchmark.deploy();
 
@@ -216,7 +217,8 @@ public class SetupService {
         }
     }
 
-    public void undeployFunctions() throws SeMoDeException {
+    public void undeployFunctions(String setup) throws SeMoDeException {
+        this.loadSetup(setup);
         for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
             benchmark.undeploy();
             // during undeployment a lot of  internals are reset, therefore setup config must be stored again
@@ -241,7 +243,8 @@ public class SetupService {
         return benchmarkMethods;
     }
 
-    public void executeBenchmark() throws SeMoDeException {
+    public void executeBenchmark(String setup) throws SeMoDeException {
+        this.loadSetup(setup);
         this.setupConfig.getBenchmarkConfig().logBenchmarkStartTime();
 
         final BenchmarkExecutor benchmarkExecutor = new BenchmarkExecutor(this.fileHandler.pathToBenchmarkExecution, this.setupConfig.getBenchmarkConfig());
@@ -260,7 +263,8 @@ public class SetupService {
 
     // TODO calibration features
 
-    public void deployCalibration(String platform) throws SeMoDeException {
+    public void deployCalibration(String setup, String platform) throws SeMoDeException {
+        this.loadSetup(setup);
         CalibrationMethods calibration = this.getCalibrationMethod(platform);
 
         if (calibration != null) {
@@ -281,7 +285,8 @@ public class SetupService {
         return calibration;
     }
 
-    public void startCalibration(String platform) throws SeMoDeException {
+    public void startCalibration(String setup, String platform) throws SeMoDeException {
+        this.loadSetup(setup);
         CalibrationMethods calibration = this.getCalibrationMethod(platform);
 
         if (calibration != null) {
@@ -300,8 +305,9 @@ public class SetupService {
         this.saveSetup();
     }
 
-    public void undeployCalibration(String platform) throws SeMoDeException {
+    public void undeployCalibration(String setup, String platform) throws SeMoDeException {
 
+        this.loadSetup(setup);
         CalibrationMethods calibration = this.getCalibrationMethod(platform);
 
         if (calibration != null) {
@@ -312,7 +318,8 @@ public class SetupService {
     }
 
     // TODO document
-    public void fetchPerformanceData() throws SeMoDeException {
+    public void fetchPerformanceData(String setup) throws SeMoDeException {
+        this.loadSetup(setup);
         for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
             int numberOfPerformanceDataMappings = 0;
             int numberOfUnassignedPerformanceData = 0;
@@ -345,7 +352,8 @@ public class SetupService {
         }
     }
 
-    public Map<Integer, Double> computeMapping() throws SeMoDeException {
+    public Map<Integer, Double> computeMapping(String setup) throws SeMoDeException {
+        this.loadSetup(setup);
         MappingCalibrationConfig mappingConfig = this.setupConfig.getCalibrationConfig().getMappingCalibrationConfig();
 
         // compute mapping
@@ -357,9 +365,10 @@ public class SetupService {
         return memorySizeCPUShare;
     }
 
-    public void runFunctionLocally() throws SeMoDeException {
+    public void runFunctionLocally(String setup) throws SeMoDeException {
+        this.loadSetup(setup);
         log.info("Running the function with the computed cpu share for the specified memory settings...");
-        Map<Integer, Double> memorySizeCPUShare = this.computeMapping();
+        Map<Integer, Double> memorySizeCPUShare = this.computeMapping(setup);
         ContainerExecutor containerExecutor = new ContainerExecutor(this.fileHandler.pathToCalibration, memorySizeCPUShare, this.setupConfig.getCalibrationConfig().getRunningCalibrationConfig());
         List<ProfileRecord> records = containerExecutor.executeLocalProfiles();
         log.info("Running the function with the computed cpu share for the specified memory settings successfully terminated!");
@@ -452,6 +461,6 @@ public class SetupService {
         config.setVersionVisible(!config.isVersionVisible());
         log.info("Change public visibility property for setup " + setupName + " and benchmark version " + version + " to: " + config.isVersionVisible());
         this.benchmarkConfigRepository.save(config);
-        
+
     }
 }

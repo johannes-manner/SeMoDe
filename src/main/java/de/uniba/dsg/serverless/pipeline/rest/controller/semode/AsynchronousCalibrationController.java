@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.pipeline.rest.controller;
+package de.uniba.dsg.serverless.pipeline.rest.controller.semode;
 
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.repo.projection.ICalibrationConfigId;
@@ -21,31 +21,55 @@ public class AsynchronousCalibrationController {
     @Autowired
     private SetupService service;
 
-    // TODO include setupName here
-    @GetMapping("{setup}/calibration/mapping")
+    @GetMapping("semode/v1/{setup}/calibration/mapping")
     public ResponseEntity<String> mapping(@PathVariable(value = "setup") String setupName) throws SeMoDeException {
-        String mappingResult = this.service.computeMapping().toString();
+        String mappingResult = this.service.computeMapping(setupName).toString();
         log.info("Mapping: " + mappingResult);
         return ResponseEntity.ok(mappingResult);
     }
 
-    @GetMapping("{setup}/calibration/version/{version}")
+    @GetMapping("semode/v1/{setup}/calibration/version/{version}")
     public CalibrationConfig getCalibrationConfig(@PathVariable(value = "setup") String setup, @PathVariable(value = "version") Integer version) {
         return this.service.getCalibrationBySetupAndVersion(setup, version);
     }
 
-    @GetMapping("{setup}/calibration/{calibrationId}/data")
+    @GetMapping("semode/v1/{setup}/calibration/{calibrationId}/data")
     public IPointDto[] getCalibrationData(@PathVariable(value = "setup") String setup, @PathVariable(value = "calibrationId") Integer calibrationId) {
         return this.service.getCalibrationDataBySetupAndId(setup, calibrationId);
     }
 
-    @GetMapping("{setup}/profiles")
+    @GetMapping("semode/v1/{setup}/profiles")
     public List<ICalibrationConfigId> getProfilesForSetup(@PathVariable(value = "setup") String setup) {
         return this.service.getProfilesForSetup(setup);
     }
 
-    @GetMapping("{setup}/profiles/{calibrationConfigId}")
+    @GetMapping("semode/v1/{setup}/profiles/{calibrationConfigId}")
     public IPointDto[] getProfilePointsForSetupAndCalibration(@PathVariable(value = "setup") String setup, @PathVariable("calibrationConfigId") Integer id) {
         return this.service.getProfilePointsForSetupAndCalibration(setup, id).toArray(IPointDto[]::new);
+    }
+
+    @GetMapping("semode/v1/{setup}/calibration/start/{platform}")
+    public ResponseEntity startCalibration(@PathVariable(value = "setup") String setup, @PathVariable("platform") String platform) throws SeMoDeException {
+        this.service.startCalibration(setup, platform);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("semode/v1/{setup}/calibration/deploy/{platform}")
+    public ResponseEntity deployCalibration(@PathVariable(value = "setup") String setup, @PathVariable("platform") String platform) throws SeMoDeException {
+        this.service.deployCalibration(setup, platform);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("semode/v1/{setup}/calibration/undeploy/{platform}")
+    public ResponseEntity undeployCalibration(@PathVariable(value = "setup") String setup, @PathVariable("platform") String platform) throws SeMoDeException {
+        this.service.undeployCalibration(setup, platform);
+        return ResponseEntity.ok().build();
+    }
+
+
+    @GetMapping("semode/v1/{setup}/simulation/run")
+    public ResponseEntity runFunction(@PathVariable(value = "setup") String setup) throws SeMoDeException {
+        this.service.runFunctionLocally(setup);
+        return ResponseEntity.ok().build();
     }
 }

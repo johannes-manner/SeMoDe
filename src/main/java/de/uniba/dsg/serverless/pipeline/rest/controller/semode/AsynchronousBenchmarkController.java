@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.pipeline.rest.controller;
+package de.uniba.dsg.serverless.pipeline.rest.controller.semode;
 
 import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
@@ -20,47 +20,47 @@ public class AsynchronousBenchmarkController {
     @Autowired
     private SetupService service;
 
-    @GetMapping("benchmark/deploy")
-    public ResponseEntity deployFunction() throws SeMoDeException {
+    @GetMapping("semode/v1/{setup}/benchmark/deploy")
+    public ResponseEntity deployFunction(@PathVariable("setup") String setup) throws SeMoDeException {
         log.info("Start deployment...");
-        this.service.deployFunctions();
+        this.service.deployFunctions(setup);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("benchmark/undeploy")
-    public ResponseEntity undeployFunction() throws SeMoDeException {
-        this.service.undeployFunctions();
+    @GetMapping("semode/v1/{setup}/benchmark/undeploy")
+    public ResponseEntity undeployFunction(@PathVariable("setup") String setup) throws SeMoDeException {
+        this.service.undeployFunctions(setup);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("benchmark/execute")
-    public ResponseEntity benchmark() throws SeMoDeException {
-        this.service.executeBenchmark();
+    @GetMapping("semode/v1/{setup}/benchmark/execute")
+    public ResponseEntity benchmark(@PathVariable("setup") String setup) throws SeMoDeException {
+        this.service.executeBenchmark(setup);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("benchmark/fetch")
-    public ResponseEntity fetch() throws SeMoDeException {
-        this.service.fetchPerformanceData();
+    @GetMapping("semode/v1/{setup}/benchmark/fetch")
+    public ResponseEntity fetch(@PathVariable("setup") String setup) throws SeMoDeException {
+        this.service.fetchPerformanceData(setup);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("benchmark/mode/{tag}")
+    @GetMapping("semode/v1/benchmark/mode/{tag}")
     public BenchmarkMode getMode(@PathVariable(value = "tag") String tag) throws SeMoDeException {
         return BenchmarkMode.fromString(tag);
     }
 
-    @GetMapping("{setup}/benchmark/version/{version}")
+    @GetMapping("semode/v1/{setup}/benchmark/version/{version}")
     public BenchmarkConfig getBenchmarkConfigByVersion(@PathVariable("setup") String setup, @PathVariable(value = "version") Integer version) {
         return this.service.getBenchmarkConfigBySetupAndVersion(setup, version);
     }
 
-    @GetMapping("api/v1/{setup}/benchmark/version/{version}/data")
+    @GetMapping("semode/v1/{setup}/benchmark/version/{version}/data")
     public IPointDto[] getBenchmarkData(@PathVariable(value = "setup") String setupName, @PathVariable(value = "version") Integer version) {
         return this.service.getBenchmarkDataByVersion(setupName, version);
     }
 
-    @PostMapping("api/v1/{setup}/benchmark/visible/{version}")
+    @PostMapping("semode/v1/{setup}/benchmark/visible/{version}")
     public ResponseEntity changePublicVisibility(@PathVariable(value = "setup") String setupName, @PathVariable(value = "version") int version) {
         this.service.changePublicVisiblityPropertyForBenchmarkVersion(setupName, version);
         return ResponseEntity.ok().build();
