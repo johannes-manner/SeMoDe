@@ -66,14 +66,12 @@ versionVisible.addEventListener('change', function () {
 selectElem.addEventListener('change', function () {
     var tag = selectElem.value;
     if (selectElem.selectedIndex > 0) {
-        console.log(selectElem.selectedIndex)
         $.ajax({
             url: "/semode/v1/benchmark/mode/" + tag,
             success: function (result) {
                 var parameters = "";
                 for (let i = 0; i < result.parameters.length; i++) {
                     parameters = parameters + '<b>Parameter ' + i + ':</b> ' + result.parameters[i] + '<br/>';
-                    console.log(parameters);
                 }
                 benchmarkingParams.innerHTML = parameters;
             }
@@ -83,14 +81,25 @@ selectElem.addEventListener('change', function () {
     }
 });
 
+// when the description changes
+function updateDescription() {
+    console.log(benchmarkDescription.value);
+    $.ajax({
+        type: "POST",
+        url: "/semode/v1/" + setupName + "/benchmark/description/" + versionDropdown.value,
+        data: {newDescription: benchmarkDescription.value},
+        success: function () {
+            document.getElementById('versionVisibleText').innerHTML = 'Changed visible property to ' + versionVisible.checked;
+        }
+    });
+}
+
 // when the version changes
 versionDropdown.addEventListener('change', function () {
     var version = versionDropdown.value;
     if (versionDropdown.selectedIndex == 0) {
-        console.log(versionDropdown.selectedIndex)
         disableButtons(false);
     } else {
-        console.log(versionDropdown.selectedIndex);
         disableButtons(true);
     }
     $.ajax({

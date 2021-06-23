@@ -45,8 +45,11 @@
         </tr>
         <tr>
             <td>Description</td>
-            <td><input id="benchmarkDescription" name="benchmarkDescription"
-                       th:field="*{description}"></td>
+            <td>
+                <textarea id="benchmarkDescription" name="benchmarkDescription" rows="5" cols="40"
+                          th:field="*{description}" onblur="updateDescription()">
+                </textarea>
+            </td>
         </tr>
         <tr>
             <td>Version Visible</td>

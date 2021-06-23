@@ -463,4 +463,11 @@ public class SetupService {
         this.benchmarkConfigRepository.save(config);
 
     }
+
+    public void changeDescriptionForBenchmarkVersion(String setupName, int version, String newDescription) {
+        BenchmarkConfig config = this.getBenchmarkConfigBySetupAndVersion(setupName, version);
+        config.setDescription(newDescription);
+        log.info("Change description for setup " + setupName + " and benchmark version " + version + " to: " + newDescription);
+        this.benchmarkConfigRepository.save(config);
+    }
 }

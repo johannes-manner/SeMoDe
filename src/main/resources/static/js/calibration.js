@@ -22,6 +22,10 @@ var runConfigDockerSourceFolder = document.getElementById('runConfigDockerSource
 var runConfigEnvironmentVariableFile = document.getElementById('runConfigEnvironmentVariableFile');
 var runConfigNumberOfProfiles = document.getElementById('runConfigNumberOfProfiles');
 var executedProfilesSelection = document.getElementById('executedProfilesSelection');
+var machineName = document.getElementById('machineName');
+var cpuModelName = document.getElementById('cpuModelName');
+var modelNr = document.getElementById('modelNr');
+var operatingSystem = document.getElementById('operatingSystem');
 
 // pipeline buttons
 var startLocalCalibration = document.getElementById('startLocalCalibration');
@@ -88,6 +92,10 @@ calibrationVersions.addEventListener('change', function () {
             runConfigDockerSourceFolder.value = result.runningCalibrationConfig.functionDockerSourceFolder;
             runConfigEnvironmentVariableFile.value = result.runningCalibrationConfig.environmentVariablesFile;
             runConfigNumberOfProfiles.value = result.runningCalibrationConfig.numberOfProfiles;
+            machineName.value = result.machineConfig.machineName;
+            cpuModelName.value = result.machineConfig.cpuModelName;
+            modelNr.value = result.machineConfig.modelNr;
+            operatingSystem.value = result.machineConfig.operatingSystem;
         }
     });
 });

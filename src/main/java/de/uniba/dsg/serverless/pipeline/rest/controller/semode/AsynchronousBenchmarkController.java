@@ -65,4 +65,10 @@ public class AsynchronousBenchmarkController {
         this.service.changePublicVisiblityPropertyForBenchmarkVersion(setupName, version);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("semode/v1/{setup}/benchmark/description/{version}")
+    public ResponseEntity changeBenchmarkDescription(@PathVariable(value = "setup") String setupName, @PathVariable(value = "version") int version, String newDescription) {
+        this.service.changeDescriptionForBenchmarkVersion(setupName, version, newDescription);
+        return ResponseEntity.ok().build();
+    }
 }
