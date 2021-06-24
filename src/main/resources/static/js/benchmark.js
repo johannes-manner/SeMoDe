@@ -8,6 +8,7 @@ var benchmarkingParams = document.getElementById('benchmarkingParams');
 var benchmarkParamsInput = document.getElementById('benchmarkParamsInput');
 var requestBody = document.getElementById('requestBody');
 var benchmarkExperimentDesign = document.getElementById('benchmarkExperimentDesign');
+var awsBenchmarkDescription = document.getElementById('awsBenchmarkDescription');
 var awsBenchmarkConfigRegion = document.getElementById('awsBenchmarkConfigRegion');
 var awsBenchmarkConfigRuntime = document.getElementById('awsBenchmarkConfigRuntime');
 var awsBenchmarkConfigARNRole = document.getElementById('awsBenchmarkConfigARNRole');
@@ -113,6 +114,7 @@ versionDropdown.addEventListener('change', function () {
             benchmarkParamsInput.value = result.benchmarkParameters;
             requestBody.value = result.postArgument;
             benchmarkExperimentDesign.innerHTML = result.startTime + " - " + result.endTime;
+            awsBenchmarkDescription.value = result.awsBenchmarkConfig.description;
             awsBenchmarkConfigRegion.value = result.awsBenchmarkConfig.region;
             awsBenchmarkConfigRuntime.value = result.awsBenchmarkConfig.runtime;
             awsBenchmarkConfigARNRole.value = result.awsBenchmarkConfig.awsArnLambdaRole;

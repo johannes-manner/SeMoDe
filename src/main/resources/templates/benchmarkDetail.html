@@ -93,6 +93,12 @@
         <h5>AWS specific Benchmark Settings - Function Configuration</h5>
         <table class="table table-sm">
             <tr>
+                <td>Description/Function Name</td>
+                <td><input id="awsBenchmarkDescription"
+                           th:readonly="${benchmarkConfig.deployed}"
+                           th:field="*{awsBenchmarkConfig.awsDescription}"/></td>
+            </tr>
+            <tr>
                 <td>Region</td>
                 <td><input id="awsBenchmarkConfigRegion"
                            th:readonly="${benchmarkConfig.deployed}"
