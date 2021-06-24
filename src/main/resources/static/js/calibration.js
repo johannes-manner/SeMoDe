@@ -254,7 +254,7 @@ $.ajax({
     success: function (result) {
         for (const cId of result) {
             var option = document.createElement("option");
-            option.text = "Profile from Calibration " + cId.calibrationId;
+            option.text = "Profile from Calibration-Version " + cId.calibrationId + "-" + cId.version;
             option.value = cId.calibrationId;
             executedProfilesSelection.add(option);
         }
