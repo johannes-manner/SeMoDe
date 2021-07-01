@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.pipeline.rest.controller.semode;
+package de.uniba.dsg.serverless.pipeline.controller.async;
 
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.repo.projection.ICalibrationConfigId;

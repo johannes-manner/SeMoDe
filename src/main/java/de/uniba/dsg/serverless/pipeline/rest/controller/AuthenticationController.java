@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.pipeline.rest.controller.api;
+package de.uniba.dsg.serverless.pipeline.rest.controller;
 
 import de.uniba.dsg.serverless.pipeline.rest.security.AuthenticationRequest;
 import de.uniba.dsg.serverless.pipeline.rest.security.AuthenticationService;
