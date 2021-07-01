@@ -14,3 +14,10 @@
     padding-top: 20px;
     padding-bottom: 20px;
 }
+
+.canvas {
+    width: 60%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}

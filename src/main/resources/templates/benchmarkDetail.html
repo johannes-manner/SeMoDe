@@ -39,14 +39,17 @@
             <td>
                 <select id="benchmarkVersions">
                     <option th:each="version: ${benchmarkingVersions}" th:value="${version.versionNumber}"
-                            th:text="${version.versionNumber + ' - Local events: ' + version.localEvents + ' - Fetched events: ' + version.providerEvents}"></option>
+                            th:text="${version.versionNumber + ' - Local events: ' + version.localEvents + ' - Fetched events: ' + version.providerEvents + ' ('+ version.id + ')'}"></option>
                 </select>
             </td>
         </tr>
         <tr>
             <td>Description</td>
-            <td><input id="benchmarkDescription" name="benchmarkDescription"
-                       th:field="*{description}"></td>
+            <td>
+                <textarea id="benchmarkDescription" name="benchmarkDescription" rows="5" cols="40"
+                          th:field="*{description}" onblur="updateDescription()">
+                </textarea>
+            </td>
         </tr>
         <tr>
             <td>Version Visible</td>
@@ -89,6 +92,12 @@
     <div class="stabY">
         <h5>AWS specific Benchmark Settings - Function Configuration</h5>
         <table class="table table-sm">
+            <tr>
+                <td>Description/Function Name</td>
+                <td><input id="awsBenchmarkDescription"
+                           th:readonly="${benchmarkConfig.deployed}"
+                           th:field="*{awsBenchmarkConfig.awsDescription}"/></td>
+            </tr>
             <tr>
                 <td>Region</td>
                 <td><input id="awsBenchmarkConfigRegion"
@@ -178,8 +187,10 @@
 
 <div class="stabX py-1">
     <h5>Benchmark Points (precise Duration on Provider)</h5>
-    <canvas id="benchmarkChart" style="width=400px;height=400px"></canvas>
-    <button class="btn btn-dark py-1 px-1" style="width:200px" id="removeDataset">Remove Dataset</button>
+    <div class="canvas">
+        <canvas id="benchmarkChart"></canvas>
+        <button class="btn btn-dark py-1 px-1" style="width:200px" id="removeDataset">Remove Dataset</button>
+    </div>
 </div>
 
 <div class="stabX py-1">

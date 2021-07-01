@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <meta charset="UTF-8">
+    <title>SeMoDe - Benchmark</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+          integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link th:href="@{/css/semode.css}" rel="stylesheet"/>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+            integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+            integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+            integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
+            crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+
+<div th:replace="fragments/header :: header">...</div>
+<div class="stabFull">
+    <h3>Benchmark Configuration ID - <span id="benchmarkConfigID" th:text="${benchmarkConfig.id}"/>: <span
+            id="setupName" th:text="${benchmarkConfig.setupName}"/></h3>
+    <table class="table table-sm">
+        <tr>
+            <td><label>For Setup</label></td>
+            <td><p th:text="${benchmarkConfig.setupName}"/></td>
+        </tr>
+
+        <tr>
+            <td>Description</td>
+            <td><p th:text="${benchmarkConfig.description}"></p>
+            </td>
+        </tr>
+        <tr>
+            <td>Benchmarking Mode:</td>
+            <td>
+                <p th:text="${benchmarkConfig.benchmarkMode}"/>
+            </td>
+        </tr>
+        <tr>
+            <td>Benchmarking Parameters</td>
+            <td><p th:text="${benchmarkConfig.benchmarkParameters}"/></td>
+        </tr>
+        <tr>
+            <td>Post Body Argument (JSON)</td>
+            <td><p th:text="${benchmarkConfig.postArgument}"/></td>
+        </tr>
+        <tr>
+            <td>Experiment Time</td>
+            <td><p th:text="${benchmarkConfig.startTime + ' - ' + benchmarkConfig.endTime}"/></td>
+        </tr>
+        <tbody>
+        </tbody>
+    </table>
+    <div class="stabY">
+        <h5>AWS specific Benchmark Settings - Function Configuration</h5>
+        <table class="table table-sm">
+            <tr>
+                <td>Description/Function Name</td>
+                <td><p th:text="${benchmarkConfig.awsBenchmarkConfig.awsDescription}"/></td>
+            </tr>
+            <tr>
+                <td>Region</td>
+                <td><p th:text="${benchmarkConfig.awsBenchmarkConfig.region}"/></td>
+            </tr>
+            <tr>
+                <td>Runtime</td>
+                <td><p th:text="${benchmarkConfig.awsBenchmarkConfig.runtime}"/></td>
+            </tr>
+            <tr>
+                <td>Handler Class Name</td>
+                <td><p th:text="${benchmarkConfig.awsBenchmarkConfig.functionHandler}"/></td>
+            </tr>
+            <tr>
+                <td>Timeout in Seconds</td>
+                <td><p th:text="${benchmarkConfig.awsBenchmarkConfig.timeout}"/></td>
+            </tr>
+            <tr>
+                <td>Memory Sizes (comma separated List)</td>
+                <td><p th:text="${benchmarkConfig.awsBenchmarkConfig.memorySizes}"/></td>
+            </tr>
+        </table>
+    </div>
+    <div class="stabX py-1">
+        <h5>Benchmark Points (precise Duration on Provider)</h5>
+        <div class="canvas">
+            <canvas id="benchmarkChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments/footer :: footer">...</div>
+<script th:src="@{/js/node_modules/chart.js/dist/chart.js}"></script>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var benchmarkChart = document.getElementById('benchmarkChart');
+    var myChart = new Chart(benchmarkChart, {
+        type: 'scatter',
+        data: [],
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    type: 'linear',
+                    position: 'bottom'
+                },
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    var benchmarkDataOf = {
+        label: 'Benchmark Data',
+        data: /*[[${diagramData}]]*/,
+        backgroundColor: 'rgb(255,165,0)'
+    };
+    myChart.data.datasets.push(benchmarkDataOf);
+    myChart.update();
+    /*]]>*/
+</script>
+
+</body>
+</html>

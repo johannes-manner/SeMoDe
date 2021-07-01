@@ -19,7 +19,7 @@ public interface CalibrationConfigRepository extends JpaRepository<CalibrationCo
 
     CalibrationConfig findCalibrationConfigBySetupNameAndVersionNumber(String setup, Integer version);
 
-    @Query(value = "select distinct cc.id as calibrationId\n" +
+    @Query(value = "select distinct cc.id as calibrationId, cc.version_number as version \n" +
             "from calibration_config cc INNER JOIN profile_record pr on cc.id = pr.calibration_config_id\n" +
             "where cc.setup_name = ?1\n" +
             "order by cc.id", nativeQuery = true)

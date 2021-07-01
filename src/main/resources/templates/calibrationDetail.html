@@ -202,19 +202,53 @@
         </table>
     </div>
     <div class="stabX py-1">
-        <h5>Local Calibration Configuration</h5>
-        <canvas id="localCalibrationChart" width="400" height="400"></canvas>
-        <button type="button" class="btn btn-dark py-1 px-1" style="width:200px" id="removeDatasetLocalCalibration">
-            Remove Dataset
-        </button>
+        <h5>Machine Configuration</h5>
+        <table class="table table-sm">
+            <tr>
+                <td>Machine Name</td>
+                <td><input
+                        id="machineName"
+                        th:field="*{machineConfig.machineName}"/></td>
+            </tr>
+            <tr>
+                <td>CPU Model Name</td>
+                <td><input
+                        id="cpuModelName"
+                        th:field="*{machineConfig.cpuModelName}"/></td>
+            </tr>
+            <tr>
+                <td>Model Number</td>
+                <td><input
+                        id="modelNr"
+                        th:field="*{machineConfig.modelNr}"/></td>
+            </tr>
+            <tr>
+                <td>Operating System and Version</td>
+                <td><input
+                        id="operatingSystem"
+                        th:field="*{machineConfig.operatingSystem}"/></td>
+            </tr>
+        </table>
     </div>
     <div class="stabX py-1">
-        <h5>Provider Calibration Configuration</h5>
-        <canvas id="providerCalibrationChart" width="400" height="400"></canvas>
-        <button type="button" class="btn btn-dark py-1 px-1" style="width:200px" id="removeDatasetProviderCalibration">
-            Remove
-            Dataset
-        </button>
+        <div class="canvas">
+            <h5>Local Calibration Configuration</h5>
+            <canvas id="localCalibrationChart"></canvas>
+            <button type="button" class="btn btn-dark py-1 px-1" style="width:200px"
+                    id="removeDatasetLocalCalibration">
+                Remove Dataset
+            </button>
+        </div>
+
+        <div class="canvas">
+            <h5>Provider Calibration Configuration</h5>
+            <canvas id="providerCalibrationChart"></canvas>
+            <button type="button" class="btn btn-dark py-1 px-1" style="width:200px"
+                    id="removeDatasetProviderCalibration">
+                Remove
+                Dataset
+            </button>
+        </div>
     </div>
     <div class="stabY">
         <h5>Run function locally with computed CPU share</h5>
@@ -245,15 +279,18 @@
         </table>
         <div class="stabX py-1">
             <h5>Profiles for Selected Calibration</h5>
-            <canvas id="profilesChart" width="400" height="400"></canvas>
-            <button type="button" class="btn btn-dark py-1 px-1" style="width:200px" id="removeDatasetProfiles">
-                Remove Dataset
-            </button>
-        </div>
-        <div class="py-1 px-1">
-            <button class="btn btn-dark py-1 px-1" style="width:200px">Update configuration</button>
+            <div class="canvas">
+                <canvas id="profilesChart"></canvas>
+                <button type="button" class="btn btn-dark py-1 px-1" style="width:200px" id="removeDatasetProfiles">
+                    Remove Dataset
+                </button>
+            </div>
         </div>
     </div>
+    <div class="py-1 px-1">
+        <button class="btn btn-dark py-1 px-1" style="width:200px">Update configuration</button>
+    </div>
+
 </form>
 
 <div class="stabX py-1">

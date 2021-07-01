@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 public class AWSBenchmarkConfig {
 
     // user input
+    private String awsDescription;
     private String region;
     private String runtime;
     private String awsArnLambdaRole;

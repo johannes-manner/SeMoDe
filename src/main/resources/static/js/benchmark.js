@@ -8,6 +8,7 @@ var benchmarkingParams = document.getElementById('benchmarkingParams');
 var benchmarkParamsInput = document.getElementById('benchmarkParamsInput');
 var requestBody = document.getElementById('requestBody');
 var benchmarkExperimentDesign = document.getElementById('benchmarkExperimentDesign');
+var awsBenchmarkDescription = document.getElementById('awsBenchmarkDescription');
 var awsBenchmarkConfigRegion = document.getElementById('awsBenchmarkConfigRegion');
 var awsBenchmarkConfigRuntime = document.getElementById('awsBenchmarkConfigRuntime');
 var awsBenchmarkConfigARNRole = document.getElementById('awsBenchmarkConfigARNRole');
@@ -54,8 +55,7 @@ versionVisible.addEventListener('change', function () {
     console.log("change visibility of selected version");
     $.ajax({
         type: "POST",
-        url: "/" + setupName + "/benchmark/visible",
-        data: versionDropdown.value,
+        url: "/semode/v1/" + setupName + "/benchmark/visible/" + versionDropdown.value,
         success: function () {
             document.getElementById('versionVisibleText').innerHTML = 'Changed visible property to ' + versionVisible.checked;
         }
@@ -67,14 +67,12 @@ versionVisible.addEventListener('change', function () {
 selectElem.addEventListener('change', function () {
     var tag = selectElem.value;
     if (selectElem.selectedIndex > 0) {
-        console.log(selectElem.selectedIndex)
         $.ajax({
-            url: "/benchmark/mode/" + tag,
+            url: "/semode/v1/benchmark/mode/" + tag,
             success: function (result) {
                 var parameters = "";
                 for (let i = 0; i < result.parameters.length; i++) {
                     parameters = parameters + '<b>Parameter ' + i + ':</b> ' + result.parameters[i] + '<br/>';
-                    console.log(parameters);
                 }
                 benchmarkingParams.innerHTML = parameters;
             }
@@ -84,18 +82,29 @@ selectElem.addEventListener('change', function () {
     }
 });
 
+// when the description changes
+function updateDescription() {
+    console.log(benchmarkDescription.value);
+    $.ajax({
+        type: "POST",
+        url: "/semode/v1/" + setupName + "/benchmark/description/" + versionDropdown.value,
+        data: {newDescription: benchmarkDescription.value},
+        success: function () {
+            document.getElementById('versionVisibleText').innerHTML = 'Changed visible property to ' + versionVisible.checked;
+        }
+    });
+}
+
 // when the version changes
 versionDropdown.addEventListener('change', function () {
     var version = versionDropdown.value;
     if (versionDropdown.selectedIndex == 0) {
-        console.log(versionDropdown.selectedIndex)
         disableButtons(false);
     } else {
-        console.log(versionDropdown.selectedIndex);
         disableButtons(true);
     }
     $.ajax({
-        url: "/" + setupName + "/benchmark/version/" + version,
+        url: "/semode/v1/" + setupName + "/benchmark/version/" + version,
         success: function (result) {
             console.log(result);
             benchmarkConfigID.innerHTML = result.id;
@@ -105,6 +114,7 @@ versionDropdown.addEventListener('change', function () {
             benchmarkParamsInput.value = result.benchmarkParameters;
             requestBody.value = result.postArgument;
             benchmarkExperimentDesign.innerHTML = result.startTime + " - " + result.endTime;
+            awsBenchmarkDescription.value = result.awsBenchmarkConfig.description;
             awsBenchmarkConfigRegion.value = result.awsBenchmarkConfig.region;
             awsBenchmarkConfigRuntime.value = result.awsBenchmarkConfig.runtime;
             awsBenchmarkConfigARNRole.value = result.awsBenchmarkConfig.awsArnLambdaRole;
@@ -130,7 +140,7 @@ deployButton.addEventListener('click', function () {
         deployButtonInfo.innerHTML = "This may take some time, page will be refreshed automatically...";
         disableAllInteraction(true);
         $.ajax({
-            url: "/benchmark/deploy",
+            url: "/semode/v1/" + setupName + "/benchmark/deploy",
             success: function (result) {
                 location.reload();
             }
@@ -145,7 +155,7 @@ undeployButton.addEventListener('click', function () {
         undeployButtonInfo.innerHTML = "This may take some time, page will be refreshed automatically...";
         disableAllInteraction(true);
         $.ajax({
-            url: "/benchmark/undeploy",
+            url: "/semode/v1/" + setupName + "/benchmark/undeploy",
             success: function (result) {
                 location.reload();
             }
@@ -159,7 +169,7 @@ executeBenchmark.addEventListener('click', function () {
         disableAllInteraction(true);
         executeButtonInfo.innerHTML = "This is not the recommended way to execute the benchmark. Use the CLI feature instead... Benchmark is under execution, this may take a while... Page will be refreshed";
         $.ajax({
-            url: "/benchmark/execute",
+            url: "/semode/v1/" + setupName + "/benchmark/execute",
             statusCode: {
                 500: function () {
                     executeButtonInfo.innerHTML = "Server Error occurred... Wait a second until AWS Lambda is ready. You executed to early."
@@ -178,7 +188,7 @@ fetchData.addEventListener('click', function () {
         disableAllInteraction(true);
         fetchButtonInfo.innerHTML = "This may take some time, page will be refreshed automatically...";
         $.ajax({
-            url: "/benchmark/fetch",
+            url: "/semode/v1/" + setupName + "/benchmark/fetch",
             success: function (result) {
                 location.reload();
             }
@@ -190,7 +200,7 @@ fetchData.addEventListener('click', function () {
 
 function addBenchmarkDataToChart(version, chart) {
     $.ajax({
-        url: "/" + setupName + "/benchmark/version/" + version + "/data",
+        url: "/semode/v1/" + setupName + "/benchmark/version/" + version + "/data",
         success: function (result) {
             if (result.length > 1) {
                 console.log(result);
