@@ -42,7 +42,7 @@ function disableButtons(boolDisabled) {
     deployButton.disabled = boolDisabled;
     undeployButton.disabled = boolDisabled;
     executeBenchmark.disabled = boolDisabled;
-    fetchData.disabled = boolDisabled;
+//    fetchData.disabled = boolDisabled;
 }
 
 function disableAllInteraction(boolDisabled) {
@@ -188,7 +188,7 @@ fetchData.addEventListener('click', function () {
         disableAllInteraction(true);
         fetchButtonInfo.innerHTML = "This may take some time, page will be refreshed automatically...";
         $.ajax({
-            url: "/semode/v1/" + setupName + "/benchmark/fetch",
+            url: "/semode/v1/" + setupName + "/benchmark/" + versionDropdown.value + "/fetch",
             success: function (result) {
                 location.reload();
             }

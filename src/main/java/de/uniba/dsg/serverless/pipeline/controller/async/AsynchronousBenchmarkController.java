@@ -3,6 +3,7 @@ package de.uniba.dsg.serverless.pipeline.controller.async;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.repo.projection.IPointDto;
+import de.uniba.dsg.serverless.pipeline.service.BenchmarkService;
 import de.uniba.dsg.serverless.pipeline.service.SetupService;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import de.uniba.dsg.serverless.users.User;
@@ -22,13 +23,15 @@ public class AsynchronousBenchmarkController {
 
     @Autowired
     private SetupService service;
+    @Autowired
+    private BenchmarkService benchmarkService;
 
     @GetMapping("semode/v1/{setup}/benchmark/deploy")
     public ResponseEntity deployFunction(@PathVariable("setup") String setupName,
                                          @AuthenticationPrincipal User user) throws SeMoDeException {
         log.info("Start deployment...");
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            this.service.deployFunctions(setupName);
+            this.benchmarkService.deployFunctions(setupName);
             return ResponseEntity.ok().build();
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
@@ -40,7 +43,7 @@ public class AsynchronousBenchmarkController {
     public ResponseEntity undeployFunction(@PathVariable("setup") String setupName,
                                            @AuthenticationPrincipal User user) throws SeMoDeException {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            this.service.undeployFunctions(setupName);
+            this.benchmarkService.undeployFunctions(setupName);
             return ResponseEntity.ok().build();
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
@@ -53,7 +56,7 @@ public class AsynchronousBenchmarkController {
     public ResponseEntity benchmark(@PathVariable("setup") String setupName,
                                     @AuthenticationPrincipal User user) throws SeMoDeException {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            this.service.executeBenchmark(setupName);
+            this.benchmarkService.executeBenchmark(setupName);
             return ResponseEntity.ok().build();
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
@@ -61,11 +64,12 @@ public class AsynchronousBenchmarkController {
         }
     }
 
-    @GetMapping("semode/v1/{setup}/benchmark/fetch")
+    @GetMapping("semode/v1/{setup}/benchmark/{version}/fetch")
     public ResponseEntity fetch(@PathVariable("setup") String setupName,
+                                @PathVariable("version") Integer version,
                                 @AuthenticationPrincipal User user) throws SeMoDeException {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            this.service.fetchPerformanceData(setupName);
+            this.benchmarkService.fetchPerformanceData(setupName, version);
             return ResponseEntity.ok().build();
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
@@ -83,7 +87,7 @@ public class AsynchronousBenchmarkController {
                                                                        @PathVariable(value = "version") Integer version,
                                                                        @AuthenticationPrincipal User user) {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            return ResponseEntity.ok(this.service.getBenchmarkConfigBySetupAndVersion(setupName, version));
+            return ResponseEntity.ok(this.benchmarkService.getBenchmarkConfigBySetupAndVersion(setupName, version));
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -96,7 +100,7 @@ public class AsynchronousBenchmarkController {
                                                         @PathVariable(value = "version") Integer version,
                                                         @AuthenticationPrincipal User user) {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            return ResponseEntity.ok(this.service.getBenchmarkDataByVersion(setupName, version));
+            return ResponseEntity.ok(this.benchmarkService.getBenchmarkDataByVersion(setupName, version));
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -108,7 +112,7 @@ public class AsynchronousBenchmarkController {
                                                  @PathVariable(value = "version") int version,
                                                  @AuthenticationPrincipal User user) {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            this.service.changePublicVisiblityPropertyForBenchmarkVersion(setupName, version);
+            this.benchmarkService.changePublicVisiblityPropertyForBenchmarkVersion(setupName, version);
             return ResponseEntity.ok().build();
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
@@ -122,7 +126,7 @@ public class AsynchronousBenchmarkController {
                                                      String newDescription,
                                                      @AuthenticationPrincipal User user) {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            this.service.changeDescriptionForBenchmarkVersion(setupName, version, newDescription);
+            this.benchmarkService.changeDescriptionForBenchmarkVersion(setupName, version, newDescription);
             return ResponseEntity.ok().build();
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);

@@ -31,4 +31,7 @@ public interface BenchmarkConfigRepository extends JpaRepository<BenchmarkConfig
             "FROM benchmark_config " +
             "WHERE version_visible = true", nativeQuery = true)
     List<IBenchmarkVisible> getBenchmarksPubliclyVisible();
+
+    @Query(value = "SELECT * FROM benchmark_config WHERE setup_name = ?1 ORDER BY version_number DESC LIMIT 1", nativeQuery = true)
+    BenchmarkConfig findBySetupNameOrderByVersionNumberDesc(String setup);
 }

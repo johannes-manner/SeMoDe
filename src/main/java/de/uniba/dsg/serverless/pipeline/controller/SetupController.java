@@ -4,6 +4,7 @@ import de.uniba.dsg.serverless.pipeline.benchmark.model.BenchmarkMode;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
+import de.uniba.dsg.serverless.pipeline.service.BenchmarkService;
 import de.uniba.dsg.serverless.pipeline.service.SetupService;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import de.uniba.dsg.serverless.users.User;
@@ -21,6 +22,8 @@ public class SetupController {
 
     @Autowired
     private SetupService setupService;
+    @Autowired
+    private BenchmarkService benchmarkService;
 
     @GetMapping
     public String getSetups(Model model, @AuthenticationPrincipal User user) {
@@ -79,9 +82,9 @@ public class SetupController {
         log.info("Setup detail benchmark page...");
 
         if (this.setupService.checkSetupAccessRights(setupName, user)) {
-            model.addAttribute("benchmarkConfig", this.setupService.getCurrentBenchmark(setupName));
+            model.addAttribute("benchmarkConfig", this.benchmarkService.getCurrentBenchmarkForSetup(setupName));
             model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);
-            model.addAttribute("benchmarkingVersions", this.setupService.getBenchmarkVersions(setupName));
+            model.addAttribute("benchmarkingVersions", this.benchmarkService.getBenchmarkVersions(setupName));
 
             return "benchmarkDetail";
         } else {
@@ -95,7 +98,7 @@ public class SetupController {
 
         log.info("Save benchmark config...");
         if (this.setupService.checkSetupAccessRights(setupName, user)) {
-            this.setupService.saveBenchmark(config, setupName);
+            this.benchmarkService.saveBenchmark(config, setupName);
 
             return "redirect:/setups/" + setupName + "/benchmark";
         } else {

@@ -1,11 +1,5 @@
 package de.uniba.dsg.serverless.pipeline.service;
 
-import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
-import de.uniba.dsg.serverless.pipeline.benchmark.methods.AWSBenchmark;
-import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.LocalRESTEvent;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
-import de.uniba.dsg.serverless.pipeline.benchmark.model.ProviderEvent;
 import de.uniba.dsg.serverless.pipeline.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.pipeline.calibration.mapping.MappingMaster;
 import de.uniba.dsg.serverless.pipeline.calibration.model.CalibrationEvent;
@@ -14,12 +8,10 @@ import de.uniba.dsg.serverless.pipeline.calibration.profiling.ProfileRecord;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.AWSCalibration;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
-import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
 import de.uniba.dsg.serverless.pipeline.repo.*;
-import de.uniba.dsg.serverless.pipeline.repo.projection.IBenchmarkVersionAggregate;
 import de.uniba.dsg.serverless.pipeline.repo.projection.ICalibrationConfigEventAggregate;
 import de.uniba.dsg.serverless.pipeline.repo.projection.ICalibrationConfigId;
 import de.uniba.dsg.serverless.pipeline.repo.projection.IPointDto;
@@ -34,7 +26,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Wrapper to change the attributes of the user config class. If the changes are made directly in the model classes,
@@ -45,12 +40,12 @@ import java.util.*;
 @SessionScope
 public class SetupService {
 
+    @Value("${semode.setups.path}")
+    private String setups;
+
     // model
     private SetupConfig setupConfig;
     private PipelineFileHandler fileHandler;
-
-    @Value("${semode.setups.path}")
-    private String setups;
 
     private final SetupConfigRepository setupConfigRepository;
     private final LocalRESTEventRepository localRESTEventRepository;
@@ -95,8 +90,8 @@ public class SetupService {
         this.setupConfigRepository.save(this.setupConfig);
     }
 
+    // TODO remove
     private void loadSetup(String setupName) throws SeMoDeException {
-        this.fileHandler = new PipelineFileHandler(setupName, this.setups);
         Optional<SetupConfig> config = this.setupConfigRepository.findById(setupName);
         if (config.isPresent()) {
             this.setupConfig = config.get();
@@ -105,10 +100,24 @@ public class SetupService {
         }
     }
 
-    // TODO document only source of truth is the DB
+    /**
+     * Returns the setup config by its name, otherwise throws an exception.
+     *
+     * @param setupName
+     * @return
+     * @throws SeMoDeException
+     */
     public SetupConfig getSetup(String setupName) throws SeMoDeException {
-        this.loadSetup(setupName);
-        return this.setupConfig;
+        Optional<SetupConfig> config = this.setupConfigRepository.findById(setupName);
+        if (config.isPresent()) {
+            return config.get();
+        } else {
+            throw new SeMoDeException("Setup with name " + setupName + " is not present!!");
+        }
+    }
+
+    public void save(SetupConfig setupConfig) {
+        this.setupConfigRepository.save(setupConfig);
     }
 
     /**
@@ -136,37 +145,9 @@ public class SetupService {
 
     }
 
+    // TODO remove
     private void saveSetup() throws SeMoDeException {
         this.setupConfig = this.setupConfigRepository.save(this.setupConfig);
-    }
-
-    /*
-     * Benchmark Configuration Handling
-     */
-
-    public BenchmarkConfig getCurrentBenchmark(String setupName) throws SeMoDeException {
-        return this.getSetup(setupName).getBenchmarkConfig();
-    }
-
-    private void increaseBenchmarkVersionNumberAndForceNewEntryInDb() throws SeMoDeException {
-        this.setupConfig.getBenchmarkConfig().increaseVersion();
-        this.saveSetup();
-    }
-
-    public void saveBenchmark(BenchmarkConfig config, String setupName) throws SeMoDeException {
-        SetupConfig setupConfig = this.getSetup(setupName);
-        // benchmark configuration has changed
-        BenchmarkConfig currentBenchmarkConfig = setupConfig.getBenchmarkConfig();
-        if (currentBenchmarkConfig.equals(config) == false) {
-            config.setVersionNumber(currentBenchmarkConfig.getVersionNumber() + 1);
-            // set the current benchmark config
-            setupConfig.setBenchmarkConfig(config);
-            // store setup config and use cascade mechanism to store also the benchmark config
-            this.saveSetup();
-            log.info("Stored a new benchmark configuration for setup " + setupName + " with version number " + config.getVersionNumber());
-        } else {
-            log.info("No changes in the benchmark config for setup " + setupName);
-        }
     }
 
     /*
@@ -201,64 +182,6 @@ public class SetupService {
             // store setup config and use cascade mechanism to store also the calibration config
             this.saveSetup();
         }
-    }
-
-
-    // TODO maybe DeploymentService?? handle Exception properly (cleanup)
-    public void deployFunctions(String setup) throws SeMoDeException {
-        this.loadSetup(setup);
-        for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
-            benchmark.deploy();
-
-            // during deployment a lot of internals are set and therefore the update here is needed
-            this.setupConfig.getBenchmarkConfig().setDeployed(true);
-
-            this.increaseBenchmarkVersionNumberAndForceNewEntryInDb();
-        }
-    }
-
-    public void undeployFunctions(String setup) throws SeMoDeException {
-        this.loadSetup(setup);
-        for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
-            benchmark.undeploy();
-            // during undeployment a lot of  internals are reset, therefore setup config must be stored again
-            this.setupConfig.getBenchmarkConfig().setDeployed(false);
-
-            this.increaseBenchmarkVersionNumberAndForceNewEntryInDb();
-        }
-    }
-
-    // TODO Execution service?
-    // TODO comment
-
-    /**
-     * Creates a list of all benchmark configs, which are enabled. Currently only AWS is enabled.
-     */
-    private List<BenchmarkMethods> createBenchmarkMethodsFromConfig(final String setupName) throws SeMoDeException {
-        final List<BenchmarkMethods> benchmarkMethods = new ArrayList<>();
-        // if this is the case, the benchmark config was initialized, see function above
-        if (this.setupConfig.getBenchmarkConfig().getAwsBenchmarkConfig() != null) {
-            benchmarkMethods.add(new AWSBenchmark(setupName, this.setupConfig.getBenchmarkConfig().getAwsBenchmarkConfig()));
-        }
-        return benchmarkMethods;
-    }
-
-    public void executeBenchmark(String setup) throws SeMoDeException {
-        this.loadSetup(setup);
-        this.setupConfig.getBenchmarkConfig().logBenchmarkStartTime();
-
-        final BenchmarkExecutor benchmarkExecutor = new BenchmarkExecutor(this.fileHandler.pathToBenchmarkExecution, this.setupConfig.getBenchmarkConfig());
-        benchmarkExecutor.generateLoadPattern();
-        List<LocalRESTEvent> events = benchmarkExecutor.executeBenchmark(this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName()));
-
-        this.setupConfig.getBenchmarkConfig().logBenchmarkEndTime();
-
-        this.increaseBenchmarkVersionNumberAndForceNewEntryInDb();
-
-        // set the relationship before storing the rest event
-        events.stream().forEach(localRESTEvent -> localRESTEvent.setBenchmarkConfig(this.setupConfig.getBenchmarkConfig()));
-        this.localRESTEventRepository.saveAll(events);
-        log.info("Sucessfully stored " + events.size() + " benchmark execution events!");
     }
 
     // TODO calibration features
@@ -317,41 +240,6 @@ public class SetupService {
         }
     }
 
-    // TODO document
-    public void fetchPerformanceData(String setup) throws SeMoDeException {
-        this.loadSetup(setup);
-        for (final BenchmarkMethods benchmark : this.createBenchmarkMethodsFromConfig(this.setupConfig.getSetupName())) {
-            int numberOfPerformanceDataMappings = 0;
-            int numberOfUnassignedPerformanceData = 0;
-            log.info("Fetch performance data for " + benchmark.getPlatform());
-            List<PerformanceData> data = benchmark.getPerformanceDataFromPlatform(this.setupConfig.getBenchmarkConfig().getStartTime(), this.setupConfig.getBenchmarkConfig().getEndTime());
-            for (PerformanceData performanceData : data) {
-                /*
-                 * Add benchmark config to the performance Data to load all data associated with the benchmark
-                 * experiments either they have a local rest event (when the timeout of the API gateway was not
-                 * exceeded or when doing other experiments which are not related to API gateways.
-                 */
-                performanceData.setBenchmarkConfig(this.setupConfig.getBenchmarkConfig());
-                Optional<ProviderEvent> event = this.providerEventRepository.findByPlatformId(performanceData.getPlatformId());
-                if (event.isPresent()) {
-                    ProviderEvent e = event.get();
-                    if (e.getPerformanceData() == null) {
-                        e.setPerformanceData(performanceData);
-                        this.providerEventRepository.save(e);
-                        numberOfPerformanceDataMappings++;
-                    }
-                }
-                // no matching of provider and performance data possible (due to timeouts etc.)
-                else {
-                    this.performanceDataRepository.save(performanceData);
-                    numberOfUnassignedPerformanceData++;
-                }
-            }
-            log.info("Successfully stored " + numberOfPerformanceDataMappings + " performance data to local benchmarking events");
-            log.info("Successfully stored " + numberOfUnassignedPerformanceData + " only performance data without local benchmarking events");
-        }
-    }
-
     public Map<Integer, Double> computeMapping(String setup) throws SeMoDeException {
         this.loadSetup(setup);
         MappingCalibrationConfig mappingConfig = this.setupConfig.getCalibrationConfig().getMappingCalibrationConfig();
@@ -379,10 +267,6 @@ public class SetupService {
         log.info("Sucessfully stored " + records.size() + " profiling records to the db");
     }
 
-
-    public List<IBenchmarkVersionAggregate> getBenchmarkVersions(String setupName) {
-        return this.benchmarkConfigRepository.countEventsByGroupingThemOnTheirVersionNumber(setupName);
-    }
 
     /**
      * Returns a Map, where the ID of the calibration and the memory sizes are included.
@@ -415,13 +299,6 @@ public class SetupService {
         return this.getCalibrations(setupName, CalibrationPlatform.AWS);
     }
 
-    public BenchmarkConfig getBenchmarkConfigBySetupAndVersion(String setup, Integer version) {
-        return this.benchmarkConfigRepository.findBenchmarkConfigBySetupNameAndVersionNumber(setup, version);
-    }
-
-    public IPointDto[] getBenchmarkDataByVersion(String setupName, Integer version) {
-        return this.benchmarkConfigRepository.getBenchmarkExecutionPointsProviderView(setupName, version).toArray(IPointDto[]::new);
-    }
 
     public CalibrationConfig getCalibrationBySetupAndVersion(String setup, Integer version) {
         return this.calibrationConfigRepository.findCalibrationConfigBySetupNameAndVersionNumber(setup, version);
@@ -455,19 +332,5 @@ public class SetupService {
         return user.isAdmin();
     }
 
-    public void changePublicVisiblityPropertyForBenchmarkVersion(String setupName, Integer version) {
 
-        BenchmarkConfig config = this.getBenchmarkConfigBySetupAndVersion(setupName, version);
-        config.setVersionVisible(!config.isVersionVisible());
-        log.info("Change public visibility property for setup " + setupName + " and benchmark version " + version + " to: " + config.isVersionVisible());
-        this.benchmarkConfigRepository.save(config);
-
-    }
-
-    public void changeDescriptionForBenchmarkVersion(String setupName, int version, String newDescription) {
-        BenchmarkConfig config = this.getBenchmarkConfigBySetupAndVersion(setupName, version);
-        config.setDescription(newDescription);
-        log.info("Change description for setup " + setupName + " and benchmark version " + version + " to: " + newDescription);
-        this.benchmarkConfigRepository.save(config);
-    }
 }

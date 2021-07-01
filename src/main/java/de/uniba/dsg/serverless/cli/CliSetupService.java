@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.cli;
 
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
+import de.uniba.dsg.serverless.pipeline.service.BenchmarkService;
 import de.uniba.dsg.serverless.pipeline.service.SetupService;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
@@ -14,11 +15,14 @@ import java.util.List;
 @Service
 public class CliSetupService implements CustomUtility {
 
+    // TODO remove setup service, when calibration service is implemented
     private SetupService setupService;
+    private BenchmarkService benchmarkService;
 
     @Autowired
-    public CliSetupService(SetupService setupService) {
+    public CliSetupService(SetupService setupService, BenchmarkService benchmarkService) {
         this.setupService = setupService;
+        this.benchmarkService = benchmarkService;
     }
 
     @Override
@@ -53,10 +57,10 @@ public class CliSetupService implements CustomUtility {
     private void executeRunCommand(final String setupName, final String command) throws SeMoDeException {
         switch (command) {
             case "executeBenchmark":
-                this.setupService.executeBenchmark(setupName);
+                this.benchmarkService.executeBenchmark(setupName);
                 break;
             case "fetchBenchmark":
-                this.setupService.fetchPerformanceData(setupName);
+                this.benchmarkService.fetchPerformanceData(setupName);
                 break;
             // calibration options
             case "startAwsCalibration":
