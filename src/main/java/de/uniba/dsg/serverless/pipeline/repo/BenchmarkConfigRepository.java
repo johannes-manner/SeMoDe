@@ -11,10 +11,9 @@ import java.util.List;
 
 public interface BenchmarkConfigRepository extends JpaRepository<BenchmarkConfig, Long> {
 
-    @Query(value = "select bc.id as id, bc.version_number as versionNumber, count(lre.id) as localEvents, count(pe.id) as providerEvents\n" +
+    @Query(value = "select bc.id as id, bc.version_number as versionNumber, count(pd.id) as performanceEvents\n" +
             "from benchmark_config bc \n" +
-            "\tleft outer join localrestevent lre on bc.id = lre.benchmark_config_id\n" +
-            "\tleft outer join provider_event pe on lre.provider_event_id = pe.id\n" +
+            "\tleft outer join performance_data pd on bc.id = pd.benchmark_config_id\n" +
             "where setup_name =  ?1 \n" +
             "group by bc.id, bc.version_number\n" +
             "order by bc.version_number desc", nativeQuery = true)
