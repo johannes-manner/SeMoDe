@@ -10,21 +10,14 @@ import javax.validation.constraints.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@PasswordMatch
 public class RegistrationForm {
 
     @NotNull
     @Size(min = 8)
     @Pattern(regexp = "[a-z]*", message = "username only contains at least 8 lower case letters")
     private String username;
-    @NotNull
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$",
-            message = "at least 8 chars, containing digits, lower and upper case letters and special characters")
-    private String password;
-    @NotNull
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$",
-            message = "at least 8 chars, containing digits, lower and upper case letters and special characters")
-    private String repeatPassword;
+    @PasswordMatch
+    private PasswordForm passwordForm;
     @NotNull
     @NotEmpty
     private String fullName;
@@ -32,6 +25,6 @@ public class RegistrationForm {
     private String mail;
 
     public User toUser(PasswordEncoder passwordEncoder, String role) {
-        return new User(this.username, passwordEncoder.encode(this.password), this.fullName, role, this.mail);
+        return new User(this.username, passwordEncoder.encode(this.passwordForm.getPassword()), this.fullName, role, this.mail);
     }
 }

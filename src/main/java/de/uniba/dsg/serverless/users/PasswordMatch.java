@@ -16,7 +16,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @interface PasswordMatch {
 
-    String fieldName() default "repeatPassword";
+    String fieldName()
+            default "repeatPassword";
 
     String message() default "Passwords do not match!";
 

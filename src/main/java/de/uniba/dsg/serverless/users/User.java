@@ -8,7 +8,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -22,7 +24,7 @@ public class User implements UserDetails {          // interface from Spring Sec
 
     @Id
     private final String username;
-    private final String password;
+    private String password;
     private String fullName;
     private String role;
     private String mail;
@@ -43,6 +45,10 @@ public class User implements UserDetails {          // interface from Spring Sec
     @Override
     public String getPassword() {
         return this.password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     @Override
@@ -70,7 +76,7 @@ public class User implements UserDetails {          // interface from Spring Sec
         return true;
     }
 
-    public boolean isAdmin(){
+    public boolean isAdmin() {
         return Role.ADMIN.getRole().equals(this.role);
     }
 }

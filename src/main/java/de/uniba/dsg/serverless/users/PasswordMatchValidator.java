@@ -3,7 +3,7 @@ package de.uniba.dsg.serverless.users;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-public class PasswordMatchValidator implements ConstraintValidator<PasswordMatch, RegistrationForm> {
+public class PasswordMatchValidator implements ConstraintValidator<PasswordMatch, PasswordForm> {
 
     private String fieldName;
 
@@ -13,7 +13,7 @@ public class PasswordMatchValidator implements ConstraintValidator<PasswordMatch
     }
 
     @Override
-    public boolean isValid(RegistrationForm value, ConstraintValidatorContext context) {
+    public boolean isValid(PasswordForm value, ConstraintValidatorContext context) {
         boolean isValid = false;
         if (value != null && value.getPassword() != null) {
             isValid = value.getPassword().equals(value.getRepeatPassword());
@@ -28,3 +28,5 @@ public class PasswordMatchValidator implements ConstraintValidator<PasswordMatch
         return isValid;
     }
 }
+
+
