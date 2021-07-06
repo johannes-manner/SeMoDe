@@ -10,6 +10,7 @@ import javax.validation.constraints.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@PasswordMatch
 public class RegistrationForm {
 
     @NotNull
@@ -20,6 +21,10 @@ public class RegistrationForm {
     @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$",
             message = "at least 8 chars, containing digits, lower and upper case letters and special characters")
     private String password;
+    @NotNull
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$",
+            message = "at least 8 chars, containing digits, lower and upper case letters and special characters")
+    private String repeatPassword;
     @NotNull
     @NotEmpty
     private String fullName;
