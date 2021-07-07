@@ -3,6 +3,7 @@ package de.uniba.dsg.serverless.pipeline.controller.async;
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.repo.projection.ICalibrationConfigId;
 import de.uniba.dsg.serverless.pipeline.repo.projection.IPointDto;
+import de.uniba.dsg.serverless.pipeline.service.CalibrationService;
 import de.uniba.dsg.serverless.pipeline.service.SetupService;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import de.uniba.dsg.serverless.users.User;
@@ -23,12 +24,14 @@ public class AsynchronousCalibrationController {
 
     @Autowired
     private SetupService service;
+    @Autowired
+    private CalibrationService calibrationService;
 
     @GetMapping("semode/v1/{setup}/calibration/mapping")
     public ResponseEntity<String> mapping(@PathVariable(value = "setup") String setupName,
                                           @AuthenticationPrincipal User user) throws SeMoDeException {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            String mappingResult = this.service.computeMapping(setupName).toString();
+            String mappingResult = this.calibrationService.computeMapping(setupName).toString();
             log.info("Mapping: " + mappingResult);
             return ResponseEntity.ok(mappingResult);
         } else {
@@ -42,7 +45,7 @@ public class AsynchronousCalibrationController {
                                                                   @PathVariable(value = "version") Integer version,
                                                                   @AuthenticationPrincipal User user) {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            return ResponseEntity.ok(this.service.getCalibrationBySetupAndVersion(setupName, version));
+            return ResponseEntity.ok(this.calibrationService.getCalibrationBySetupAndVersion(setupName, version));
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -54,7 +57,7 @@ public class AsynchronousCalibrationController {
                                                           @PathVariable(value = "calibrationId") Integer calibrationId,
                                                           @AuthenticationPrincipal User user) {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            return ResponseEntity.ok(this.service.getCalibrationDataBySetupAndId(setupName, calibrationId));
+            return ResponseEntity.ok(this.calibrationService.getCalibrationDataBySetupAndId(setupName, calibrationId));
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -65,7 +68,7 @@ public class AsynchronousCalibrationController {
     public ResponseEntity<List<ICalibrationConfigId>> getProfilesForSetup(@PathVariable(value = "setup") String setupName,
                                                                           @AuthenticationPrincipal User user) {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            return ResponseEntity.ok(this.service.getProfilesForSetup(setupName));
+            return ResponseEntity.ok(this.calibrationService.getProfilesForSetup(setupName));
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -77,7 +80,7 @@ public class AsynchronousCalibrationController {
                                                                               @PathVariable("calibrationConfigId") Integer id,
                                                                               @AuthenticationPrincipal User user) {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            return ResponseEntity.ok(this.service.getProfilePointsForSetupAndCalibration(setupName, id).toArray(IPointDto[]::new));
+            return ResponseEntity.ok(this.calibrationService.getProfilePointsForSetupAndCalibration(setupName, id).toArray(IPointDto[]::new));
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -89,7 +92,7 @@ public class AsynchronousCalibrationController {
                                            @PathVariable("platform") String platform,
                                            @AuthenticationPrincipal User user) throws SeMoDeException {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            this.service.startCalibration(setupName, platform);
+            this.calibrationService.startCalibration(setupName, platform);
             return ResponseEntity.ok().build();
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
@@ -103,7 +106,7 @@ public class AsynchronousCalibrationController {
                                             @PathVariable("platform") String platform,
                                             @AuthenticationPrincipal User user) throws SeMoDeException {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            this.service.deployCalibration(setupName, platform);
+            this.calibrationService.deployCalibration(setupName, platform);
             return ResponseEntity.ok().build();
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
@@ -116,7 +119,7 @@ public class AsynchronousCalibrationController {
                                               @PathVariable("platform") String platform,
                                               @AuthenticationPrincipal User user) throws SeMoDeException {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            this.service.undeployCalibration(setupName, platform);
+            this.calibrationService.undeployCalibration(setupName, platform);
             return ResponseEntity.ok().build();
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
@@ -129,7 +132,7 @@ public class AsynchronousCalibrationController {
     public ResponseEntity runFunction(@PathVariable(value = "setup") String setupName,
                                       @AuthenticationPrincipal User user) throws SeMoDeException {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            this.service.runFunctionLocally(setupName);
+            this.calibrationService.runFunctionLocally(setupName);
             return ResponseEntity.ok().build();
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);

@@ -33,7 +33,7 @@ public class Profile {
         this.metrics = metrics;
         this.deltaMetrics = this.calculateDeltaMetrics();
         this.additional = additional;
-        this.lastMetrics = metrics.get(metrics.size() - 1); // FIXME
+        this.lastMetrics = metrics.get(metrics.size() - 1);
 
         try {
             this.started = LocalDateTime.parse(additional.getState().getStartedAt(), DateTimeFormatter.ISO_DATE_TIME);

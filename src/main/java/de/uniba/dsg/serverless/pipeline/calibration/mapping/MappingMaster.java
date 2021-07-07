@@ -16,7 +16,7 @@ public class MappingMaster {
     public MappingMaster() {
     }
 
-    // TODO
+    // TODO document
     private void computeFunctions(Map<Double, List<Double>> localMetricsMap, Map<Double, List<Double>> providerMetricsMap) {
         this.localRegressionFunction = RegressionComputation.computeRegression(localMetricsMap);
         log.info(CalibrationPlatform.LOCAL + " regression: " + this.localRegressionFunction);

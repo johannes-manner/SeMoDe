@@ -231,7 +231,6 @@ public class AWSClient {
         final PutMethodRequest putMethodRequest = new PutMethodRequest()
                 .withRestApiId(restApiId)
                 .withResourceId(resourceId)
-                // TODO remove hard coded values
                 .withHttpMethod("ANY")
                 .withAuthorizationType("NONE")
                 .withApiKeyRequired(true);
@@ -245,9 +244,7 @@ public class AWSClient {
         final PutMethodResponseRequest putMethodResponseRequest = new PutMethodResponseRequest()
                 .withRestApiId(restApiId)
                 .withResourceId(resourceId)
-                // TODO remove hard coded values
                 .withHttpMethod("ANY")
-                // TODO remove hard coded values
                 .withStatusCode("200");
         final PutMethodResponseResult result = this.amazonApiGatewayClient.putMethodResponse(putMethodResponseRequest);
         if (result.getSdkHttpMetadata().getHttpStatusCode() != HttpStatus.SC_CREATED) {

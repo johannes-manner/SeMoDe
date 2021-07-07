@@ -34,7 +34,6 @@ public class CliHardwareCalibrationService implements CustomUtility {
         this.conversionUtils = conversionUtils;
     }
 
-    // TODO refactor the local calibration config... maybe only the
     @Override
     public void start(List<String> args) {
         try {
@@ -50,7 +49,7 @@ public class CliHardwareCalibrationService implements CustomUtility {
             log.info(regression.toString());
 
         } catch (SeMoDeException e) {
-            e.printStackTrace();
+            log.warn("Error in local calibration pipeline: " + e.getMessage());
         }
 
     }

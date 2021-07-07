@@ -5,6 +5,7 @@ import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.service.BenchmarkService;
+import de.uniba.dsg.serverless.pipeline.service.CalibrationService;
 import de.uniba.dsg.serverless.pipeline.service.SetupService;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import de.uniba.dsg.serverless.users.User;
@@ -24,6 +25,8 @@ public class SetupController {
     private SetupService setupService;
     @Autowired
     private BenchmarkService benchmarkService;
+    @Autowired
+    private CalibrationService calibrationService;
 
     @GetMapping
     public String getSetups(Model model, @AuthenticationPrincipal User user) {
@@ -112,10 +115,10 @@ public class SetupController {
 
         log.info("Setup detail calibration page...");
         if (this.setupService.checkSetupAccessRights(setupName, user)) {
-            model.addAttribute("calibrationConfig", this.setupService.getCurrentCalibrationConfig(setupName));
+            model.addAttribute("calibrationConfig", this.calibrationService.getCurrentCalibrationConfig(setupName));
             model.addAttribute("benchmarkingModes", BenchmarkMode.availableModes);
-            model.addAttribute("localCalibrations", this.setupService.getLocalCalibrations(setupName));
-            model.addAttribute("providerCalibrations", this.setupService.getProviderCalibrations(setupName));
+            model.addAttribute("localCalibrations", this.calibrationService.getLocalCalibrations(setupName));
+            model.addAttribute("providerCalibrations", this.calibrationService.getProviderCalibrations(setupName));
 
             return "calibrationDetail";
         } else {
@@ -130,7 +133,7 @@ public class SetupController {
 
         log.info("Save calibration config...");
         if (this.setupService.checkSetupAccessRights(setupName, user)) {
-            this.setupService.saveCalibration(config, setupName);
+            this.calibrationService.saveCalibration(config, setupName);
             return "redirect:/setups/" + setupName + "/calibration";
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
@@ -140,7 +143,7 @@ public class SetupController {
 
     @ExceptionHandler({SeMoDeException.class})
     public void handleCustomException(SeMoDeException e) {
-        // TODO show all exception messages from all stacks
+        // TODO think about stack trace here...
         e.printStackTrace();
         log.warn(e.getMessage());
     }

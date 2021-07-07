@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-// TODO maybe add validation
 @Data
 @Embeddable
 public class AWSBenchmarkConfig {

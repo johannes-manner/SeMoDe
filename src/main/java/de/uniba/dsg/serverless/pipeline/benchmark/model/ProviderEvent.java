@@ -1,19 +1,13 @@
 package de.uniba.dsg.serverless.pipeline.benchmark.model;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
-
 import lombok.Data;
 
-// TODO comment properly!! These information has to be returned by the user which writes the cloud functions!
+import javax.persistence.*;
 
 /**
  * This class is a model class for the benchmark interaction to hold the metainformation responded by the cloud
- * function.
+ * function. It is important that your custom implementation of your cloud function when using our invocation
+ * mechanism uses this interface and return the data in JSON format!!
  * <p>
  * Metainformation include the platform ID, the container ID and the information about the execution environment/VM
  * configuration, if possible.

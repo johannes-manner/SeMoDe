@@ -125,7 +125,7 @@ public class LocalCalibration implements CalibrationMethods {
      * Executes runs a docker container executing the benchmark with specified resource limit.
      *
      * @param linpackContainer container
-     * @param cpuLimit         todo change
+     * @param cpuLimit
      * @return average performance of linpack in GFLOPS
      */
     private GflopsExecutionTime executeBenchmark(final DockerContainer linpackContainer, final double cpuLimit) throws SeMoDeException {

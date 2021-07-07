@@ -2,7 +2,7 @@ package de.uniba.dsg.serverless.cli;
 
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.service.BenchmarkService;
-import de.uniba.dsg.serverless.pipeline.service.SetupService;
+import de.uniba.dsg.serverless.pipeline.service.CalibrationService;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
@@ -15,14 +15,13 @@ import java.util.List;
 @Service
 public class CliSetupService implements CustomUtility {
 
-    // TODO remove setup service, when calibration service is implemented
-    private SetupService setupService;
     private BenchmarkService benchmarkService;
+    private CalibrationService calibrationService;
 
     @Autowired
-    public CliSetupService(SetupService setupService, BenchmarkService benchmarkService) {
-        this.setupService = setupService;
+    public CliSetupService(BenchmarkService benchmarkService, CalibrationService calibrationService) {
         this.benchmarkService = benchmarkService;
+        this.calibrationService = calibrationService;
     }
 
     @Override
@@ -64,17 +63,17 @@ public class CliSetupService implements CustomUtility {
                 break;
             // calibration options
             case "startAwsCalibration":
-                this.setupService.startCalibration(setupName, CalibrationPlatform.AWS.getText());
+                this.calibrationService.startCalibration(setupName, CalibrationPlatform.AWS.getText());
                 break;
             case "startLocalCalibration":
-                this.setupService.startCalibration(setupName, CalibrationPlatform.LOCAL.getText());
+                this.calibrationService.startCalibration(setupName, CalibrationPlatform.LOCAL.getText());
                 break;
             // mapping and run function locally
             case "printMappingInfo":
-                this.setupService.computeMapping(setupName);
+                this.calibrationService.computeMapping(setupName);
                 break;
             case "runFunctionLocally":
-                this.setupService.runFunctionLocally(setupName);
+                this.calibrationService.runFunctionLocally(setupName);
                 break;
             default:
                 throw new SeMoDeException(

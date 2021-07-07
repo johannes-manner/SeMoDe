@@ -63,9 +63,13 @@ public class CalibrationConfig {
         this.versionNumber++;
     }
 
-    // TODO fix it - recursion problem
     @Override
     public String toString() {
-        return "";
+        return "CalibrationConfig{" +
+                "id=" + id +
+                ", deployed=" + deployed +
+                ", versionNumber=" + versionNumber +
+                ", setupName='" + setupName + '\'' +
+                '}';
     }
 }

@@ -10,8 +10,6 @@ public class LocalCalibrationConfig {
 
     private double localSteps;
     private int numberOfLocalCalibrations;
-    // TODO remove property
-    private boolean localEnabled;
     private String calibrationDockerSourceFolder;
 
     public LocalCalibrationConfig() {

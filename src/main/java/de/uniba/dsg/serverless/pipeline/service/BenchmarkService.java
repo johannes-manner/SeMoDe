@@ -52,8 +52,6 @@ public class BenchmarkService {
         this.localRESTEventRepository = localRESTEventRepository;
     }
 
-    // TODO error handling, when data is already fetched...
-
     public void saveBenchmark(BenchmarkConfig config, String setupName) throws SeMoDeException {
         SetupConfig setupConfig = this.setupService.getSetup(setupName);
         // benchmark configuration has changed
@@ -79,7 +77,11 @@ public class BenchmarkService {
      */
     public void fetchPerformanceData(String setupName, Integer version) throws SeMoDeException {
         BenchmarkConfig config = this.benchmarkConfigRepository.findBenchmarkConfigBySetupNameAndVersionNumber(setupName, version);
-        fetchPerformanceData(setupName, config);
+        if (this.getBenchmarkDataByVersion(setupName, version).length > 1) {
+            log.warn("Performance Data is already fetched for setup " + setupName + " and version " + version);
+        } else {
+            fetchPerformanceData(setupName, config);
+        }
     }
 
     /**
@@ -90,7 +92,11 @@ public class BenchmarkService {
      */
     public void fetchPerformanceData(String setup) throws SeMoDeException {
         BenchmarkConfig config = this.benchmarkConfigRepository.findBySetupNameOrderByVersionNumberDesc(setup);
-        fetchPerformanceData(setup, config);
+        if (this.getBenchmarkDataByVersion(setup, config.getVersionNumber()).length > 1) {
+            log.warn("Performance Data is already fetched for setup " + setup + " and version " + config.getVersionNumber());
+        } else {
+            fetchPerformanceData(setup, config);
+        }
     }
 
     private void fetchPerformanceData(String setup, BenchmarkConfig config) throws SeMoDeException {
@@ -176,9 +182,9 @@ public class BenchmarkService {
      * @throws SeMoDeException
      */
     private void increaseBenchmarkVersionNumberAndForceNewEntryInDb(BenchmarkConfig config) throws SeMoDeException {
-        config.increaseVersion();
+        BenchmarkConfig newVersion = config.increaseVersion();
         SetupConfig setupConfig = this.setupService.getSetup(config.getSetupName());
-        setupConfig.setBenchmarkConfig(config);
+        setupConfig.setBenchmarkConfig(newVersion);
         this.setupService.save(setupConfig);
     }
 

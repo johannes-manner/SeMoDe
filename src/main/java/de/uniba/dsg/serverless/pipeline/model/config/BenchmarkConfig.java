@@ -10,11 +10,6 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Model class for benchmark execution config and json serialization. DO NOT change this class. Otherwise json
- * serialization and deserialization does not work properly.
- */
-// TODO add bean validation to the class (not completed yet)
 @Data
 @Entity
 @NoArgsConstructor
@@ -65,6 +60,25 @@ public class BenchmarkConfig {
         this.setupName = setupConfig.getSetupName();
     }
 
+    // copy constructor
+    public BenchmarkConfig(BenchmarkConfig benchmarkConfig) {
+        this.id = benchmarkConfig.id;
+        this.deployed = benchmarkConfig.deployed;
+        this.description = benchmarkConfig.description;
+        this.benchmarkMode = benchmarkConfig.benchmarkMode;
+        this.benchmarkParameters = benchmarkConfig.benchmarkParameters;
+        this.postArgument = benchmarkConfig.postArgument;
+        this.startTime = benchmarkConfig.startTime;
+        this.endTime = benchmarkConfig.endTime;
+        this.versionNumber = benchmarkConfig.versionNumber;
+        this.setupName = benchmarkConfig.setupName;
+        this.setupConfig = benchmarkConfig.setupConfig;
+        this.awsBenchmarkConfig = benchmarkConfig.awsBenchmarkConfig;
+        this.localExecutionEvents = benchmarkConfig.localExecutionEvents;
+        this.numberOfLocalDbEvents = benchmarkConfig.numberOfLocalDbEvents;
+        this.numberOfFetchedData = benchmarkConfig.numberOfFetchedData;
+    }
+
 
     /**
      * Logs the start time, when the benchmark is started. Value is needed for a later retrieval of the information from
@@ -82,9 +96,11 @@ public class BenchmarkConfig {
         this.endTime = LocalDateTime.now();
     }
 
-    public void increaseVersion() {
-        this.id = null;
-        this.versionNumber++;
+    public BenchmarkConfig increaseVersion() {
+        BenchmarkConfig config = new BenchmarkConfig(this);
+        config.id = null;
+        config.versionNumber++;
+        return config;
     }
 
     @Override

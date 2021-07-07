@@ -12,8 +12,6 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-// TODO check all transient classes
-
 /**
  * All transient fields are not included in the hashCode and equals.
  * Only when the object also changes in db the equals returns false.

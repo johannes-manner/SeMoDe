@@ -30,4 +30,7 @@ public interface CalibrationConfigRepository extends JpaRepository<CalibrationCo
             "where cc.setup_name = ?1 and cc.id = ?2\n" +
             "order by cc.id", nativeQuery = true)
     List<IPointDto> getProfilePointsBySetupAndCalibrationId(String setup, Integer id);
+
+    @Query(value = "SELECT * FROM calibration_config WHERE setup_name = ?1 ORDER BY version_number DESC LIMIT 1", nativeQuery = true)
+    CalibrationConfig getCalibrationConfigBySetupName(String setupName);
 }
