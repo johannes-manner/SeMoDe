@@ -10,9 +10,7 @@ import de.uniba.dsg.serverless.pipeline.model.config.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -84,7 +82,7 @@ public class LocalCalibration implements CalibrationMethods {
     }
 
     private List<CalibrationEvent> executeCalibrations(DockerContainer linpackContainer) throws SeMoDeException {
-        final int physicalCores = this.getPhysicalCores();
+        final int physicalCores = PhysicalCoreFinder.getPhysicalCores();
         log.info("Number of cores: " + physicalCores);
         final List<Double> quotas = IntStream
                 // 1.1 results from 1 + avoid rounding errors (0.1)
@@ -152,35 +150,5 @@ public class LocalCalibration implements CalibrationMethods {
                 throw new SeMoDeException(e);
             }
         }
-    }
-
-    /**
-     * Returns the number of physical cores.<br>
-     *
-     * @return number of physical cores
-     * @throws SeMoDeException when the command fails. (only supported on linux machines)
-     * @see <a href="https://stackoverflow.com/questions/4759570/finding-number-of-cores-in-java">https://stackoverflow.com/questions/4759570/finding-number-of-cores-in-java</a>
-     */
-    // TODO put this method in another class
-    public static int getPhysicalCores() throws SeMoDeException {
-        final String command = "lscpu";
-        final Process process;
-        try {
-            process = Runtime.getRuntime().exec(command);
-        } catch (final IOException e) {
-            throw new SeMoDeException(e);
-        }
-        try (final BufferedReader reader = new BufferedReader(
-                new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.contains("Core(s) per socket:")) {
-                    return Integer.parseInt(line.split("\\s+")[line.split("\\s+").length - 1]);
-                }
-            }
-        } catch (final IOException e) {
-            throw new SeMoDeException(e);
-        }
-        throw new SeMoDeException("lscpu could not determin the number of cores.");
     }
 }

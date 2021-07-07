@@ -12,7 +12,7 @@ import javax.ws.rs.ForbiddenException;
 
 @Slf4j
 @RestController
-@RequestMapping("api/benchmark")
+@RequestMapping("api/v1/benchmark")
 public class RestBenchmarkController {
 
     private RestBenchmarkService restBenchmarkService;

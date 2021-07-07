@@ -1,6 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.calibration.mapping;
 
-import de.uniba.dsg.serverless.pipeline.calibration.local.LocalCalibration;
+import de.uniba.dsg.serverless.pipeline.calibration.local.PhysicalCoreFinder;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,7 +51,7 @@ public class SimpleFunction {
      */
     public void computeMemoryForCpuShares(final SimpleFunction function) {
         try {
-            for (int i = 1; i <= LocalCalibration.getPhysicalCores(); i++) {
+            for (int i = 1; i <= PhysicalCoreFinder.getPhysicalCores(); i++) {
                 log.info("cpu " + i + " comparable to " + ((i * this.slope + this.intercept - function.intercept) / function.slope) + " MB");
             }
         } catch (SeMoDeException e) {
