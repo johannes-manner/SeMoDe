@@ -129,9 +129,9 @@ public class CalibrationService {
 
     private CalibrationConfig increaseCalibrationVersionNumberAndForceNewEntry(String setup) throws SeMoDeException {
         CalibrationConfig calibrationConfig = this.getCurrentCalibrationConfig(setup);
-        calibrationConfig.increaseVersion();
+        CalibrationConfig newCalibrationConfig = calibrationConfig.increaseVersion();
         SetupConfig setupConfig = this.setupService.getSetup(setup);
-        setupConfig.setCalibrationConfig(calibrationConfig);
+        setupConfig.setCalibrationConfig(newCalibrationConfig);
         return setupService.save(setupConfig).getCalibrationConfig();
     }
 

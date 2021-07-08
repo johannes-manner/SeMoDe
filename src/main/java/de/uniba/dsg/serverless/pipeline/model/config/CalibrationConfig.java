@@ -58,9 +58,25 @@ public class CalibrationConfig {
         this.setupName = config.getSetupName();
     }
 
-    public void increaseVersion() {
-        this.id = null;
-        this.versionNumber++;
+    // copy constructor
+    public CalibrationConfig(CalibrationConfig calibrationConfig) {
+        this.id = calibrationConfig.id;
+        this.deployed = calibrationConfig.deployed;
+        this.versionNumber = calibrationConfig.versionNumber;
+        this.setupName = calibrationConfig.setupName;
+        this.localConfig = calibrationConfig.localConfig;
+        this.awsCalibrationConfig = calibrationConfig.awsCalibrationConfig;
+        this.mappingCalibrationConfig = calibrationConfig.mappingCalibrationConfig;
+        this.runningCalibrationConfig = calibrationConfig.runningCalibrationConfig;
+        this.machineConfig = calibrationConfig.machineConfig;
+        this.calibrationEvents = calibrationConfig.calibrationEvents;
+    }
+
+    public CalibrationConfig increaseVersion() {
+        CalibrationConfig calibrationConfig = new CalibrationConfig(this);
+        calibrationConfig.id = null;
+        calibrationConfig.versionNumber++;
+        return calibrationConfig;
     }
 
     @Override
