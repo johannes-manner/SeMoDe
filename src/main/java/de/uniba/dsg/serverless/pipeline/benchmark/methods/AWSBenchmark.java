@@ -2,10 +2,10 @@ package de.uniba.dsg.serverless.pipeline.benchmark.methods;
 
 import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
 import de.uniba.dsg.serverless.pipeline.benchmark.provider.LogHandler;
+import de.uniba.dsg.serverless.pipeline.benchmark.provider.aws.AWSClient;
 import de.uniba.dsg.serverless.pipeline.benchmark.provider.aws.AWSLogHandler;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
-import de.uniba.dsg.serverless.pipeline.sdk.AWSClient;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;

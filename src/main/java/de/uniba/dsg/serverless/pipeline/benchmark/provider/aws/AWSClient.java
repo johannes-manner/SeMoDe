@@ -1,4 +1,4 @@
-package de.uniba.dsg.serverless.pipeline.sdk;
+package de.uniba.dsg.serverless.pipeline.benchmark.provider.aws;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.apigateway.AmazonApiGateway;
@@ -502,7 +502,7 @@ public class AWSClient {
     }
 
     /**
-     * Removes all resources from aws cloud platform. </br> Currently only the deployed lambda function and the api
+     * Removes all resources from aws cloud platform. <br/> Currently only the deployed lambda function and the api
      * gateway, key and usage plan
      */
     public void removeAllDeployedResources(final List<Pair<String, Integer>> functionConfigs, final AWSBenchmarkConfig benchmarkConfig) {

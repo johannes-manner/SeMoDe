@@ -1,6 +1,5 @@
 package de.uniba.dsg.serverless.pipeline.calibration.mapping;
 
-import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 
@@ -18,7 +17,6 @@ public final class RegressionComputation {
      * @param metrics key, value pair: key is cpu quota or memory setting, value is the corresponding list of execution metrics
      *                (currently the unit are gflops)
      * @return
-     * @throws SeMoDeException
      */
     public static SimpleFunction computeRegression(Map<Double, List<Double>> metrics) {
         SimpleRegression regression = new SimpleRegression();

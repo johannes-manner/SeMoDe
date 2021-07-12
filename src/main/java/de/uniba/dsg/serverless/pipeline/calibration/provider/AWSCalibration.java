@@ -1,12 +1,12 @@
 package de.uniba.dsg.serverless.pipeline.calibration.provider;
 
+import de.uniba.dsg.serverless.pipeline.benchmark.provider.aws.AWSClient;
 import de.uniba.dsg.serverless.pipeline.calibration.Calibration;
 import de.uniba.dsg.serverless.pipeline.calibration.LinpackParser;
 import de.uniba.dsg.serverless.pipeline.calibration.model.CalibrationEvent;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
-import de.uniba.dsg.serverless.pipeline.sdk.AWSClient;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;

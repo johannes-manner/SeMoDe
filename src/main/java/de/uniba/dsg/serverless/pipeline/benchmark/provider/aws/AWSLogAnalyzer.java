@@ -96,12 +96,11 @@ public final class AWSLogAnalyzer {
     }
 
     /**
-     * This method extracts the request id to generate unique files without a naming collision.</br> An example for a
-     * start message is:</br> {@code "START RequestId: 8999e97a-f879-11e7-b329-35e05c633669 Version: $LATEST"}</br>
+     * This method extracts the request id to generate unique files without a naming collision.<br/> An example for a
+     * start message is:<br/> {@code "START RequestId: 8999e97a-f879-11e7-b329-35e05c633669 Version: $LATEST"}<br/>
      *
      * @param message the start message of the log data
      * @return the altered request id
-     * @throws IllegalArgumentException, if the message structure of the start message is altered.
      */
     private static String extractRequestId(final String message) {
         final String[] elements = message.split(" ");
