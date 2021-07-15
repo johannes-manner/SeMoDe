@@ -94,6 +94,9 @@
             <canvas id="benchmarkChart"></canvas>
         </div>
     </div>
+    <a class="btn btn-dark py-0"
+       th:href="@{/benchmarks/{id}/version/{version}/data.csv(id=${benchmarkConfig.id},version=${benchmarkConfig.versionNumber})}">
+        Download Raw Data CSV</a>
 </div>
 
 <div th:replace="fragments/footer :: footer">...</div>

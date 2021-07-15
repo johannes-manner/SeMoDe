@@ -7,7 +7,6 @@ import de.uniba.dsg.serverless.users.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.annotation.SessionScope;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +17,6 @@ import java.util.Optional;
  */
 @Slf4j
 @Service
-@SessionScope
 public class SetupService {
 
     private final SetupConfigRepository setupConfigRepository;
