@@ -44,8 +44,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
 
-
+    // json web token
     implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
+    // rest api documentation
+    implementation 'org.springdoc:springdoc-openapi-ui:1.5.9'
 
     // testing
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
