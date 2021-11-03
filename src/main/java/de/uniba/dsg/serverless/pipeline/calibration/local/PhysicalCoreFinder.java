@@ -32,7 +32,7 @@ public class PhysicalCoreFinder {
             throw new SeMoDeException(e);
         }
 
-        int numberOfCores = 0;
+        int numberOfCores = 1;
         try (final BufferedReader reader = new BufferedReader(
                 new InputStreamReader(process.getInputStream()))) {
             String line;
@@ -40,25 +40,28 @@ public class PhysicalCoreFinder {
                 if (isMac()) {
                     numberOfCores = line.length() > 0 ? Integer.parseInt(line) : 0;
                     log.info("Number of Cores: " + numberOfCores);
-                    return numberOfCores;
                 } else if (isUnix()) {
                     if (line.contains("Core(s) per socket:")) {
-                        numberOfCores = Integer.parseInt(line.split("\\s+")[line.split("\\s+").length - 1]);
-                        log.info("Number of Cores: " + numberOfCores);
-                        return numberOfCores;
+                        int cores = Integer.parseInt(line.split("\\s+")[line.split("\\s+").length - 1]);
+                        log.info("Core(s) per socket: " + cores);
+                        numberOfCores = numberOfCores * cores;
+                    } else if (line.contains("Socket(s):")) {
+                        int sockets = Integer.parseInt(line.split("\\s+")[line.split("\\s+").length - 1]);
+                        log.info("Socket(s): " + sockets);
+                        numberOfCores = numberOfCores * sockets;
                     }
                 } else if (isWindows()) {
                     if (line.contains("NumberOfCores")) {
                         numberOfCores = Integer.parseInt(line.split("=")[1]);
                         log.info("Number of Cores: " + numberOfCores);
-                        return numberOfCores;
                     }
                 }
             }
         } catch (final IOException e) {
             throw new SeMoDeException(e);
         }
-        throw new SeMoDeException("Could not determine the number of cores. Check the OS support or contact the admin.");
+        log.info("Number of cores: " + numberOfCores);
+        return numberOfCores;
     }
 
     private static boolean isWindows() {
