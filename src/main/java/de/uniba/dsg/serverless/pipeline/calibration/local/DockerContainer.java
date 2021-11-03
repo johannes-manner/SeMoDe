@@ -85,16 +85,6 @@ public class DockerContainer {
     }
 
     /**
-     * Starts the container with unlimited resources and no environment parameters.
-     *
-     * @return container id
-     */
-    public String startContainer() throws SeMoDeException {
-        return this.startContainer(Collections.emptyMap(), ResourceLimit.unlimited());
-    }
-
-
-    /**
      * Starts the container with specified resources and no environment parameters.
      *
      * @param limits resource limits
@@ -133,6 +123,7 @@ public class DockerContainer {
                 .withEnv(envParams.entrySet().stream().map(a -> a.getKey() + "=" + a.getValue()).collect(Collectors.toList()))
                 .withHostConfig(this.getHostConfig(limits))
                 .withAttachStdin(true)
+                .withPrivileged(true)
                 .exec();
 
         this.containerId = container.getId();
