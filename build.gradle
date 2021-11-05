@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'de.uniba.dsg.serverless'
-version = '0.4'
+version = '1.0'
 sourceCompatibility = '11'
 
 repositories {
