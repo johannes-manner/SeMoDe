@@ -1,0 +1,13 @@
+[all]
+# intentionally left blank, all hosts are implicitly part of group all and will inherit all variables defined in groups_vars/all.yml
+
+[prod]
+semode ansible_host=semode.pi.uni-bamberg.de
+
+[test]
+
+[prod:vars]
+env=prod
+
+[test:vars]
+env=test
