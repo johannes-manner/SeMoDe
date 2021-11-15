@@ -1,0 +1,22 @@
+# serverless directory
+.serverless
+
+# deployment packages and services
+/deployment/
+/deployment-packages/
+
+# gradle
+.gradle
+/build/
+/bin/
+
+# eclipse
+.project
+.classpath
+/.settings/
+
+# package
+*.jar
+*.war
+*.ear
+!/gradle/wrapper/gradle-wrapper.jar

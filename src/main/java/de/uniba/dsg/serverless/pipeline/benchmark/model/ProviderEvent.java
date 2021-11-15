@@ -19,6 +19,7 @@ public class ProviderEvent {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    private boolean cold;
     private String result;
     private String platformId;
     private String containerId;
