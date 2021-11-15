@@ -1,0 +1,55 @@
+version: "3.8"
+
+volumes:
+  nginx_certs:
+  nginx_vhosts:
+  nginx_html:
+  acme:
+
+services:
+    nginx-proxy:
+      container_name: nginx-proxy
+      image: nginxproxy/nginx-proxy:{{ nginx_proxy_version }}
+      labels:
+        - com.github.jrcs.letsencrypt_nginx_proxy_companion.docker_gen
+      restart: always
+      ports:
+        - "80:80"
+        - "443:443"
+      volumes:
+        - nginx_certs:/etc/nginx/certs:ro
+        - nginx_vhosts:/etc/nginx/vhost.d
+        - nginx_html:/usr/share/nginx/html
+        - /var/run/docker.sock:/tmp/docker.sock:ro
+      networks:
+        - semode-internal      
+
+    nginx-proxy-acme:
+      image: nginxproxy/acme-companion:{{ letsencrypt_nginx_proxy_companion_version }}
+      restart: always
+      environment: 
+        - NGINX_PROXY_CONTAINER=nginx-proxy
+        - NGINX_DOCKER_GEN_CONTAINER=nginx-proxy
+      volumes:
+        - nginx_certs:/etc/nginx/certs:rw
+        - nginx_vhosts:/etc/nginx/vhost.d
+        - nginx_html:/usr/share/nginx/html
+        - acme:/etc/acme.sh
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+      depends_on:
+        - nginx-proxy
+
+    web:
+      image: semode:{{ docker_semode_tag }}
+      env_file:
+        - .letsencrypt-nginx-proxy-companion.env
+        - .application.properties.env
+      restart: always
+      depends_on:
+        - nginx-proxy-acme
+      networks:
+        - semode-internal
+
+networks:
+  semode-internal:
+    driver: bridge

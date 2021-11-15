@@ -1,0 +1,63 @@
+---
+- name: Deploy semode
+  hosts: all
+  gather_facts: yes
+  become: yes
+  vars:
+    pip_install_packages:
+      - docker
+      - docker-compose
+    project_folder: semode
+    git_folder: git
+    nginx_proxy_version: 0.9.1
+    letsencrypt_nginx_proxy_companion_version: 2.1.0
+    docker_semode_tag: v2
+  roles:
+    - geerlingguy.docker
+  tasks:
+  - name: Install python3-docker
+    apt:
+      pkg: python3-docker
+      update_cache: yes
+  
+  - name: Create semode project folder on target machine
+    file:
+      path: /root/{{ project_folder}}
+      state: directory
+      owner: root
+      group: root
+      mode: '0600'
+
+  - name: Clone/pull repository semode
+    git:
+      repo: https://github.com/johannes-manner/SeMoDe.git
+      dest: /root/{{ git_folder }}/{{ project_folder }}
+
+  - name: Build an image
+    docker_image:
+      build:
+        path:  /root/{{ git_folder }}/{{ project_folder }}
+      name: semode
+      tag: "{{ docker_semode_tag }}"
+      push: no
+      source: build
+
+  - name: Template env files
+    template:
+      src: "{{ item }}.j2"
+      dest: /root/{{ project_folder }}/{{ item }}
+      owner: root
+      group: root
+      mode: '0600'
+    with_items:
+      - .letsencrypt-nginx-proxy-companion.env
+      - .application.properties.env
+
+  - name: Template docker-compose
+    template:
+      src: docker-compose.{{env}}.yml.j2
+      dest: /root/{{ project_folder }}/docker-compose.acme.prod.yml
+      owner: root
+      group: root
+      mode: '0600'
+      force: yes
