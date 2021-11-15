@@ -2,6 +2,7 @@ package de.uniba.dsg.serverless.pipeline.service;
 
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.repo.BenchmarkConfigRepository;
+import de.uniba.dsg.serverless.pipeline.repo.projection.IBenchmarkDetail;
 import de.uniba.dsg.serverless.pipeline.repo.projection.IBenchmarkVisible;
 import de.uniba.dsg.serverless.pipeline.repo.projection.IPointDto;
 import lombok.extern.slf4j.Slf4j;
@@ -34,5 +35,9 @@ public class PublicBenchmarkService {
 
     public IPointDto[] getBenchmarkDiagramData(String setupName, Integer version) {
         return this.benchmarkConfigRepository.getBenchmarkExecutionPointsProviderView(setupName, version).toArray(IPointDto[]::new);
+    }
+
+    public IBenchmarkDetail[] getBenchmarkExecutionDetailData(String setupName, int versionNumber) {
+        return this.benchmarkConfigRepository.getBenchmarkExecutionDetailData(setupName, versionNumber).toArray(IBenchmarkDetail[]::new);
     }
 }

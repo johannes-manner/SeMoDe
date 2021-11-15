@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.pipeline.controller;
 
 import de.uniba.dsg.serverless.pipeline.model.config.BenchmarkConfig;
+import de.uniba.dsg.serverless.pipeline.repo.projection.IBenchmarkDetail;
 import de.uniba.dsg.serverless.pipeline.repo.projection.IPointDto;
 import de.uniba.dsg.serverless.pipeline.service.PublicBenchmarkService;
 import de.uniba.dsg.serverless.users.User;
@@ -85,14 +86,36 @@ public class PublicBenchmarkController {
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment; file=data.csv");
 
-        // header of the csv file
-        response.getWriter().write("Memory Setting,Execution Time\n");
-
-        // data entries of the csv
-        for (IPointDto dataPoint : benchmarkService.getBenchmarkDiagramData(
+        // get detailed benchmark data with vm identification etc.
+        IBenchmarkDetail[] benchmarkDetailList = benchmarkService.getBenchmarkExecutionDetailData(
                 benchmarkConfig.getSetupName(),
-                benchmarkConfig.getVersionNumber())) {
-            response.getWriter().write(dataPoint.getX() + "," + dataPoint.getY() + "\n");
+                benchmarkConfig.getVersionNumber());
+        if (benchmarkDetailList.length > 0) {
+            // header of the csv file
+            response.getWriter().write("Memory Setting,Execution Time,CPU Model Name,CPU Model,VM,Cold\n");
+
+            // data entries of the csv
+            for (IBenchmarkDetail dataPoint : benchmarkDetailList) {
+                response.getWriter().write(dataPoint.getMemory() + ","
+                        + dataPoint.getDuration() + ","
+                        + dataPoint.getName() + ","
+                        + dataPoint.getCpu() + ","
+                        + dataPoint.getVm() + ","
+                        + dataPoint.getCold() + ","
+                        + "\n");
+            }
+        } else {
+            // Case when timeout is exceeded or there is no provider data available
+            // Use diagram data instead - only memory setting and duration
+
+            // header of the csv file
+            response.getWriter().write("Memory Setting,Execution Time\n");
+
+            // data entries of the csv
+            for (IPointDto dataPoint : benchmarkService.getBenchmarkDiagramData(benchmarkConfig.getSetupName(), benchmarkConfig.getVersionNumber())) {
+                response.getWriter().write(dataPoint.getX() + ","
+                        + dataPoint.getY() + "\n");
+            }
         }
     }
 }
