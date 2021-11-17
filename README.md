@@ -29,7 +29,7 @@ calibration go to the root directory of this project and execute the following c
 
 ```
 ./gradlew bootJar
-java -jar -Dspring.main.web-application-type=NONE build/libs/SeMoDe-0.4.jar hardwareCalibration
+java -jar -Dspring.main.web-application-type=NONE build/libs/SeMoDe-*.jar hardwareCalibration
 ```
 
 This will run the Spring Boot application in CLI mode without starting a web server.
@@ -41,8 +41,28 @@ You can configure the calibration via the following properties, default configur
 -Dsemode.hardware.steps=0.4 # default is 0.1  - increments (cpus) which are used to invoke the LINPACK benchmark
 ```
 
+## Function Templates
+
+Introduced in V1.1.
+
+Since we use a custom response object to generate data about the VM identification in the cloud, the executing machine
+and other metadata, we included `templates` in the corresponding folder for AWS lambda functions implemented in Java and
+JS. When using these templates, a user can benefit from the data collection process and is able to get the most our of
+their data.
+
 ### Publications
 
+- Major contribution to reach the simulation goal (tag <b>v0.3</b>) <br/>
+  Manner, J., Endreß, M., Böhm, S. and Wirtz,
+  G.: [Optimizing Cloud Function Configuration via Local Simulations](https://www.researchgate.net/publication/354403185_Optimizing_Cloud_Function_Configuration_via_Local_Simulations)
+  Proceedings of the IEEE International Conference on Cloud Computing (CLOUD), online virtual congress, 5-10 September
+  2021
+- Interesting work on the CPU frequency scaling on modern Intel CPUs and their Impact on the system's performance (
+  tag <b>v0.4</b>) <br/>
+  Manner, J. and Wirtz,
+  G.: [Why Many Benchmarks Might Be Compromised](https://www.researchgate.net/publication/354090518_Why_Many_Benchmarks_Might_Be_Compromised)
+  Proceedings of the 15th IEEE International Conference on Service-Oriented System Engineering, Oxford, UK (online),
+  23-26 August 2021
 - Overall idea of the research prototype and roadmap: <br/>
   Manner,
   J.: [Towards Performance and Cost Simulation in Function as a Service](https://www.researchgate.net/publication/331174539_Towards_Performance_and_Cost_Simulation_in_Function_as_a_Service)
