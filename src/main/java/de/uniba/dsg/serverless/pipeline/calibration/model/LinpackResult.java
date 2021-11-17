@@ -1,5 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.calibration.model;
 
+import de.uniba.dsg.serverless.pipeline.model.config.MachineConfig;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -8,7 +9,8 @@ import lombok.Data;
  */
 @Data
 @AllArgsConstructor
-public class GflopsExecutionTime {
+public class LinpackResult {
     private double gflops;
     private double executionTimeInS;
+    private MachineConfig machineConfig;
 }

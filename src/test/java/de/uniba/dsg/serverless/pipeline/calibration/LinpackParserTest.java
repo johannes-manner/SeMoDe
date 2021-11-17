@@ -1,6 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.calibration;
 
-import de.uniba.dsg.serverless.pipeline.calibration.model.GflopsExecutionTime;
+import de.uniba.dsg.serverless.pipeline.calibration.model.LinpackResult;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import org.junit.jupiter.api.Test;
 
@@ -15,17 +15,19 @@ public class LinpackParserTest {
     @Test
     public void testGoodCase() throws URISyntaxException, SeMoDeException {
         LinpackParser parser = new LinpackParser(Paths.get(LinpackParser.class.getResource("/linpackParser/linpack").toURI()));
-        GflopsExecutionTime gflopsExecutionTime = parser.parseLinpack();
-        assertEquals(28.218600000000002, gflopsExecutionTime.getGflops());
-        assertEquals(12.100999999999999, gflopsExecutionTime.getExecutionTimeInS());
+        LinpackResult linpackResult = parser.parseLinpack();
+        assertEquals(28.218600000000002, linpackResult.getGflops());
+        assertEquals(12.100999999999999, linpackResult.getExecutionTimeInS());
+        assertEquals("63", linpackResult.getMachineConfig().getModelNr());
+        assertEquals("Intel(R) Xeon(R) Processor @ 2.50GHz", linpackResult.getMachineConfig().getCpuModelName());
     }
 
     @Test
     public void testCorruptedButWorkingCase() throws SeMoDeException, URISyntaxException {
         LinpackParser parser = new LinpackParser(Paths.get(LinpackParser.class.getResource("/linpackParser/linpack_corrupted").toURI()));
-        GflopsExecutionTime gflopsExecutionTime = parser.parseLinpack();
-        assertEquals(28.218600000000002, gflopsExecutionTime.getGflops());
-        assertEquals(12.100999999999999, gflopsExecutionTime.getExecutionTimeInS());
+        LinpackResult linpackResult = parser.parseLinpack();
+        assertEquals(28.218600000000002, linpackResult.getGflops());
+        assertEquals(12.100999999999999, linpackResult.getExecutionTimeInS());
     }
 
     @Test

@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.pipeline.calibration;
 
-import de.uniba.dsg.serverless.pipeline.calibration.model.GflopsExecutionTime;
+import de.uniba.dsg.serverless.pipeline.calibration.model.LinpackResult;
+import de.uniba.dsg.serverless.pipeline.model.config.MachineConfig;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Class to only parse the Linpack results locally and on providers' platfrom. See {@link #parseLinpack()}.
@@ -166,7 +168,7 @@ public class LinpackParser {
      * @return the average GFLOPS performance for 10000 equations to solve with an array of 25000 leading dimensions.
      * @throws SeMoDeException if the file can't be read.
      */
-    public GflopsExecutionTime parseLinpack() throws SeMoDeException {
+    public LinpackResult parseLinpack() throws SeMoDeException {
         if (!Files.exists(this.linpackCalibrationPath)) {
             throw new SeMoDeException("Calibration benchmark file does not exist.");
         }
@@ -194,7 +196,7 @@ public class LinpackParser {
      * @param i     start of the equations section withing the line file
      * @return
      */
-    private GflopsExecutionTime extractAverageOfGflops(List<String> lines, int i) throws SeMoDeException, NoSuchElementException {
+    private LinpackResult extractAverageOfGflops(List<String> lines, int i) throws SeMoDeException, NoSuchElementException {
         // key is the number of size of the system solver
         Map<Integer, GflopAndExecutionTimeLists> sizeMapTimeAndGlops = new HashMap<>();
         String[] lineSplit = lines.get(i).split("\\s+");
@@ -220,7 +222,18 @@ public class LinpackParser {
         }
 
         GflopAndExecutionTimeLists summary = sizeMapTimeAndGlops.get(maxSize.get());
-        return new GflopsExecutionTime(summary.getGflopsAverage(), summary.getExecutionTimeAverage());
+        MachineConfig machineConfig = extractMachineConfig(lines);
+        return new LinpackResult(summary.getGflopsAverage(), summary.getExecutionTimeAverage(), machineConfig);
+    }
+
+    private MachineConfig extractMachineConfig(List<String> lines) {
+        MachineConfig config = new MachineConfig();
+        List<String> cpuInfo = lines.stream().filter(s -> s.startsWith("model")).distinct().collect(Collectors.toList());
+        if (cpuInfo.isEmpty() == false) {
+            config.setModelNr(cpuInfo.get(0).split(":")[1].trim());
+            config.setCpuModelName(cpuInfo.get(1).split(":")[1].trim());
+        }
+        return config;
     }
 
     private class GflopAndExecutionTimeLists {

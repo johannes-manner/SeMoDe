@@ -2,6 +2,7 @@ package de.uniba.dsg.serverless.pipeline.calibration.model;
 
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.MachineConfig;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -23,14 +24,18 @@ public class CalibrationEvent {
 
     private CalibrationPlatform platform;
 
+    @Embedded
+    private MachineConfig machineConfig;
+
     @ManyToOne(cascade = {})
     private CalibrationConfig config;
 
-    public CalibrationEvent(int i, double quota, GflopsExecutionTime gflopsExecutionTime, CalibrationPlatform platform) {
+    public CalibrationEvent(int i, double quota, LinpackResult linpackResult, CalibrationPlatform platform) {
         this.runNumber = i;
         this.cpuOrMemoryQuota = quota;
-        this.gflops = gflopsExecutionTime.getGflops();
-        this.executionTimeInS = gflopsExecutionTime.getExecutionTimeInS();
+        this.gflops = linpackResult.getGflops();
+        this.executionTimeInS = linpackResult.getExecutionTimeInS();
         this.platform = platform;
+        this.machineConfig = linpackResult.getMachineConfig();
     }
 }

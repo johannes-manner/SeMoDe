@@ -3,7 +3,7 @@ package de.uniba.dsg.serverless.pipeline.calibration.local;
 import de.uniba.dsg.serverless.pipeline.calibration.Calibration;
 import de.uniba.dsg.serverless.pipeline.calibration.LinpackParser;
 import de.uniba.dsg.serverless.pipeline.calibration.model.CalibrationEvent;
-import de.uniba.dsg.serverless.pipeline.calibration.model.GflopsExecutionTime;
+import de.uniba.dsg.serverless.pipeline.calibration.model.LinpackResult;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.CalibrationMethods;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.LocalCalibrationConfig;
@@ -128,7 +128,7 @@ public class LocalCalibration implements CalibrationMethods {
      * @param cpuLimit
      * @return average performance of linpack in GFLOPS
      */
-    private GflopsExecutionTime executeBenchmark(final DockerContainer linpackContainer, final double cpuLimit) throws SeMoDeException {
+    private LinpackResult executeBenchmark(final DockerContainer linpackContainer, final double cpuLimit) throws SeMoDeException {
 
         final Path logFile = this.calibration.calibrationLogs.resolve("linpack_" + this.calibration.DOUBLE_FORMAT.format(cpuLimit) + ".log");
         if (Files.exists(logFile)) {
