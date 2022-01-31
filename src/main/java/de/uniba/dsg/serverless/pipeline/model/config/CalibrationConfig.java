@@ -3,6 +3,7 @@ package de.uniba.dsg.serverless.pipeline.model.config;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.uniba.dsg.serverless.pipeline.calibration.model.CalibrationEvent;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSCalibrationConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.openfaas.OpenFaasConfig;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -34,6 +35,9 @@ public class CalibrationConfig {
     @Embedded
     private AWSCalibrationConfig awsCalibrationConfig;
 
+    @Embedded
+    private OpenFaasConfig openFaasConfig;
+
     // for mappping
     @Embedded
     private MappingCalibrationConfig mappingCalibrationConfig;
@@ -52,6 +56,7 @@ public class CalibrationConfig {
     public CalibrationConfig(SetupConfig config) {
         this.localConfig = new LocalCalibrationConfig();
         this.awsCalibrationConfig = new AWSCalibrationConfig();
+        this.openFaasConfig = new OpenFaasConfig();
         this.mappingCalibrationConfig = new MappingCalibrationConfig();
         this.runningCalibrationConfig = new RunningCalibrationConfig();
         this.machineConfig = new MachineConfig();
@@ -66,6 +71,7 @@ public class CalibrationConfig {
         this.setupName = calibrationConfig.setupName;
         this.localConfig = calibrationConfig.localConfig;
         this.awsCalibrationConfig = calibrationConfig.awsCalibrationConfig;
+        this.openFaasConfig = calibrationConfig.openFaasConfig;
         this.mappingCalibrationConfig = calibrationConfig.mappingCalibrationConfig;
         this.runningCalibrationConfig = calibrationConfig.runningCalibrationConfig;
         this.machineConfig = calibrationConfig.machineConfig;

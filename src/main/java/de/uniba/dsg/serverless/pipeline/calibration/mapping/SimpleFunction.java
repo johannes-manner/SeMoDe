@@ -1,6 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.calibration.mapping;
 
-import de.uniba.dsg.serverless.pipeline.calibration.local.PhysicalCoreFinder;
+import de.uniba.dsg.serverless.pipeline.calibration.util.PhysicalCoreFinder;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 

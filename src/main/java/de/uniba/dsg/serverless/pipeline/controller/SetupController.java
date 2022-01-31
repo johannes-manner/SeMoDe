@@ -16,6 +16,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 @Slf4j
 @Controller
 @RequestMapping("setups")
@@ -139,6 +142,19 @@ public class SetupController {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
             return "403";
         }
+    }
+
+    @GetMapping("{name}/calibration/{id}/version/{version}/stack.yml")
+    public void generateOpenFaasStackYmlForDeployment(HttpServletResponse response,
+                                                      @PathVariable("name") String setupName,
+                                                      @PathVariable("id") Long calibrationId,
+                                                      @PathVariable("version") Integer version) throws SeMoDeException, IOException {
+        // metadata of the response
+        response.setContentType("text/yml");
+        response.setHeader("Content-Disposition", "attachment; file=stack.yml");
+
+        String stackYml = this.calibrationService.generateStackYmlForOpenFaas(setupName, version);
+        response.getWriter().write(stackYml);
     }
 
     @ExceptionHandler({SeMoDeException.class})

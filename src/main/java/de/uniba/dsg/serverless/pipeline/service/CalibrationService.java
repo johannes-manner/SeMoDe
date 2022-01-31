@@ -1,5 +1,8 @@
 package de.uniba.dsg.serverless.pipeline.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import de.uniba.dsg.serverless.pipeline.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.pipeline.calibration.mapping.MappingMaster;
 import de.uniba.dsg.serverless.pipeline.calibration.model.CalibrationEvent;
@@ -11,6 +14,7 @@ import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
+import de.uniba.dsg.serverless.pipeline.model.openfaas.OpenFaasStackModel;
 import de.uniba.dsg.serverless.pipeline.repo.CalibrationConfigRepository;
 import de.uniba.dsg.serverless.pipeline.repo.CalibrationEventRepository;
 import de.uniba.dsg.serverless.pipeline.repo.ProfileRecordRepository;
@@ -25,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +41,8 @@ public class CalibrationService {
     @Value("${semode.setups.path}")
     private String setups;
 
+    private final OpenFaasStackModel openFaasStackModel;
+
     private final SetupService setupService;
 
     private final CalibrationConfigRepository calibrationConfigRepository;
@@ -45,11 +52,13 @@ public class CalibrationService {
     private final ConversionUtils conversionUtils;
 
     @Autowired
-    public CalibrationService(SetupService setupService,
+    public CalibrationService(OpenFaasStackModel openFaasStackModel,
+                              SetupService setupService,
                               CalibrationConfigRepository calibrationConfigRepository,
                               CalibrationEventRepository calibrationEventRepository,
                               ProfileRecordRepository profileRecordRepository,
                               ConversionUtils conversionUtils) {
+        this.openFaasStackModel = openFaasStackModel;
         this.setupService = setupService;
         this.calibrationConfigRepository = calibrationConfigRepository;
         this.calibrationEventRepository = calibrationEventRepository;
@@ -223,5 +232,19 @@ public class CalibrationService {
 
     public List<IPointDto> getProfilePointsForSetupAndCalibration(String setup, Integer id) {
         return this.calibrationConfigRepository.getProfilePointsBySetupAndCalibrationId(setup, id);
+    }
+
+    public String generateStackYmlForOpenFaas(String setupName, Integer version) throws SeMoDeException {
+        List<String> stackYml = new ArrayList<>();
+
+        CalibrationConfig calibrationConfig = this.calibrationConfigRepository.findCalibrationConfigBySetupNameAndVersionNumber(setupName, version);
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+        OpenFaasStackModel model = openFaasStackModel.createFunctions(calibrationConfig.getOpenFaasConfig());
+
+        try {
+            return objectMapper.writeValueAsString(model);
+        } catch (JsonProcessingException e) {
+            throw new SeMoDeException("Could not generate stack YML", e);
+        }
     }
 }
