@@ -148,13 +148,18 @@ public class SetupController {
     public void generateOpenFaasStackYmlForDeployment(HttpServletResponse response,
                                                       @PathVariable("name") String setupName,
                                                       @PathVariable("id") Long calibrationId,
-                                                      @PathVariable("version") Integer version) throws SeMoDeException, IOException {
-        // metadata of the response
-        response.setContentType("text/yml");
-        response.setHeader("Content-Disposition", "attachment; file=stack.yml");
+                                                      @PathVariable("version") Integer version,
+                                                      @AuthenticationPrincipal User user) throws SeMoDeException, IOException {
+        if (this.setupService.checkSetupAccessRights(setupName, user)) {
+            // metadata of the response
+            response.setContentType("text/yml");
+            response.setHeader("Content-Disposition", "attachment; file=stack.yml");
 
-        String stackYml = this.calibrationService.generateStackYmlForOpenFaas(setupName, version);
-        response.getWriter().write(stackYml);
+            String stackYml = this.calibrationService.generateStackYmlForOpenFaas(setupName, version);
+            response.getWriter().write(stackYml);
+        } else {
+            log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
+        }
     }
 
     @ExceptionHandler({SeMoDeException.class})

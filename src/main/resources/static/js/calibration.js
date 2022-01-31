@@ -4,6 +4,13 @@ var calibrationVersions = document.getElementById('calibrationVersions');
 var localSteps = document.getElementById('localSteps');
 var numberOfLocalCalibration = document.getElementById('numberOfLocalCalibration');
 var localCalibrationDockerSourceFolder = document.getElementById('localCalibrationDockerSourceFolder');
+var openFaasBaseURL = document.getElementById('openFaasBaseURL');
+var openFaasFunctionname = document.getElementById('openFaasFunctionname');
+var numberOfOpenFaasCalibration = document.getElementById('numberOfOpenFaasCalibration');
+var openFaasIncrements = document.getElementById('openFaasIncrements');
+var dockerHubUsername = document.getElementById('dockerHubUsername');
+var openFaasUsername = document.getElementById('openFaasUsername');
+var openFaasPassword = document.getElementById('openFaasPassword');
 var awsBucketName = document.getElementById('awsBucketName');
 var numberOfAWSExecutions = document.getElementById('numberOfAWSExecutions');
 var awsRegion = document.getElementById('awsRegion');
@@ -29,6 +36,7 @@ var operatingSystem = document.getElementById('operatingSystem');
 
 // pipeline buttons
 var startLocalCalibration = document.getElementById('startLocalCalibration');
+var startOpenFaasCalibration = document.getElementById('startOpenFaasCalibration');
 var deployCalibration = document.getElementById('deployCalibration');
 var startCalibration = document.getElementById('startCalibration');
 var undeployCalibration = document.getElementById('undeployCalibration');
@@ -74,6 +82,13 @@ calibrationVersions.addEventListener('change', function () {
             localSteps.value = result.localConfig.localSteps;
             numberOfLocalCalibration.value = result.localConfig.numberOfLocalCalibrations;
             localCalibrationDockerSourceFolder.value = result.localConfig.calibrationDockerSourceFolder;
+            openFaasBaseURL.value = result.openFaasConfig.baseUrl;
+            openFaasFunctionname.value = result.openFaasConfig.functionName;
+            numberOfOpenFaasCalibration.value = result.openFaasConfig.numberOfCalibrations;
+            openFaasIncrements.value = result.openFaasConfig.increments;
+            dockerHubUsername.value = result.openFaasConfig.dockerUsername;
+            openFaasUsername.value = result.openFaasConfig.username;
+            openFaasPassword.value = result.openFaasConfig.password;
             awsBucketName.value = result.awsCalibrationConfig.bucketName;
             numberOfAWSExecutions.value = result.awsCalibrationConfig.numberOfAWSExecutions;
             awsRegion.value = result.awsCalibrationConfig.benchmarkConfig.region;
@@ -101,7 +116,7 @@ calibrationVersions.addEventListener('change', function () {
 });
 
 startLocalCalibration.addEventListener('click', function () {
-    var deployDecision = confirm("Do you really want to fetch benchmark?")
+    var deployDecision = confirm("Do you really want to execute local calibration?")
     if (deployDecision == true) {
         $.ajax({
             url: "/semode/v1/" + setupName + "/calibration/start/local",
@@ -112,9 +127,21 @@ startLocalCalibration.addEventListener('click', function () {
     }
 });
 
+startOpenFaasCalibration.addEventListener('click', function () {
+    var deployDecision = confirm("Do you really want to execute OpenFaaS calibration?")
+    if (deployDecision == true) {
+        $.ajax({
+            url: "/semode/v1/" + setupName + "/calibration/start/openfaas",
+            success: function (result) {
+                location.reload();
+            }
+        });
+    }
+});
+
 
 deployCalibration.addEventListener('click', function () {
-    var deployDecision = confirm("Do you really want to deploy calibration?")
+    var deployDecision = confirm("Do you really want to deploy AWS calibration?")
     if (deployDecision == true) {
         $.ajax({
             url: "/semode/v1/" + setupName + "/calibration/deploy/aws",
@@ -127,7 +154,7 @@ deployCalibration.addEventListener('click', function () {
 
 
 startCalibration.addEventListener('click', function () {
-    var deployDecision = confirm("Do you really want to deploy calibration?")
+    var deployDecision = confirm("Do you really want to start AWS calibration?")
     if (deployDecision == true) {
         $.ajax({
             url: "/semode/v1/" + setupName + "/calibration/start/aws",
@@ -140,7 +167,7 @@ startCalibration.addEventListener('click', function () {
 
 
 undeployCalibration.addEventListener('click', function () {
-    var deployDecision = confirm("Do you really want to undeploy calibration?")
+    var deployDecision = confirm("Do you really want to undeploy AWS calibration?")
     if (deployDecision == true) {
         $.ajax({
             url: "/semode/v1/" + setupName + "/calibration/undeploy/aws",
@@ -153,7 +180,7 @@ undeployCalibration.addEventListener('click', function () {
 
 
 computeMapping.addEventListener('click', function () {
-    var deployDecision = confirm("Do you really want to undeploy calibration?")
+    var deployDecision = confirm("Do you really want to compute mapping?")
     if (deployDecision == true) {
         $.ajax({
             url: "/semode/v1/" + setupName + "/calibration/mapping",
@@ -166,7 +193,7 @@ computeMapping.addEventListener('click', function () {
 
 
 runFunction.addEventListener('click', function () {
-    var deployDecision = confirm("Do you really want to undeploy calibration?")
+    var deployDecision = confirm("Do you really want to simulte the function run?")
     if (deployDecision == true) {
         $.ajax({
             url: "/semode/v1/" + setupName + "/simulation/run",

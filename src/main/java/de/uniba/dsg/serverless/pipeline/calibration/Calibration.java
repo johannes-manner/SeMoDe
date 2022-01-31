@@ -36,6 +36,7 @@ public class Calibration {
                 FileUtils.deleteDirectory(this.calibrationFile.getParent().toFile());
             }
             Files.createDirectories(this.calibrationFile.getParent());
+            Files.createDirectories(this.calibrationLogs);
         } catch (final IOException e) {
             throw new SeMoDeException(e);
         }

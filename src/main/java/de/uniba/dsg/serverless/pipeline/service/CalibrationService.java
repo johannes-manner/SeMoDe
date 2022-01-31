@@ -10,6 +10,7 @@ import de.uniba.dsg.serverless.pipeline.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.pipeline.calibration.profiling.ProfileRecord;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.AWSCalibration;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.CalibrationMethods;
+import de.uniba.dsg.serverless.pipeline.calibration.provider.OpenFaasCalibration;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
@@ -117,6 +118,8 @@ public class CalibrationService {
             calibration = new LocalCalibration(setup, fileHandler.pathToCalibration, this.getCurrentCalibrationConfig(setup).getLocalConfig());
         } else if (CalibrationPlatform.AWS.getText().equals(platform)) {
             calibration = new AWSCalibration(this.getCurrentCalibrationConfig(setup).getAwsCalibrationConfig());
+        } else if (CalibrationPlatform.OPEN_FAAS.getText().equals(platform)) {
+            calibration = new OpenFaasCalibration(this.getCurrentCalibrationConfig(setup).getOpenFaasConfig());
         }
         return calibration;
     }
@@ -190,21 +193,21 @@ public class CalibrationService {
      * Returns a Map, where the ID of the calibration and the memory sizes are included.
      *
      * @param setupName
-     * @param platform
+     * @param platforms
      * @return
      */
-    private Map<Long, String> getCalibrations(String setupName, CalibrationPlatform platform) {
+    private Map<Long, String> getCalibrations(String setupName, List<CalibrationPlatform> platforms) {
         List<ICalibrationConfigEventAggregate> calibrationEvents = this.calibrationConfigRepository.findCalibrationEventsBySetupName(setupName);
         Map<Long, String> configInformation = new HashMap<>();
-        calibrationEvents.stream().filter(a -> a.getPlatform().equals(platform)).forEach(a -> {
-            configInformation.put(a.getId(), "Calibration Config Version: " + a.getVersionNumber());
+        calibrationEvents.stream().filter(a -> platforms.contains(a.getPlatform())).forEach(a -> {
+            configInformation.put(a.getId(), "Calibration Config Version: " + a.getVersionNumber() + " on " + a.getPlatform().getText());
         });
         return configInformation;
     }
 
 
     public Map<Long, String> getLocalCalibrations(String setupName) {
-        return this.getCalibrations(setupName, CalibrationPlatform.LOCAL);
+        return this.getCalibrations(setupName, List.of(CalibrationPlatform.LOCAL));
     }
 
     /**
@@ -214,7 +217,7 @@ public class CalibrationService {
      * @return information about the available calibration detail
      */
     public Map<Long, String> getProviderCalibrations(String setupName) {
-        return this.getCalibrations(setupName, CalibrationPlatform.AWS);
+        return this.getCalibrations(setupName, List.of(CalibrationPlatform.AWS, CalibrationPlatform.OPEN_FAAS));
     }
 
 
