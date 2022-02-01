@@ -28,7 +28,7 @@ public final class RegressionComputation {
             }
         }
         log.info("Pearson r: " + regression.getR() + " - r²: " + regression.getRSquare());
-        return new SimpleFunction(regression.getSlope(), regression.getIntercept());
+        return new SimpleFunction(regression.getSlope(), regression.getIntercept(), regression.getR(), regression.getRSquare());
 
     }
 }

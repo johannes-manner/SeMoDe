@@ -181,6 +181,7 @@
                         <option th:each="key: ${localCalibrations.keySet()}" th:value="${key}"
                                 th:text="${'Id:' + key + ' - ' + localCalibrations.get(key)}"></option>
                     </select>
+                    <span id="localCalibrationFunction"></span>
                 </td>
             </tr>
             <td th:text="${'Provider calibration configuration (Current ID: ' + (calibrationConfig.mappingCalibrationConfig.providerCalibration != null ? calibrationConfig.mappingCalibrationConfig.providerCalibration.id : '-' ) + ')' }"></td>
@@ -193,6 +194,7 @@
                     <option th:each="key: ${providerCalibrations.keySet()}" th:value="${key}"
                             th:text="${'Id:' + key + ' - ' + providerCalibrations.get(key)}"></option>
                 </select>
+                <span id="providerCalibrationFunction"></span>
             </td>
             <tr>
                 <td>Memory Sizes on Provider Platform (comma separated)</td>

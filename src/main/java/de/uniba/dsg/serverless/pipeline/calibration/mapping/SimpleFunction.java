@@ -9,10 +9,14 @@ public class SimpleFunction {
 
     private final double slope;
     private final double intercept;
+    private final double r;
+    private final double rSquare;
 
-    public SimpleFunction(final double slope, final double intercept) {
+    public SimpleFunction(final double slope, final double intercept, final double r, final double rSquare) {
         this.slope = slope;
         this.intercept = intercept;
+        this.r = r;
+        this.rSquare = rSquare;
     }
 
     /**
@@ -61,6 +65,6 @@ public class SimpleFunction {
 
     @Override
     public String toString() {
-        return "f(x)" + " = " + this.slope + " * x " + " + " + this.intercept;
+        return "r: " + this.r + " - R²: " + this.rSquare + " f(x)" + " = " + this.slope + " * x " + " + " + this.intercept;
     }
 }

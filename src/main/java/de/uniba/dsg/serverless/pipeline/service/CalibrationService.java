@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import de.uniba.dsg.serverless.pipeline.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.pipeline.calibration.mapping.MappingMaster;
+import de.uniba.dsg.serverless.pipeline.calibration.mapping.RegressionComputation;
 import de.uniba.dsg.serverless.pipeline.calibration.model.CalibrationEvent;
 import de.uniba.dsg.serverless.pipeline.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.pipeline.calibration.profiling.ProfileRecord;
@@ -249,5 +250,17 @@ public class CalibrationService {
         } catch (JsonProcessingException e) {
             throw new SeMoDeException("Could not generate stack YML", e);
         }
+    }
+
+    public String getRegressionFunction(String setupName, Integer calibrationId) {
+        List<IPointDto> points = this.calibrationEventRepository.getCalibrationPoints(calibrationId, setupName);
+        Map<Double, List<Double>> quotaGflops = new HashMap<>();
+        for (IPointDto p : points) {
+            if (quotaGflops.containsKey(p.getX()) == false) {
+                quotaGflops.put(p.getX(), new ArrayList<>());
+            }
+            quotaGflops.get(p.getX()).add(p.getY());
+        }
+        return RegressionComputation.computeRegression(quotaGflops).toString();
     }
 }

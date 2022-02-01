@@ -33,6 +33,8 @@ var machineName = document.getElementById('machineName');
 var cpuModelName = document.getElementById('cpuModelName');
 var modelNr = document.getElementById('modelNr');
 var operatingSystem = document.getElementById('operatingSystem');
+var providerCalibrationFunction = document.getElementById('providerCalibrationFunction');
+var localCalibrationFunction = document.getElementById('localCalibrationFunction');
 
 // pipeline buttons
 var startLocalCalibration = document.getElementById('startLocalCalibration');
@@ -266,14 +268,25 @@ removeDatasetProfiles.addEventListener('click', function () {
 
 localCalibrationConfig.addEventListener('change', function () {
     addCalibrationDataToChart(localCalibrationConfig.value, localCalibrationChartHandle);
+    displayRegressionFunction(localCalibrationConfig.value, localCalibrationFunction);
 });
 
 providerCalibrationConfig.addEventListener('change', function () {
     addCalibrationDataToChart(providerCalibrationConfig.value, providerCalibrationChartHandle);
+    displayRegressionFunction(providerCalibrationConfig.value, providerCalibrationFunction);
 });
 
 addCalibrationDataToChart(localCalibrationConfig.value, localCalibrationChartHandle);
-addCalibrationDataToChart(providerCalibrationConfig.value, providerCalibrationChartHandle);
+addCalibrationDataToChart(providerCalibrationConfig.value, providerCalibrationChartHandle)
+
+function displayRegressionFunction(calibrationId, labelForDisplayingInfo) {
+    $.ajax({
+        url: "/semode/v1/" + setupName + "/calibration/" + calibrationId + "/mapping",
+        success: function (result) {
+            labelForDisplayingInfo.textContent = result;
+        }
+    });
+}
 
 // update already executed profiles selection
 $.ajax({

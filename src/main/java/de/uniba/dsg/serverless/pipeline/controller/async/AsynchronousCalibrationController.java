@@ -64,6 +64,18 @@ public class AsynchronousCalibrationController {
         }
     }
 
+    @GetMapping("semode/v1/{setup}/calibration/{calibrationId}/mapping")
+    public ResponseEntity<String> getRegressionFunction(@PathVariable(value = "setup") String setupName,
+                                                        @PathVariable(value = "calibrationId") Integer calibrationId,
+                                                        @AuthenticationPrincipal User user) {
+        if (this.service.checkSetupAccessRights(setupName, user)) {
+            return ResponseEntity.ok(this.calibrationService.getRegressionFunction(setupName, calibrationId));
+        } else {
+            log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+
     @GetMapping("semode/v1/{setup}/profiles")
     public ResponseEntity<List<ICalibrationConfigId>> getProfilesForSetup(@PathVariable(value = "setup") String setupName,
                                                                           @AuthenticationPrincipal User user) {
