@@ -1,0 +1,52 @@
+2022/02/02 16:32:38 Version: 0.2.0	SHA: 56bf6aac54deb3863a690f5fc03a2a38e7d9e6ef
+2022/02/02 16:32:38 Timeouts: read: 2h0m0s write: 1s hard: 2h0m0s health: 1s.
+2022/02/02 16:32:38 Listening on port: 8080
+2022/02/02 16:32:38 Writing lock-file to: /tmp/.lock
+2022/02/02 16:32:38 Metrics listening on port: 8081
+2022/02/02 16:33:06 Forking fprocess.
+2022/02/02 16:33:06 Query
+2022/02/02 16:33:06 Path  /
+This is a SAMPLE run script for SMP LINPACK. Change it to reflect
+the correct number of CPUs/threads, problem input files, etc..
+Intel(R) Optimized LINPACK Benchmark data
+
+Current date/time: Wed Feb  2 16:33:06 2022
+
+CPU frequency:    4.189 GHz
+Number of CPUs: 1
+Number of cores: 4
+Number of threads: 4
+
+Parameters are set to:
+
+Number of tests: 3
+Number of equations to solve (problem size) : 1000  5000  10000
+Leading dimension of array                  : 1000  18000 25000
+Number of trials to run                     : 4     2     2
+Data alignment value (in Kbytes)            : 4     4     4
+
+Maximum memory requested that can be used=2000504096, at the size=10000
+
+=================== Timing linear equation system solver ===================
+
+Size   LDA    Align. Time(s)    GFlops   Residual     Residual(norm) Check
+1000   1000   4      0.005      142.8712 1.165068e-12 3.973181e-02   pass
+1000   1000   4      0.004      151.0887 1.165068e-12 3.973181e-02   pass
+2022/02/02 16:33:19 Duration: 13.239091s
+1000   1000   4      0.004      149.4141 1.165068e-12 3.973181e-02   pass
+1000   1000   4      0.004      149.6547 1.165068e-12 3.973181e-02   pass
+5000   18000  4      0.509      163.8719 2.474679e-11 3.450740e-02   pass
+5000   18000  4      0.501      166.5455 2.474679e-11 3.450740e-02   pass
+10000  25000  4      3.767      177.0397 9.069137e-11 3.197870e-02   pass
+10000  25000  4      3.750      177.8371 9.069137e-11 3.197870e-02   pass
+
+Performance Summary (GFlops)
+
+Size   LDA    Align.  Average  Maximal
+1000   1000   4       148.2572 151.0887
+5000   18000  4       165.2087 166.5455
+10000  25000  4       177.4384 177.8371
+
+Residual checks PASSED
+
+End of tests

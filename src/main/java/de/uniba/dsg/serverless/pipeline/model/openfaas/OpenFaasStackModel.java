@@ -30,6 +30,9 @@ public class OpenFaasStackModel {
     @Value("${openfaas.timeout}")
     private String timeout;
     @JsonIgnore
+    @Value("${openfaas.write.timeout}")
+    private String writeTimeout;
+    @JsonIgnore
     @Value("${openfaas.debug}")
     private Boolean debug;
 
@@ -52,7 +55,7 @@ public class OpenFaasStackModel {
             int limit = (int) (quota * 1000);
             String displayedFunctionName = openFaasConfig.getFunctionName() + "-" + limit;
             OpenFaasFunction function = new OpenFaasFunction(openFaasConfig.getFunctionName(),
-                    lang, openFaasConfig.getDockerUsername(), timeout, debug, limit);
+                    lang, openFaasConfig.getDockerUsername(), timeout, writeTimeout, debug, limit);
 
             openFaasStackModel.functions.put(displayedFunctionName, function);
         }

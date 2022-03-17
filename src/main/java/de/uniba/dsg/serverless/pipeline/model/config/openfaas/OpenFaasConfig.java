@@ -16,4 +16,6 @@ public class OpenFaasConfig {
     // using basic authentication
     private String username;
     private String password;
+    // for file transfer
+    private String fileTransferURL;
 }

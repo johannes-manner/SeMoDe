@@ -11,6 +11,7 @@ var openFaasIncrements = document.getElementById('openFaasIncrements');
 var dockerHubUsername = document.getElementById('dockerHubUsername');
 var openFaasUsername = document.getElementById('openFaasUsername');
 var openFaasPassword = document.getElementById('openFaasPassword');
+var openFaasFileTransferURL = document.getElementById('fileTransferURL');
 var awsBucketName = document.getElementById('awsBucketName');
 var numberOfAWSExecutions = document.getElementById('numberOfAWSExecutions');
 var awsRegion = document.getElementById('awsRegion');
@@ -91,6 +92,7 @@ calibrationVersions.addEventListener('change', function () {
             dockerHubUsername.value = result.openFaasConfig.dockerUsername;
             openFaasUsername.value = result.openFaasConfig.username;
             openFaasPassword.value = result.openFaasConfig.password;
+            openFaasFileTransferURL.value = result.openFaasConfig.fileTransferURL;
             awsBucketName.value = result.awsCalibrationConfig.bucketName;
             numberOfAWSExecutions.value = result.awsCalibrationConfig.numberOfAWSExecutions;
             awsRegion.value = result.awsCalibrationConfig.benchmarkConfig.region;

@@ -200,17 +200,20 @@ public class LinpackParser {
         // key is the number of size of the system solver
         Map<Integer, GflopAndExecutionTimeLists> sizeMapTimeAndGlops = new HashMap<>();
         String[] lineSplit = lines.get(i).split("\\s+");
-        while (lineSplit.length == 8) {
-            int size = Integer.parseInt(lineSplit[0]);
-            double executionTime = Double.parseDouble(lineSplit[3]);
-            double gflops = Double.parseDouble(lineSplit[4]);
+        // there is a case where openfaas introduces some timestamp logs into the calibration results...
+        while (lineSplit.length > 1) {
+            if (lineSplit.length == 8) {
+                int size = Integer.parseInt(lineSplit[0]);
+                double executionTime = Double.parseDouble(lineSplit[3]);
+                double gflops = Double.parseDouble(lineSplit[4]);
 
-            if (!sizeMapTimeAndGlops.containsKey(size)) {
-                sizeMapTimeAndGlops.put(size, new GflopAndExecutionTimeLists());
+                if (!sizeMapTimeAndGlops.containsKey(size)) {
+                    sizeMapTimeAndGlops.put(size, new GflopAndExecutionTimeLists());
+                }
+
+                sizeMapTimeAndGlops.get(size).addGflopsAndExecTime(gflops, executionTime);
+
             }
-
-            sizeMapTimeAndGlops.get(size).addGflopsAndExecTime(gflops, executionTime);
-
             // reinitialize
             i++;
             lineSplit = lines.get(i).split("\\s+");

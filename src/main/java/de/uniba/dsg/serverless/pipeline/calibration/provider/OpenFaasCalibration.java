@@ -13,9 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
-import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -23,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class OpenFaasCalibration implements CalibrationMethods {
@@ -57,12 +56,12 @@ public class OpenFaasCalibration implements CalibrationMethods {
             for (Double quota : QuotaCalculator.calculateQuotas(this.openFaasConfiguration.getIncrements())) {
                 log.info("Calibration run: " + i + " - quota: " + quota);
                 String functionName = generateFunctionName(quota);
-                WebTarget openFaasRequest = ClientBuilder.newClient().target(openFaasConfiguration.getBaseUrl() + functionName);
+                WebTarget openFaasRequest = ClientBuilder.newClient().target(openFaasConfiguration.getFileTransferURL() + functionName + "-" + i + ".log");
                 Response r = openFaasRequest.request()
-                        .header("Authorization", getBasicAuthentication())
                         .get();
 
-                String linpackResult = r.readEntity(String.class);
+                List<String> responseEntity = r.readEntity(List.class);
+                String linpackResult = responseEntity.stream().collect(Collectors.joining("\n"));
                 Path logFile = Paths.get(calibration.calibrationLogs.toString(), functionName + "-" + i + ".log");
                 try {
                     Files.write(logFile, linpackResult.getBytes(StandardCharsets.UTF_8));
@@ -81,14 +80,5 @@ public class OpenFaasCalibration implements CalibrationMethods {
 
     private String generateFunctionName(Double quota) {
         return openFaasConfiguration.getFunctionName() + "-" + (int) (quota * 1000);
-    }
-
-    private String getBasicAuthentication() throws SeMoDeException {
-        String token = this.openFaasConfiguration.getUsername() + ":" + this.openFaasConfiguration.getPassword();
-        try {
-            return "BASIC " + DatatypeConverter.printBase64Binary(token.getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException ex) {
-            throw new SeMoDeException("Cannot encode with UTF-8", ex);
-        }
     }
 }

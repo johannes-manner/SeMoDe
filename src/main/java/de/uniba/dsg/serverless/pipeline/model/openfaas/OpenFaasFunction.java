@@ -15,12 +15,13 @@ public class OpenFaasFunction {
                             String lang,
                             String dockerUsername,
                             String timeout,
+                            String writeTimeout,
                             Boolean debug,
                             int limit) {
         this.lang = lang;
         this.handler = "./" + functionName;
         this.image = dockerUsername + "/" + functionName + ":latest";
-        this.environment = new OpenFaasEnvironment(debug, timeout);
+        this.environment = new OpenFaasEnvironment(debug, timeout, writeTimeout);
         String sLimit = "" + limit + "m";
         this.limits = new OpenFaasLimit(sLimit);
         this.requests = new OpenFaasRequest(sLimit);
@@ -33,10 +34,10 @@ public class OpenFaasFunction {
         private String write_timeout;
         private String exec_timeout;
 
-        public OpenFaasEnvironment(boolean write_debug, String timeout) {
+        public OpenFaasEnvironment(boolean write_debug, String timeout, String writeTimeout) {
             this.write_debug = write_debug;
             this.read_timeout = timeout;
-            this.write_timeout = timeout;
+            this.write_timeout = writeTimeout;
             this.exec_timeout = timeout;
         }
     }
