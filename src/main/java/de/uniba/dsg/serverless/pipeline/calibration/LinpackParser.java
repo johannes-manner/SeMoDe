@@ -216,6 +216,9 @@ public class LinpackParser {
             }
             // reinitialize
             i++;
+            if (i == lines.size()) {
+                break;
+            }
             lineSplit = lines.get(i).split("\\s+");
         }
 

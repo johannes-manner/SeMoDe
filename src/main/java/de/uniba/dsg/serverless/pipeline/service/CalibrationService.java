@@ -31,10 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -262,5 +261,34 @@ public class CalibrationService {
             quotaGflops.get(p.getX()).add(p.getY());
         }
         return RegressionComputation.computeRegression(quotaGflops).toString();
+    }
+
+    /**
+     * Compute the resource settings for the currently conigured provider platform based on the gflops list.
+     *
+     * @param setupName
+     * @return
+     */
+    public List<Double> computeGflopsMapping(String setupName, String gflops) throws SeMoDeException {
+        MappingCalibrationConfig mappingConfig = this.getCurrentCalibrationConfig(setupName).getMappingCalibrationConfig();
+
+        // compute mapping
+        Map<Double, Double> gflopMapping = new MappingMaster().computeGflopMapping(
+                this.getGlopsList(gflops),
+                this.conversionUtils.mapCalibrationEventList(this.calibrationEventRepository.findByConfigId(mappingConfig.getProviderCalibration().getId())));
+        // return it to the caller
+        log.info("Gflops,Resource setting map: " + gflopMapping);
+        return gflopMapping.values().stream().collect(Collectors.toList());
+    }
+
+    private List<Double> getGlopsList(String gflops) {
+        if (gflops == null) {
+            return List.of();
+        }
+        return Arrays.stream(gflops.split(","))
+                .map(String::trim)
+                .filter(Predicate.not(String::isEmpty))
+                .map(Double::parseDouble)
+                .collect(Collectors.toList());
     }
 }

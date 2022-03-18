@@ -31,6 +31,8 @@ public class MappingCalibrationConfig {
     private Long providerCalibrationId;
 
     private String memorySizesCalibration = "";
+
+    private String gflopsSizesCalibration = "";
     @Transient
     private Map<Integer, Double> memorySizeCPUShare;
 
@@ -42,6 +44,17 @@ public class MappingCalibrationConfig {
                 .map(String::trim)
                 .filter(Predicate.not(String::isEmpty))
                 .map(Integer::parseInt)
+                .collect(Collectors.toList());
+    }
+
+    public List<Double> getGlopsList() {
+        if (this.gflopsSizesCalibration == null) {
+            return List.of();
+        }
+        return Arrays.stream(this.gflopsSizesCalibration.split(","))
+                .map(String::trim)
+                .filter(Predicate.not(String::isEmpty))
+                .map(Double::parseDouble)
                 .collect(Collectors.toList());
     }
 

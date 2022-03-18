@@ -14,9 +14,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -151,4 +153,21 @@ public class AsynchronousCalibrationController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
+
+    @GetMapping("semode/v1/{setup}/mapping/gflops")
+    public ResponseEntity<String> computeGflopsBasedOnProvider(@PathVariable(value = "setup") String setupName,
+                                                               @RequestParam(name = "gflops") String gflops,
+                                                               @AuthenticationPrincipal User user) throws SeMoDeException {
+        if (this.service.checkSetupAccessRights(setupName, user)) {
+            return ResponseEntity.ok(
+                    this.calibrationService.computeGflopsMapping(setupName, gflops).stream()
+                            .map(d -> "" + d)
+                            .collect(Collectors.joining(",")));
+        } else {
+            log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+
+
 }

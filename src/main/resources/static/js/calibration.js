@@ -26,6 +26,7 @@ var awsRestApiId = document.getElementById('awsRestApiId');
 var awsApiKeyId = document.getElementById('awsApiKeyId');
 var awsUsagePlanId = document.getElementById('awsUsagePlanId');
 var mappingProviderPlatform = document.getElementById('mappingProviderPlatform');
+var gflopsSizesCalibration = document.getElementById('gflopsSizesCalibration');
 var runConfigDockerSourceFolder = document.getElementById('runConfigDockerSourceFolder');
 var runConfigEnvironmentVariableFile = document.getElementById('runConfigEnvironmentVariableFile');
 var runConfigNumberOfProfiles = document.getElementById('runConfigNumberOfProfiles');
@@ -108,6 +109,7 @@ calibrationVersions.addEventListener('change', function () {
             awsApiKeyId.value = result.awsCalibrationConfig.benchmarkConfig.apiKeyId;
             awsUsagePlanId.value = result.awsCalibrationConfig.benchmarkConfig.usagePlanId;
             mappingProviderPlatform.value = result.mappingCalibrationConfig.memorySizesCalibration;
+            gflopsSizesCalibration.value = result.mappingCalibrationConfig.gflopsSizesCalibration;
             runConfigDockerSourceFolder.value = result.runningCalibrationConfig.functionDockerSourceFolder;
             runConfigEnvironmentVariableFile.value = result.runningCalibrationConfig.environmentVariablesFile;
             runConfigNumberOfProfiles.value = result.runningCalibrationConfig.numberOfProfiles;
@@ -193,6 +195,15 @@ computeMapping.addEventListener('click', function () {
             }
         });
     }
+});
+
+gflopsSizesCalibration.addEventListener("blur", function () {
+    $.ajax({
+        url: "/semode/v1/" + setupName + "/mapping/gflops?gflops=" + gflopsSizesCalibration.value,
+        success: function (result) {
+            document.getElementById('gflopsSizesCalibrationInfo').innerHTML = result;
+        }
+    });
 });
 
 

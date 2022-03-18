@@ -202,6 +202,14 @@
                         id="mappingProviderPlatform"
                         th:field="*{mappingCalibrationConfig.memorySizesCalibration}"/></td>
             </tr>
+            <tr>
+                <td>GFLOPS to compute the resource setting on provider (comma separated)</td>
+                <td><input
+                        id="gflopsSizesCalibration"
+                        th:field="*{mappingCalibrationConfig.gflopsSizesCalibration}"/>
+                    <span id="gflopsSizesCalibrationInfo"></span>
+                </td>
+            </tr>
         </table>
     </div>
     <div class="stabY">

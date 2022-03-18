@@ -3,7 +3,7 @@ package de.uniba.dsg.serverless.pipeline.model.openfaas;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import de.uniba.dsg.serverless.pipeline.calibration.util.QuotaCalculator;
-import de.uniba.dsg.serverless.pipeline.model.config.openfaas.OpenFaasConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.openfaas.OpenFaasCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,7 @@ public class OpenFaasStackModel {
         this.provider = provider;
     }
 
-    public OpenFaasStackModel createFunctions(OpenFaasConfig openFaasConfig) throws SeMoDeException {
+    public OpenFaasStackModel createFunctions(OpenFaasCalibrationConfig openFaasConfig) throws SeMoDeException {
         OpenFaasStackModel openFaasStackModel = new OpenFaasStackModel();
         openFaasStackModel.version = this.version;
         openFaasStackModel.provider = this.provider;

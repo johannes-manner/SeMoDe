@@ -42,6 +42,17 @@ public class SimpleFunction {
     }
 
     /**
+     * y = m*x +t
+     * computes x
+     *
+     * @param y
+     * @return
+     */
+    public double computeX(final double y) {
+        return (y - this.intercept) / this.slope;
+    }
+
+    /**
      * Gets the number of cpus from the calibration and logs the equivalent settings for the memory.
      * <p>
      * E.g.

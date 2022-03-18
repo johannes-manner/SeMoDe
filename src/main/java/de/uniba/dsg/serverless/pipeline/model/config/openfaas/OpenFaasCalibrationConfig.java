@@ -6,7 +6,7 @@ import javax.persistence.Embeddable;
 
 @Data
 @Embeddable
-public class OpenFaasConfig {
+public class OpenFaasCalibrationConfig {
 
     private String baseUrl;
     private String functionName;

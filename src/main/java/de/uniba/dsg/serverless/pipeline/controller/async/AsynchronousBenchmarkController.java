@@ -77,6 +77,29 @@ public class AsynchronousBenchmarkController {
         }
     }
 
+    /**
+     * Default of the pipeline functions is AWS (first provider, we started with).
+     * Therefore, we used a path extension here.
+     *
+     * @param setupName
+     * @param version
+     * @param user
+     * @return
+     * @throws SeMoDeException
+     */
+    @GetMapping("semode/v1/{setup}/benchmark/{version}/fetch/openfaas")
+    public ResponseEntity fetchOpenFaas(@PathVariable("setup") String setupName,
+                                        @PathVariable("version") Integer version,
+                                        @AuthenticationPrincipal User user) throws SeMoDeException {
+        if (this.service.checkSetupAccessRights(setupName, user)) {
+            this.benchmarkService.fetchPerformanceDataOpenFaaS(setupName, version);
+            return ResponseEntity.ok().build();
+        } else {
+            log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+
     @GetMapping("semode/v1/benchmark/mode/{tag}")
     public BenchmarkMode getMode(@PathVariable(value = "tag") String tag) throws SeMoDeException {
         return BenchmarkMode.fromString(tag);

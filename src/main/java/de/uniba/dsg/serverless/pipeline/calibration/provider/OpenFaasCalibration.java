@@ -6,7 +6,7 @@ import de.uniba.dsg.serverless.pipeline.calibration.model.CalibrationEvent;
 import de.uniba.dsg.serverless.pipeline.calibration.model.LinpackResult;
 import de.uniba.dsg.serverless.pipeline.calibration.util.QuotaCalculator;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
-import de.uniba.dsg.serverless.pipeline.model.config.openfaas.OpenFaasConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.openfaas.OpenFaasCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,10 +26,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OpenFaasCalibration implements CalibrationMethods {
 
-    private final OpenFaasConfig openFaasConfiguration;
+    private final OpenFaasCalibrationConfig openFaasConfiguration;
     private final Calibration calibration;
 
-    public OpenFaasCalibration(OpenFaasConfig openFaasConfiguration) throws SeMoDeException {
+    public OpenFaasCalibration(OpenFaasCalibrationConfig openFaasConfiguration) throws SeMoDeException {
         this.openFaasConfiguration = openFaasConfiguration;
         this.calibration = new Calibration(openFaasConfiguration.getDockerUsername(), CalibrationPlatform.OPEN_FAAS);
     }

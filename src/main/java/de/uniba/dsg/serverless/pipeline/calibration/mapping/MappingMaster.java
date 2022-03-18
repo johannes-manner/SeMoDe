@@ -38,4 +38,20 @@ public class MappingMaster {
         this.localRegressionFunction.computeMemoryForCpuShares(this.providerRegressionFunction);
         return memorySettingCPUShare;
     }
+
+    /**
+     * Return a map in the form GFLOP,ResourceSetting
+     *
+     * @param gflops
+     * @param providerMetricsMap
+     * @return
+     */
+    public Map<Double, Double> computeGflopMapping(List<Double> gflops, Map<Double, List<Double>> providerMetricsMap) {
+        Map<Double, Double> result = new HashMap<>();
+        SimpleFunction providerFunction = RegressionComputation.computeRegression(providerMetricsMap);
+        for (Double gflop : gflops) {
+            result.put(gflop, providerFunction.computeX(gflop));
+        }
+        return result;
+    }
 }

@@ -21,6 +21,9 @@ var awsBenchmarkConfigApiKey = document.getElementById('awsBenchmarkConfigApiKey
 var awsBenchmarkConfigRestApiId = document.getElementById('awsBenchmarkConfigRestApiId');
 var awsBenchmarkConfigApiKeyId = document.getElementById('awsBenchmarkConfigApiKeyId');
 var awsBenchmarkConfigUsagePlanId = document.getElementById('awsBenchmarkConfigUsagePlanId');
+var openFaaSResourceSetting = document.getElementById('openFaaSResourceSetting');
+var openFaaSBaseUrl = document.getElementById('openFaaSBaseUrl');
+var openFaaSNumberOfRuns = document.getElementById('openFaaSNumberOfRuns');
 
 // buttons
 var updateConfigButton = document.getElementById('updateBenchmarkConfigButton');
@@ -32,6 +35,7 @@ var executeBenchmark = document.getElementById('executeBenchmark');
 var executeButtonInfo = document.getElementById('executeButtonInfo');
 var fetchData = document.getElementById('fetchData');
 var fetchButtonInfo = document.getElementById('fetchButtonInfo');
+var fetchDataOpenFaas = document.getElementById('fetchDataOpenFaas');
 
 // chart
 var benchmarkChart = document.getElementById('benchmarkChart');
@@ -127,6 +131,9 @@ versionDropdown.addEventListener('change', function () {
             awsBenchmarkConfigRestApiId.value = result.awsBenchmarkConfig.restApiId;
             awsBenchmarkConfigApiKeyId.value = result.awsBenchmarkConfig.apiKeyId;
             awsBenchmarkConfigUsagePlanId.value = result.awsBenchmarkConfig.usagePlanId;
+            openFaaSResourceSetting.value = result.openFaasBenchmarkConfig.openFaaSResourceSetting;
+            openFaaSBaseUrl.value = result.openFaasBenchmarkConfig.openFaaSBaseUrl;
+            openFaaSNumberOfRuns.value = result.openFaasBenchmarkConfig.openFaaSNumberOfRuns;
         }
     });
     addBenchmarkDataToChart(version, myChart);
@@ -189,6 +196,20 @@ fetchData.addEventListener('click', function () {
         fetchButtonInfo.innerHTML = "This may take some time, page will be refreshed automatically...";
         $.ajax({
             url: "/semode/v1/" + setupName + "/benchmark/" + versionDropdown.value + "/fetch",
+            success: function (result) {
+                location.reload();
+            }
+        });
+    }
+});
+
+fetchDataOpenFaas.addEventListener('click', function () {
+    var deployDecision = confirm("Do you really want to fetch benchmark?")
+    if (deployDecision == true) {
+        disableAllInteraction(true);
+        document.getElementById('fetchDataOpenFaasInfo').innerHTML = "This may take some time, page will be refreshed automatically...";
+        $.ajax({
+            url: "/semode/v1/" + setupName + "/benchmark/" + versionDropdown.value + "/fetch/openfaas",
             success: function (result) {
                 location.reload();
             }

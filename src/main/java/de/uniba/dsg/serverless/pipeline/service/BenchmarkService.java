@@ -3,6 +3,7 @@ package de.uniba.dsg.serverless.pipeline.service;
 import de.uniba.dsg.serverless.pipeline.benchmark.BenchmarkExecutor;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.AWSBenchmark;
 import de.uniba.dsg.serverless.pipeline.benchmark.methods.BenchmarkMethods;
+import de.uniba.dsg.serverless.pipeline.benchmark.methods.OpenFaaSBenchmark;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.LocalRESTEvent;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.PerformanceData;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.ProviderEvent;
@@ -81,6 +82,21 @@ public class BenchmarkService {
             log.warn("Performance Data is already fetched for setup " + setupName + " and version " + version);
         } else {
             fetchPerformanceData(setupName, config);
+        }
+    }
+
+    public void fetchPerformanceDataOpenFaaS(String setupName, Integer version) {
+        BenchmarkConfig config = this.benchmarkConfigRepository.findBenchmarkConfigBySetupNameAndVersionNumber(setupName, version);
+        if (this.getBenchmarkDataByVersion(setupName, version).length > 1) {
+            log.warn("Performance Data is already fetched for setup " + setupName + " and version " + version);
+        } else {
+            OpenFaaSBenchmark openFaaSBenchmark = new OpenFaaSBenchmark(config.getOpenFaasBenchmarkConfig());
+            List<PerformanceData> performanceData = openFaaSBenchmark.getPerformanceDataFromPlatform();
+            for (PerformanceData pd : performanceData) {
+                pd.setBenchmarkConfig(config);
+            }
+            this.performanceDataRepository.saveAll(performanceData);
+            log.info("Sucessfully stored " + performanceData.size() + " OpenFaaS performance data entries in DB");
         }
     }
 
