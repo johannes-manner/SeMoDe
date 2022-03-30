@@ -1,6 +1,7 @@
 package de.uniba.dsg.serverless.pipeline.calibration.mapping;
 
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
+import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
@@ -46,11 +47,20 @@ public class MappingMaster {
      * @param providerMetricsMap
      * @return
      */
-    public Map<Double, Double> computeGflopMapping(List<Double> gflops, Map<Double, List<Double>> providerMetricsMap) {
-        Map<Double, Double> result = new HashMap<>();
+    public Map<Double, Integer> computeGflopMapping(List<Double> gflops, Map<Double, List<Double>> providerMetricsMap, CalibrationPlatform platform) throws SeMoDeException {
+        log.info("Compute GFLOPS for platform: " + platform.getText());
+        Map<Double, Integer> result = new HashMap<>();
         SimpleFunction providerFunction = RegressionComputation.computeRegression(providerMetricsMap);
         for (Double gflop : gflops) {
-            result.put(gflop, providerFunction.computeX(gflop));
+            if (platform == CalibrationPlatform.AWS) {
+                // use the already stored memory settings
+                result.put(gflop, (int) (providerFunction.computeX(gflop) + 0.5));
+            } else if (platform == CalibrationPlatform.OPEN_FAAS) {
+                // make cpu shares to 100m compliant shares for K8s deployment
+                result.put(gflop, (int) (providerFunction.computeX(gflop) * 1000 + 0.5));
+            } else {
+                throw new SeMoDeException("Platform " + platform.getText() + " not supported");
+            }
         }
         return result;
     }

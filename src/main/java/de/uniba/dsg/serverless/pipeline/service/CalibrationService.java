@@ -269,13 +269,14 @@ public class CalibrationService {
      * @param setupName
      * @return
      */
-    public List<Double> computeGflopsMapping(String setupName, String gflops) throws SeMoDeException {
+    public List<Integer> computeGflopsMapping(String setupName, String gflops) throws SeMoDeException {
         MappingCalibrationConfig mappingConfig = this.getCurrentCalibrationConfig(setupName).getMappingCalibrationConfig();
 
         // compute mapping
-        Map<Double, Double> gflopMapping = new MappingMaster().computeGflopMapping(
+        Map<Double, Integer> gflopMapping = new MappingMaster().computeGflopMapping(
                 this.getGlopsList(gflops),
-                this.conversionUtils.mapCalibrationEventList(this.calibrationEventRepository.findByConfigId(mappingConfig.getProviderCalibration().getId())));
+                this.conversionUtils.mapCalibrationEventList(this.calibrationEventRepository.findByConfigId(mappingConfig.getProviderCalibration().getId())),
+                this.calibrationEventRepository.findFirstPlatformByConfigId(mappingConfig.getProviderCalibration().getId()).getPlatform());
         // return it to the caller
         log.info("Gflops,Resource setting map: " + gflopMapping);
         return gflopMapping.values().stream().collect(Collectors.toList());

@@ -11,6 +11,8 @@ public interface CalibrationEventRepository extends JpaRepository<CalibrationEve
 
     public List<CalibrationEvent> findByConfigId(Long configId);
 
+    public CalibrationEvent findFirstPlatformByConfigId(Long configId);
+
     @Query(value = "SELECT ce.cpu_or_memory_quota as x, ce.gflops as y\n" +
             "FROM calibration_config cc LEFT OUTER JOIN calibration_event ce ON cc.id = ce.config_id\n" +
             "WHERE cc.id = ?1 AND cc.setup_name = ?2", nativeQuery = true)
