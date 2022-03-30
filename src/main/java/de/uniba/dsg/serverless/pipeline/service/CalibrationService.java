@@ -1,16 +1,22 @@
 package de.uniba.dsg.serverless.pipeline.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import de.uniba.dsg.serverless.pipeline.calibration.local.LocalCalibration;
 import de.uniba.dsg.serverless.pipeline.calibration.mapping.MappingMaster;
+import de.uniba.dsg.serverless.pipeline.calibration.mapping.RegressionComputation;
 import de.uniba.dsg.serverless.pipeline.calibration.model.CalibrationEvent;
 import de.uniba.dsg.serverless.pipeline.calibration.profiling.ContainerExecutor;
 import de.uniba.dsg.serverless.pipeline.calibration.profiling.ProfileRecord;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.AWSCalibration;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.CalibrationMethods;
+import de.uniba.dsg.serverless.pipeline.calibration.provider.OpenFaasCalibration;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.MappingCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.model.config.SetupConfig;
+import de.uniba.dsg.serverless.pipeline.model.openfaas.OpenFaasStackModel;
 import de.uniba.dsg.serverless.pipeline.repo.CalibrationConfigRepository;
 import de.uniba.dsg.serverless.pipeline.repo.CalibrationEventRepository;
 import de.uniba.dsg.serverless.pipeline.repo.ProfileRecordRepository;
@@ -25,9 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -35,6 +41,8 @@ public class CalibrationService {
 
     @Value("${semode.setups.path}")
     private String setups;
+
+    private final OpenFaasStackModel openFaasStackModel;
 
     private final SetupService setupService;
 
@@ -45,11 +53,13 @@ public class CalibrationService {
     private final ConversionUtils conversionUtils;
 
     @Autowired
-    public CalibrationService(SetupService setupService,
+    public CalibrationService(OpenFaasStackModel openFaasStackModel,
+                              SetupService setupService,
                               CalibrationConfigRepository calibrationConfigRepository,
                               CalibrationEventRepository calibrationEventRepository,
                               ProfileRecordRepository profileRecordRepository,
                               ConversionUtils conversionUtils) {
+        this.openFaasStackModel = openFaasStackModel;
         this.setupService = setupService;
         this.calibrationConfigRepository = calibrationConfigRepository;
         this.calibrationEventRepository = calibrationEventRepository;
@@ -108,6 +118,8 @@ public class CalibrationService {
             calibration = new LocalCalibration(setup, fileHandler.pathToCalibration, this.getCurrentCalibrationConfig(setup).getLocalConfig());
         } else if (CalibrationPlatform.AWS.getText().equals(platform)) {
             calibration = new AWSCalibration(this.getCurrentCalibrationConfig(setup).getAwsCalibrationConfig());
+        } else if (CalibrationPlatform.OPEN_FAAS.getText().equals(platform)) {
+            calibration = new OpenFaasCalibration(this.getCurrentCalibrationConfig(setup).getOpenFaasConfig());
         }
         return calibration;
     }
@@ -181,21 +193,21 @@ public class CalibrationService {
      * Returns a Map, where the ID of the calibration and the memory sizes are included.
      *
      * @param setupName
-     * @param platform
+     * @param platforms
      * @return
      */
-    private Map<Long, String> getCalibrations(String setupName, CalibrationPlatform platform) {
+    private Map<Long, String> getCalibrations(String setupName, List<CalibrationPlatform> platforms) {
         List<ICalibrationConfigEventAggregate> calibrationEvents = this.calibrationConfigRepository.findCalibrationEventsBySetupName(setupName);
         Map<Long, String> configInformation = new HashMap<>();
-        calibrationEvents.stream().filter(a -> a.getPlatform().equals(platform)).forEach(a -> {
-            configInformation.put(a.getId(), "Calibration Config Version: " + a.getVersionNumber());
+        calibrationEvents.stream().filter(a -> platforms.contains(a.getPlatform())).forEach(a -> {
+            configInformation.put(a.getId(), "Calibration Config Version: " + a.getVersionNumber() + " on " + a.getPlatform().getText());
         });
         return configInformation;
     }
 
 
     public Map<Long, String> getLocalCalibrations(String setupName) {
-        return this.getCalibrations(setupName, CalibrationPlatform.LOCAL);
+        return this.getCalibrations(setupName, List.of(CalibrationPlatform.LOCAL));
     }
 
     /**
@@ -205,7 +217,7 @@ public class CalibrationService {
      * @return information about the available calibration detail
      */
     public Map<Long, String> getProviderCalibrations(String setupName) {
-        return this.getCalibrations(setupName, CalibrationPlatform.AWS);
+        return this.getCalibrations(setupName, List.of(CalibrationPlatform.AWS, CalibrationPlatform.OPEN_FAAS));
     }
 
 
@@ -223,5 +235,61 @@ public class CalibrationService {
 
     public List<IPointDto> getProfilePointsForSetupAndCalibration(String setup, Integer id) {
         return this.calibrationConfigRepository.getProfilePointsBySetupAndCalibrationId(setup, id);
+    }
+
+    public String generateStackYmlForOpenFaas(String setupName, Integer version) throws SeMoDeException {
+        List<String> stackYml = new ArrayList<>();
+
+        CalibrationConfig calibrationConfig = this.calibrationConfigRepository.findCalibrationConfigBySetupNameAndVersionNumber(setupName, version);
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+        OpenFaasStackModel model = openFaasStackModel.createFunctions(calibrationConfig.getOpenFaasConfig());
+
+        try {
+            return objectMapper.writeValueAsString(model);
+        } catch (JsonProcessingException e) {
+            throw new SeMoDeException("Could not generate stack YML", e);
+        }
+    }
+
+    public String getRegressionFunction(String setupName, Integer calibrationId) {
+        List<IPointDto> points = this.calibrationEventRepository.getCalibrationPoints(calibrationId, setupName);
+        Map<Double, List<Double>> quotaGflops = new HashMap<>();
+        for (IPointDto p : points) {
+            if (quotaGflops.containsKey(p.getX()) == false) {
+                quotaGflops.put(p.getX(), new ArrayList<>());
+            }
+            quotaGflops.get(p.getX()).add(p.getY());
+        }
+        return RegressionComputation.computeRegression(quotaGflops).toString();
+    }
+
+    /**
+     * Compute the resource settings for the currently conigured provider platform based on the gflops list.
+     *
+     * @param setupName
+     * @return
+     */
+    public List<Integer> computeGflopsMapping(String setupName, String gflops) throws SeMoDeException {
+        MappingCalibrationConfig mappingConfig = this.getCurrentCalibrationConfig(setupName).getMappingCalibrationConfig();
+
+        // compute mapping
+        Map<Double, Integer> gflopMapping = new MappingMaster().computeGflopMapping(
+                this.getGlopsList(gflops),
+                this.conversionUtils.mapCalibrationEventList(this.calibrationEventRepository.findByConfigId(mappingConfig.getProviderCalibration().getId())),
+                this.calibrationEventRepository.findFirstPlatformByConfigId(mappingConfig.getProviderCalibration().getId()).getPlatform());
+        // return it to the caller
+        log.info("Gflops,Resource setting map: " + gflopMapping);
+        return gflopMapping.values().stream().collect(Collectors.toList());
+    }
+
+    private List<Double> getGlopsList(String gflops) {
+        if (gflops == null) {
+            return List.of();
+        }
+        return Arrays.stream(gflops.split(","))
+                .map(String::trim)
+                .filter(Predicate.not(String::isEmpty))
+                .map(Double::parseDouble)
+                .collect(Collectors.toList());
     }
 }

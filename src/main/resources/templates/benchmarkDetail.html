@@ -177,11 +177,34 @@
                            th:field="*{awsBenchmarkConfig.usagePlanId}"/></td>
             </tr>
         </table>
-        <div class="py-1 px-1">
-            <button id="updateBenchmarkConfigButton" class="btn btn-dark py-1 px-1" style="width:200px">Update
-                configuration
-            </button>
-        </div>
+
+    </div>
+
+    <div class="stabY">
+        <h5>OpenFaaS Benchmark Settings</h5>
+        <table class="table table-sm">
+            <tr>
+                <td>Base URL for log files</td>
+                <td><input id="openFaaSBaseUrl"
+                           th:field="*{openFaasBenchmarkConfig.openFaaSBaseUrl}"/></td>
+            </tr>
+            <tr>
+                <td>Resource settings (comma separated)</td>
+                <td><input id="openFaaSResourceSetting"
+                           th:field="*{openFaasBenchmarkConfig.openFaaSResourceSetting}"/></td>
+            </tr>
+            <tr>
+                <td>Number of runs</td>
+                <td><input id="openFaaSNumberOfRuns"
+                           th:field="*{openFaasBenchmarkConfig.openFaaSNumberOfRuns}"/></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="py-1 px-1">
+        <button id="updateBenchmarkConfigButton" class="btn btn-dark py-1 px-1" style="width:200px">Update
+            configuration
+        </button>
     </div>
 </form>
 
@@ -195,20 +218,24 @@
 
 <div class="stabX py-1">
     <h5>Pipeline Commands</h5>
-    <button class="btn btn-dark py-1 px-1" style="width:200px" id="deployFunction">Deploy</button>
+    <button class="btn btn-dark py-1 px-1" style="width:200px" id="deployFunction">Deploy (AWS)</button>
     <span id="deployButtonInfo"></span>
 </div>
 <div class="stabX py-1">
-    <button class="btn btn-dark py-1 px-1" style="width:200px" id="undeployFunction">Undeploy</button>
+    <button class="btn btn-dark py-1 px-1" style="width:200px" id="undeployFunction">Undeploy (AWS)</button>
     <span id="undeployButtonInfo"></span>
 </div>
 <div class="stabX py-1">
-    <button class="btn btn-dark py-1 px-1" style="width:200px" id="executeBenchmark">Execute Benchmark</button>
+    <button class="btn btn-dark py-1 px-1" style="width:200px" id="executeBenchmark">Execute Benchmark (AWS)</button>
     <span id="executeButtonInfo"></span>
 </div>
 <div class="stabX py-1">
-    <button class="btn btn-dark py-1 px-1" style="width:200px" id="fetchData">Fetch Data</button>
+    <button class="btn btn-dark py-1 px-1" style="width:200px" id="fetchData">Fetch Data (AWS)</button>
     <span id="fetchButtonInfo"></span>
+</div>
+<div class="stabX py-1">
+    <button class="btn btn-dark py-1 px-1" style="width:200px" id="fetchDataOpenFaas">Fetch Data (OpenFaaS)</button>
+    <span id="fetchDataOpenFaasInfo"></span>
 </div>
 
 

@@ -1,6 +1,6 @@
 package de.uniba.dsg.serverless.pipeline.calibration.mapping;
 
-import de.uniba.dsg.serverless.pipeline.calibration.local.PhysicalCoreFinder;
+import de.uniba.dsg.serverless.pipeline.calibration.util.PhysicalCoreFinder;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -9,10 +9,14 @@ public class SimpleFunction {
 
     private final double slope;
     private final double intercept;
+    private final double r;
+    private final double rSquare;
 
-    public SimpleFunction(final double slope, final double intercept) {
+    public SimpleFunction(final double slope, final double intercept, final double r, final double rSquare) {
         this.slope = slope;
         this.intercept = intercept;
+        this.r = r;
+        this.rSquare = rSquare;
     }
 
     /**
@@ -35,6 +39,17 @@ public class SimpleFunction {
     public double computeDependentResult(final SimpleFunction function, final double y) {
         log.info("cpuShare = f(memorySize)= (" + function.slope + "* y + " + function.intercept + " - " + this.intercept + ") / " + this.slope);
         return (function.slope * y + function.intercept - this.intercept) / this.slope;
+    }
+
+    /**
+     * y = m*x +t
+     * computes x
+     *
+     * @param y
+     * @return
+     */
+    public double computeX(final double y) {
+        return (y - this.intercept) / this.slope;
     }
 
     /**
@@ -61,6 +76,6 @@ public class SimpleFunction {
 
     @Override
     public String toString() {
-        return "f(x)" + " = " + this.slope + " * x " + " + " + this.intercept;
+        return "r: " + this.r + " - R²: " + this.rSquare + " f(x)" + " = " + this.slope + " * x " + " + " + this.intercept;
     }
 }

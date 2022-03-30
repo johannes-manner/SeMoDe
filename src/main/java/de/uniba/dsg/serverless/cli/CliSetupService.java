@@ -34,6 +34,7 @@ public class CliSetupService implements CustomUtility {
                     "fetchBenchmark" + "\n" +
                     "startAwsCalibration" + "\n" +
                     "startLocalCalibration" + "\n" +
+                    "startOpenFaasCalibration" + "\n" +
                     "printMappingInfo" + "\n" +
                     "runFunctionLocally" + "\n"
             );
@@ -67,6 +68,9 @@ public class CliSetupService implements CustomUtility {
                 break;
             case "startLocalCalibration":
                 this.calibrationService.startCalibration(setupName, CalibrationPlatform.LOCAL.getText());
+                break;
+            case "startOpenFaasCalibration":
+                this.calibrationService.startCalibration(setupName, CalibrationPlatform.OPEN_FAAS.getText());
                 break;
             // mapping and run function locally
             case "printMappingInfo":

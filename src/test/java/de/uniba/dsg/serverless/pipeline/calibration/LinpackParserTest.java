@@ -31,6 +31,15 @@ public class LinpackParserTest {
     }
 
     @Test
+    public void testOpenFaaSCorrupted() throws SeMoDeException, URISyntaxException {
+        LinpackParser parser = new LinpackParser(Paths.get(LinpackParser.class.getResource("/linpackParser/linpack_openfaas").toURI()));
+        LinpackResult linpackResult = parser.parseLinpack();
+        assertEquals(177.4384, linpackResult.getGflops());
+        assertEquals(3.7584999999999997, linpackResult.getExecutionTimeInS());
+    }
+
+
+    @Test
     public void testCompletelyCorruptedCase() throws URISyntaxException {
         LinpackParser parser = new LinpackParser(Paths.get(LinpackParser.class.getResource("/linpackParser/linpack_corrupted_completely").toURI()));
         assertThrows(SeMoDeException.class, () -> parser.parseLinpack());

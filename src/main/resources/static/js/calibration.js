@@ -4,6 +4,14 @@ var calibrationVersions = document.getElementById('calibrationVersions');
 var localSteps = document.getElementById('localSteps');
 var numberOfLocalCalibration = document.getElementById('numberOfLocalCalibration');
 var localCalibrationDockerSourceFolder = document.getElementById('localCalibrationDockerSourceFolder');
+var openFaasBaseURL = document.getElementById('openFaasBaseURL');
+var openFaasFunctionname = document.getElementById('openFaasFunctionname');
+var numberOfOpenFaasCalibration = document.getElementById('numberOfOpenFaasCalibration');
+var openFaasIncrements = document.getElementById('openFaasIncrements');
+var dockerHubUsername = document.getElementById('dockerHubUsername');
+var openFaasUsername = document.getElementById('openFaasUsername');
+var openFaasPassword = document.getElementById('openFaasPassword');
+var openFaasFileTransferURL = document.getElementById('fileTransferURL');
 var awsBucketName = document.getElementById('awsBucketName');
 var numberOfAWSExecutions = document.getElementById('numberOfAWSExecutions');
 var awsRegion = document.getElementById('awsRegion');
@@ -18,6 +26,7 @@ var awsRestApiId = document.getElementById('awsRestApiId');
 var awsApiKeyId = document.getElementById('awsApiKeyId');
 var awsUsagePlanId = document.getElementById('awsUsagePlanId');
 var mappingProviderPlatform = document.getElementById('mappingProviderPlatform');
+var gflopsSizesCalibration = document.getElementById('gflopsSizesCalibration');
 var runConfigDockerSourceFolder = document.getElementById('runConfigDockerSourceFolder');
 var runConfigEnvironmentVariableFile = document.getElementById('runConfigEnvironmentVariableFile');
 var runConfigNumberOfProfiles = document.getElementById('runConfigNumberOfProfiles');
@@ -26,9 +35,12 @@ var machineName = document.getElementById('machineName');
 var cpuModelName = document.getElementById('cpuModelName');
 var modelNr = document.getElementById('modelNr');
 var operatingSystem = document.getElementById('operatingSystem');
+var providerCalibrationFunction = document.getElementById('providerCalibrationFunction');
+var localCalibrationFunction = document.getElementById('localCalibrationFunction');
 
 // pipeline buttons
 var startLocalCalibration = document.getElementById('startLocalCalibration');
+var startOpenFaasCalibration = document.getElementById('startOpenFaasCalibration');
 var deployCalibration = document.getElementById('deployCalibration');
 var startCalibration = document.getElementById('startCalibration');
 var undeployCalibration = document.getElementById('undeployCalibration');
@@ -74,6 +86,14 @@ calibrationVersions.addEventListener('change', function () {
             localSteps.value = result.localConfig.localSteps;
             numberOfLocalCalibration.value = result.localConfig.numberOfLocalCalibrations;
             localCalibrationDockerSourceFolder.value = result.localConfig.calibrationDockerSourceFolder;
+            openFaasBaseURL.value = result.openFaasConfig.baseUrl;
+            openFaasFunctionname.value = result.openFaasConfig.functionName;
+            numberOfOpenFaasCalibration.value = result.openFaasConfig.numberOfCalibrations;
+            openFaasIncrements.value = result.openFaasConfig.increments;
+            dockerHubUsername.value = result.openFaasConfig.dockerUsername;
+            openFaasUsername.value = result.openFaasConfig.username;
+            openFaasPassword.value = result.openFaasConfig.password;
+            openFaasFileTransferURL.value = result.openFaasConfig.fileTransferURL;
             awsBucketName.value = result.awsCalibrationConfig.bucketName;
             numberOfAWSExecutions.value = result.awsCalibrationConfig.numberOfAWSExecutions;
             awsRegion.value = result.awsCalibrationConfig.benchmarkConfig.region;
@@ -89,6 +109,7 @@ calibrationVersions.addEventListener('change', function () {
             awsApiKeyId.value = result.awsCalibrationConfig.benchmarkConfig.apiKeyId;
             awsUsagePlanId.value = result.awsCalibrationConfig.benchmarkConfig.usagePlanId;
             mappingProviderPlatform.value = result.mappingCalibrationConfig.memorySizesCalibration;
+            gflopsSizesCalibration.value = result.mappingCalibrationConfig.gflopsSizesCalibration;
             runConfigDockerSourceFolder.value = result.runningCalibrationConfig.functionDockerSourceFolder;
             runConfigEnvironmentVariableFile.value = result.runningCalibrationConfig.environmentVariablesFile;
             runConfigNumberOfProfiles.value = result.runningCalibrationConfig.numberOfProfiles;
@@ -101,7 +122,7 @@ calibrationVersions.addEventListener('change', function () {
 });
 
 startLocalCalibration.addEventListener('click', function () {
-    var deployDecision = confirm("Do you really want to fetch benchmark?")
+    var deployDecision = confirm("Do you really want to execute local calibration?")
     if (deployDecision == true) {
         $.ajax({
             url: "/semode/v1/" + setupName + "/calibration/start/local",
@@ -112,9 +133,21 @@ startLocalCalibration.addEventListener('click', function () {
     }
 });
 
+startOpenFaasCalibration.addEventListener('click', function () {
+    var deployDecision = confirm("Do you really want to execute OpenFaaS calibration?")
+    if (deployDecision == true) {
+        $.ajax({
+            url: "/semode/v1/" + setupName + "/calibration/start/openfaas",
+            success: function (result) {
+                location.reload();
+            }
+        });
+    }
+});
+
 
 deployCalibration.addEventListener('click', function () {
-    var deployDecision = confirm("Do you really want to deploy calibration?")
+    var deployDecision = confirm("Do you really want to deploy AWS calibration?")
     if (deployDecision == true) {
         $.ajax({
             url: "/semode/v1/" + setupName + "/calibration/deploy/aws",
@@ -127,7 +160,7 @@ deployCalibration.addEventListener('click', function () {
 
 
 startCalibration.addEventListener('click', function () {
-    var deployDecision = confirm("Do you really want to deploy calibration?")
+    var deployDecision = confirm("Do you really want to start AWS calibration?")
     if (deployDecision == true) {
         $.ajax({
             url: "/semode/v1/" + setupName + "/calibration/start/aws",
@@ -140,7 +173,7 @@ startCalibration.addEventListener('click', function () {
 
 
 undeployCalibration.addEventListener('click', function () {
-    var deployDecision = confirm("Do you really want to undeploy calibration?")
+    var deployDecision = confirm("Do you really want to undeploy AWS calibration?")
     if (deployDecision == true) {
         $.ajax({
             url: "/semode/v1/" + setupName + "/calibration/undeploy/aws",
@@ -153,7 +186,7 @@ undeployCalibration.addEventListener('click', function () {
 
 
 computeMapping.addEventListener('click', function () {
-    var deployDecision = confirm("Do you really want to undeploy calibration?")
+    var deployDecision = confirm("Do you really want to compute mapping?")
     if (deployDecision == true) {
         $.ajax({
             url: "/semode/v1/" + setupName + "/calibration/mapping",
@@ -164,9 +197,18 @@ computeMapping.addEventListener('click', function () {
     }
 });
 
+gflopsSizesCalibration.addEventListener("blur", function () {
+    $.ajax({
+        url: "/semode/v1/" + setupName + "/mapping/gflops?gflops=" + gflopsSizesCalibration.value,
+        success: function (result) {
+            document.getElementById('gflopsSizesCalibrationInfo').innerHTML = result;
+        }
+    });
+});
+
 
 runFunction.addEventListener('click', function () {
-    var deployDecision = confirm("Do you really want to undeploy calibration?")
+    var deployDecision = confirm("Do you really want to simulte the function run?")
     if (deployDecision == true) {
         $.ajax({
             url: "/semode/v1/" + setupName + "/simulation/run",
@@ -239,14 +281,25 @@ removeDatasetProfiles.addEventListener('click', function () {
 
 localCalibrationConfig.addEventListener('change', function () {
     addCalibrationDataToChart(localCalibrationConfig.value, localCalibrationChartHandle);
+    displayRegressionFunction(localCalibrationConfig.value, localCalibrationFunction);
 });
 
 providerCalibrationConfig.addEventListener('change', function () {
     addCalibrationDataToChart(providerCalibrationConfig.value, providerCalibrationChartHandle);
+    displayRegressionFunction(providerCalibrationConfig.value, providerCalibrationFunction);
 });
 
 addCalibrationDataToChart(localCalibrationConfig.value, localCalibrationChartHandle);
-addCalibrationDataToChart(providerCalibrationConfig.value, providerCalibrationChartHandle);
+addCalibrationDataToChart(providerCalibrationConfig.value, providerCalibrationChartHandle)
+
+function displayRegressionFunction(calibrationId, labelForDisplayingInfo) {
+    $.ajax({
+        url: "/semode/v1/" + setupName + "/calibration/" + calibrationId + "/mapping",
+        success: function (result) {
+            labelForDisplayingInfo.textContent = result;
+        }
+    });
+}
 
 // update already executed profiles selection
 $.ajax({

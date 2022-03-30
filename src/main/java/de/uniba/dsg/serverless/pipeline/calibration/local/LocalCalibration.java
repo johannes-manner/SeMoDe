@@ -5,6 +5,7 @@ import de.uniba.dsg.serverless.pipeline.calibration.LinpackParser;
 import de.uniba.dsg.serverless.pipeline.calibration.model.CalibrationEvent;
 import de.uniba.dsg.serverless.pipeline.calibration.model.LinpackResult;
 import de.uniba.dsg.serverless.pipeline.calibration.provider.CalibrationMethods;
+import de.uniba.dsg.serverless.pipeline.calibration.util.QuotaCalculator;
 import de.uniba.dsg.serverless.pipeline.model.CalibrationPlatform;
 import de.uniba.dsg.serverless.pipeline.model.config.LocalCalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
@@ -15,8 +16,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Slf4j
 public class LocalCalibration implements CalibrationMethods {
@@ -82,14 +81,7 @@ public class LocalCalibration implements CalibrationMethods {
     }
 
     private List<CalibrationEvent> executeCalibrations(DockerContainer linpackContainer) throws SeMoDeException {
-        final int physicalCores = PhysicalCoreFinder.getPhysicalCores();
-        log.info("Number of cores: " + physicalCores);
-        final List<Double> quotas = IntStream
-                // 1.1 results from 1 + avoid rounding errors (0.1)
-                .range(1, (int) (1.1 + ((double) physicalCores * 1.0 / this.config.getLocalSteps())))
-                .mapToDouble(v -> this.config.getLocalSteps() * v)
-                .boxed()
-                .collect(Collectors.toList());
+        final List<Double> quotas = QuotaCalculator.calculateQuotas(this.config.getLocalSteps());
 
         // perform subcalibration - execute number of Calibrations N times
         final List<CalibrationEvent> subResults = new ArrayList<>();

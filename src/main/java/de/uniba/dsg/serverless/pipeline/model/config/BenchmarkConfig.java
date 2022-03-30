@@ -3,6 +3,7 @@ package de.uniba.dsg.serverless.pipeline.model.config;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.uniba.dsg.serverless.pipeline.benchmark.model.LocalRESTEvent;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
+import de.uniba.dsg.serverless.pipeline.model.config.openfaas.OpenFaasBenchmarkConfig;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -45,6 +46,9 @@ public class BenchmarkConfig {
     @Embedded
     private AWSBenchmarkConfig awsBenchmarkConfig;
 
+    @Embedded
+    private OpenFaasBenchmarkConfig openFaasBenchmarkConfig;
+
     @JsonIgnore
     @OneToMany(mappedBy = "benchmarkConfig", fetch = FetchType.LAZY)
     private List<LocalRESTEvent> localExecutionEvents;
@@ -56,6 +60,7 @@ public class BenchmarkConfig {
 
     public BenchmarkConfig(SetupConfig setupConfig) {
         this.awsBenchmarkConfig = new AWSBenchmarkConfig();
+        this.openFaasBenchmarkConfig = new OpenFaasBenchmarkConfig();
         this.setupConfig = setupConfig;
         this.setupName = setupConfig.getSetupName();
     }
@@ -74,6 +79,7 @@ public class BenchmarkConfig {
         this.setupName = benchmarkConfig.setupName;
         this.setupConfig = benchmarkConfig.setupConfig;
         this.awsBenchmarkConfig = benchmarkConfig.awsBenchmarkConfig;
+        this.openFaasBenchmarkConfig = benchmarkConfig.openFaasBenchmarkConfig;
         this.localExecutionEvents = benchmarkConfig.localExecutionEvents;
         this.numberOfLocalDbEvents = benchmarkConfig.numberOfLocalDbEvents;
         this.numberOfFetchedData = benchmarkConfig.numberOfFetchedData;
@@ -117,6 +123,7 @@ public class BenchmarkConfig {
                 ", setupName='" + setupName + '\'' +
                 ", setupConfig=" + setupConfig.getSetupName() +
                 ", awsBenchmarkConfig=" + awsBenchmarkConfig +
+                ", openFaasBenchmarkConfig=" + openFaasBenchmarkConfig +
                 ", localExecutionEvents=" + localExecutionEvents.size() +
                 ", numberOfLocalDbEvents=" + numberOfLocalDbEvents +
                 ", numberOfFetchedData=" + numberOfFetchedData +

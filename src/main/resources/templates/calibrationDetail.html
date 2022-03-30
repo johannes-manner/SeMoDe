@@ -142,6 +142,7 @@
             </div>
         </table>
     </div>
+
     <div class="stabY">
         <h5>AWS specific Benchmark Settings - Deployment Internals</h5>
         <table class="table table-sm">
@@ -180,6 +181,7 @@
                         <option th:each="key: ${localCalibrations.keySet()}" th:value="${key}"
                                 th:text="${'Id:' + key + ' - ' + localCalibrations.get(key)}"></option>
                     </select>
+                    <span id="localCalibrationFunction"></span>
                 </td>
             </tr>
             <td th:text="${'Provider calibration configuration (Current ID: ' + (calibrationConfig.mappingCalibrationConfig.providerCalibration != null ? calibrationConfig.mappingCalibrationConfig.providerCalibration.id : '-' ) + ')' }"></td>
@@ -192,6 +194,7 @@
                     <option th:each="key: ${providerCalibrations.keySet()}" th:value="${key}"
                             th:text="${'Id:' + key + ' - ' + providerCalibrations.get(key)}"></option>
                 </select>
+                <span id="providerCalibrationFunction"></span>
             </td>
             <tr>
                 <td>Memory Sizes on Provider Platform (comma separated)</td>
@@ -199,8 +202,72 @@
                         id="mappingProviderPlatform"
                         th:field="*{mappingCalibrationConfig.memorySizesCalibration}"/></td>
             </tr>
+            <tr>
+                <td>GFLOPS to compute the resource setting on provider (comma separated)</td>
+                <td><input
+                        id="gflopsSizesCalibration"
+                        th:field="*{mappingCalibrationConfig.gflopsSizesCalibration}"/>
+                    <span id="gflopsSizesCalibrationInfo"></span>
+                </td>
+            </tr>
         </table>
     </div>
+    <div class="stabY">
+        <h5>OpenFaaS Configuration</h5>
+        <table class="table table-sm">
+            <div id="openFaasSettings">
+                <tr>
+                    <td>Base URL, e.g. http://localhost:8080/functions/</td>
+                    <td><input id="openFaasBaseURL"
+                               th:field="*{openFaasConfig.baseUrl}"/></td>
+                </tr>
+                <tr>
+                    <td>Function name</td>
+                    <td><input id="openFaasFunctionname"
+                               th:field="*{openFaasConfig.functionName}"/></td>
+                </tr>
+                <tr>
+                    <td>Number of OpenFaaS calibrations</td>
+                    <td><input id="numberOfOpenFaasCalibration"
+                               th:field="*{openFaasConfig.numberOfCalibrations}"/></td>
+                </tr>
+                <tr>
+                    <td>Increments (steps in which CPU is incremented)</td>
+                    <td><input id="openFaasIncrements"
+                               th:field="*{openFaasConfig.increments}"/></td>
+                </tr>
+                <tr>
+                    <td>Username - Docker Hub</td>
+                    <td><input id="dockerHubUsername"
+                               th:field="*{openFaasConfig.dockerUsername}"/></td>
+                </tr>
+                <tr>
+                    <td>Username - Basic Auth</td>
+                    <td><input id="openFaasUsername"
+                               th:field="*{openFaasConfig.username}"/></td>
+                </tr>
+                <tr>
+                    <td>Password - Basic Auth</td>
+                    <td><input id="openFaasPassword"
+                               th:field="*{openFaasConfig.password}"/></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><a class="btn btn-dark py-0"
+                           th:href="@{calibration/{id}/version/{version}/stack.yml
+                           (id=${calibrationConfig.id},version=${calibrationConfig.versionNumber})}">
+                        Generate and Download stack.yml</a>
+                </tr>
+                <tr>
+                    <td>File Transfer Base URL</td>
+                    <td><input id="fileTransferURL"
+                               th:field="*{openFaasConfig.fileTransferURL}"/></td>
+                </tr>
+
+            </div>
+        </table>
+    </div>
+
     <div class="stabX py-1">
         <h5>Machine Configuration</h5>
         <table class="table table-sm">
@@ -300,15 +367,22 @@
     <span id="startLocalCalibrationInfo"></span>
 </div>
 <div class="stabX py-1">
-    <button id="deployCalibration" class="btn btn-dark py-1 px-1" style="width:200px">Deploy Calibration</button>
+    <h5>Pipeline Commands</h5>
+    <button class="btn btn-dark py-1 px-1" style="width:200px" id="startOpenFaasCalibration">Start OpenFaaS Calibration
+    </button>
+    <span id="startOpenFaasCalibrationInfo"></span>
+</div>
+<div class="stabX py-1">
+    <button id="deployCalibration" class="btn btn-dark py-1 px-1" style="width:200px">Deploy AWS Calibration</button>
     <span id="deployCalibrationInfo"></span>
 </div>
 <div class="stabX py-1">
-    <button id="startCalibration" class="btn btn-dark py-1 px-1" style="width:200px">Start Calibration</button>
+    <button id="startCalibration" class="btn btn-dark py-1 px-1" style="width:200px">Start AWS Calibration</button>
     <span id="startCalibrationInfo"></span>
 </div>
 <div class="stabX py-1">
-    <button id="undeployCalibration" class="btn btn-dark py-1 px-1" style="width:200px">Undeploy Calibration</button>
+    <button id="undeployCalibration" class="btn btn-dark py-1 px-1" style="width:200px">Undeploy AWS Calibration
+    </button>
     <span id="undeployCalibrationInfo"></span>
 </div>
 <div class="stabX py-1">

@@ -4,7 +4,7 @@ import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 
 public enum CalibrationPlatform {
 
-    LOCAL("local"), AWS("aws");
+    LOCAL("local"), AWS("aws"), OPEN_FAAS("openfaas");
 
     private final String text;
 
