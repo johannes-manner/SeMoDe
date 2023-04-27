@@ -51,7 +51,9 @@ var runFunction = document.getElementById('runFunction');
 // charts
 //  dropdowns
 var localCalibrationConfig = document.getElementById('localCalibrationConfig');
+var localCalibrationStats = document.getElementById('localCalibrationStats');
 var providerCalibrationConfig = document.getElementById('providerCalibrationConfig');
+var providerCalibrationStats = document.getElementById('providerCalibrationStats');
 //  charts and remove buttons
 var localCalibrationChart = document.getElementById('localCalibrationChart');
 var removeDatasetLocalCalibration = document.getElementById('removeDatasetLocalCalibration');
@@ -221,7 +223,7 @@ runFunction.addEventListener('click', function () {
 
 // CHART HANDLING
 
-function addCalibrationDataToChart(calibrationId, chart) {
+function addCalibrationDataToChart(calibrationId, chart, regressionInfoField) {
     $.ajax({
         url: "/semode/v1/" + setupName + "/calibration/" + calibrationId + "/data",
         success: function (result) {
@@ -238,6 +240,7 @@ function addCalibrationDataToChart(calibrationId, chart) {
             }
         }
     });
+    displayRegressionFunction(calibrationId, regressionInfoField);
 }
 
 var chartConfig = {
@@ -280,17 +283,17 @@ removeDatasetProfiles.addEventListener('click', function () {
 });
 
 localCalibrationConfig.addEventListener('change', function () {
-    addCalibrationDataToChart(localCalibrationConfig.value, localCalibrationChartHandle);
+    addCalibrationDataToChart(localCalibrationConfig.value, localCalibrationChartHandle, localCalibrationStats);
     displayRegressionFunction(localCalibrationConfig.value, localCalibrationFunction);
 });
 
 providerCalibrationConfig.addEventListener('change', function () {
-    addCalibrationDataToChart(providerCalibrationConfig.value, providerCalibrationChartHandle);
+    addCalibrationDataToChart(providerCalibrationConfig.value, providerCalibrationChartHandle, providerCalibrationStats);
     displayRegressionFunction(providerCalibrationConfig.value, providerCalibrationFunction);
 });
 
-addCalibrationDataToChart(localCalibrationConfig.value, localCalibrationChartHandle);
-addCalibrationDataToChart(providerCalibrationConfig.value, providerCalibrationChartHandle)
+addCalibrationDataToChart(localCalibrationConfig.value, localCalibrationChartHandle, localCalibrationStats);
+addCalibrationDataToChart(providerCalibrationConfig.value, providerCalibrationChartHandle, providerCalibrationStats)
 
 function displayRegressionFunction(calibrationId, labelForDisplayingInfo) {
     $.ajax({

@@ -76,6 +76,6 @@ public class SimpleFunction {
 
     @Override
     public String toString() {
-        return "r: " + this.r + " - R²: " + this.rSquare + " f(x)" + " = " + this.slope + " * x " + " + " + this.intercept;
+        return String.format("r: %4f - R²:  %4f f(x) = %4f * x + %4f", this.r, this.rSquare, this.slope, this.intercept);
     }
 }
