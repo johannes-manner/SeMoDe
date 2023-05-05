@@ -321,15 +321,24 @@ executedProfilesSelection.addEventListener('change', function () {
     var selectedProfileCalibration = executedProfilesSelection.value;
     if (selectedProfileCalibration > 0) {
         $.ajax({
-            url: "/semode/v1/" + setupName + "/profiles/" + selectedProfileCalibration,
+            url: "/semode/v1/" + setupName + "/profiles/" + selectedProfileCalibration + "?avg=512",
             success: function (result) {
                 console.log(result);
                 const RGB = 255;
                 var calibrationDataOf = {
                     label: 'Profile ' + selectedProfileCalibration,
-                    data: result,
+                    data: result.profileData,
                     backgroundColor: 'rgb(' + Math.random() * RGB + ', ' + Math.random() * RGB + ', ' + Math.random() * RGB + ')'
                 };
+
+                var avgData = {
+                    type: 'line',
+                    label: 'AVG',
+                    data: result.avgData,
+                    backgroundColor: 'rgb(' + Math.random() * RGB + ', ' + Math.random() * RGB + ', ' + Math.random() * RGB + ')',
+                    fill: false
+                };
+                profilesChartHandle.data.datasets.push(avgData);
                 profilesChartHandle.data.datasets.push(calibrationDataOf);
                 profilesChartHandle.update();
             }

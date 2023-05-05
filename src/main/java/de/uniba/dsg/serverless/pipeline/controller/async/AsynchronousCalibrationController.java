@@ -1,5 +1,7 @@
 package de.uniba.dsg.serverless.pipeline.controller.async;
 
+import de.uniba.dsg.serverless.pipeline.controller.async.dto.IPointDtoClass;
+import de.uniba.dsg.serverless.pipeline.controller.async.dto.ProfileDataDto;
 import de.uniba.dsg.serverless.pipeline.model.config.CalibrationConfig;
 import de.uniba.dsg.serverless.pipeline.repo.projection.ICalibrationConfigId;
 import de.uniba.dsg.serverless.pipeline.repo.projection.IPointDto;
@@ -17,7 +19,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -90,11 +95,41 @@ public class AsynchronousCalibrationController {
     }
 
     @GetMapping("semode/v1/{setup}/profiles/{calibrationConfigId}")
-    public ResponseEntity<IPointDto[]> getProfilePointsForSetupAndCalibration(@PathVariable(value = "setup") String setupName,
-                                                                              @PathVariable("calibrationConfigId") Integer id,
-                                                                              @AuthenticationPrincipal User user) {
+    public ResponseEntity<ProfileDataDto> getProfilePointsForSetupAndCalibration(@PathVariable(value = "setup") String setupName,
+                                                                                 @PathVariable("calibrationConfigId") Integer id,
+                                                                                 @RequestParam Double avg,
+                                                                                 @AuthenticationPrincipal User user) {
         if (this.service.checkSetupAccessRights(setupName, user)) {
-            return ResponseEntity.ok(this.calibrationService.getProfilePointsForSetupAndCalibration(setupName, id).toArray(IPointDto[]::new));
+
+            List<IPointDto> profilingData = this.calibrationService.getProfilePointsForSetupAndCalibration(setupName, id);
+            Map<Double, List<Double>> profilingDataPerMB = new HashMap<>();
+
+            for (IPointDto p : profilingData) {
+                profilingDataPerMB.putIfAbsent(p.getX(), new ArrayList<>());
+                profilingDataPerMB.get(p.getX()).add(p.getY());
+            }
+            // check if the avg value is in this new list, otherwise use the minimum
+            double avgValue = -1.0;
+            double minMBValue = profilingDataPerMB.keySet().stream().min(Double::compareTo).orElse(-1.0);
+            double maxMBValue = profilingDataPerMB.keySet().stream().max(Double::compareTo).orElse(-1.0);
+            if (profilingDataPerMB.containsKey(avg)) {
+                avgValue = profilingDataPerMB.get(avg).stream().reduce(-1.0, (a1, a2) -> a1 + a2) / profilingDataPerMB.get(avg).stream().count();
+            } else {
+                avgValue = profilingDataPerMB.get(minMBValue).stream().reduce(-1.0, (a1, a2) -> a1 + a2) / profilingDataPerMB.get(minMBValue).stream().count();
+                avg = minMBValue;
+            }
+
+            List<IPointDto> avgCurve = new ArrayList<>();
+            for (double i = minMBValue; i <= maxMBValue; i++) {
+                avgCurve.add(new IPointDtoClass(i, avgValue * avg / i));
+            }
+
+
+            return ResponseEntity.ok(new ProfileDataDto(
+                    profilingData.toArray(IPointDto[]::new),
+                    avgCurve.toArray(IPointDto[]::new),
+                    profilingDataPerMB.keySet().stream().mapToDouble(d -> d).toArray(),
+                    avg));
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
