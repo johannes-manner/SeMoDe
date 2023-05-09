@@ -124,12 +124,15 @@ public class AsynchronousCalibrationController {
                 avgCurve.add(new IPointDtoClass(i, avgValue * avg / i));
             }
 
+            // getCPUMemoryEquivalents for drawing vertical lines
+            Map<Integer, Integer> cpuMemoryEquivalents = this.calibrationService.computeCPUMemoryEquivalents(id.longValue());
 
             return ResponseEntity.ok(new ProfileDataDto(
                     profilingData.toArray(IPointDto[]::new),
                     avgCurve.toArray(IPointDto[]::new),
-                    profilingDataPerMB.keySet().stream().mapToDouble(d -> d).toArray(),
-                    avg));
+                    profilingDataPerMB.keySet().stream().mapToDouble(d -> d).sorted().toArray(),
+                    avg,
+                    cpuMemoryEquivalents));
         } else {
             log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

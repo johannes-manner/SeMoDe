@@ -33,6 +33,7 @@ var runConfigNumberOfProfiles = document.getElementById('runConfigNumberOfProfil
 var executedProfilesSelection = document.getElementById('executedProfilesSelection');
 var machineName = document.getElementById('machineName');
 var cpuModelName = document.getElementById('cpuModelName');
+var cores = document.getElementById('cores');
 var modelNr = document.getElementById('modelNr');
 var operatingSystem = document.getElementById('operatingSystem');
 var providerCalibrationFunction = document.getElementById('providerCalibrationFunction');
@@ -54,6 +55,7 @@ var localCalibrationConfig = document.getElementById('localCalibrationConfig');
 var localCalibrationStats = document.getElementById('localCalibrationStats');
 var providerCalibrationConfig = document.getElementById('providerCalibrationConfig');
 var providerCalibrationStats = document.getElementById('providerCalibrationStats');
+var averageAProfileSelection = document.getElementById('averageAProfileSelection');
 //  charts and remove buttons
 var localCalibrationChart = document.getElementById('localCalibrationChart');
 var removeDatasetLocalCalibration = document.getElementById('removeDatasetLocalCalibration');
@@ -117,6 +119,7 @@ calibrationVersions.addEventListener('change', function () {
             runConfigNumberOfProfiles.value = result.runningCalibrationConfig.numberOfProfiles;
             machineName.value = result.machineConfig.machineName;
             cpuModelName.value = result.machineConfig.cpuModelName;
+            cores.value = result.machineConfig.noCPUs;
             modelNr.value = result.machineConfig.modelNr;
             operatingSystem.value = result.machineConfig.operatingSystem;
         }
@@ -292,6 +295,10 @@ providerCalibrationConfig.addEventListener('change', function () {
     displayRegressionFunction(providerCalibrationConfig.value, providerCalibrationFunction);
 });
 
+averageAProfileSelection.addEventListener('change', function () {
+    updateSimulationProfilingGraph();
+});
+
 addCalibrationDataToChart(localCalibrationConfig.value, localCalibrationChartHandle, localCalibrationStats);
 addCalibrationDataToChart(providerCalibrationConfig.value, providerCalibrationChartHandle, providerCalibrationStats)
 
@@ -320,28 +327,97 @@ $.ajax({
 executedProfilesSelection.addEventListener('change', function () {
     var selectedProfileCalibration = executedProfilesSelection.value;
     if (selectedProfileCalibration > 0) {
-        $.ajax({
-            url: "/semode/v1/" + setupName + "/profiles/" + selectedProfileCalibration + "?avg=512",
-            success: function (result) {
-                console.log(result);
-                const RGB = 255;
-                var calibrationDataOf = {
-                    label: 'Profile ' + selectedProfileCalibration,
-                    data: result.profileData,
-                    backgroundColor: 'rgb(' + Math.random() * RGB + ', ' + Math.random() * RGB + ', ' + Math.random() * RGB + ')'
-                };
-
-                var avgData = {
-                    type: 'line',
-                    label: 'AVG',
-                    data: result.avgData,
-                    backgroundColor: 'rgb(' + Math.random() * RGB + ', ' + Math.random() * RGB + ', ' + Math.random() * RGB + ')',
-                    fill: false
-                };
-                profilesChartHandle.data.datasets.push(avgData);
-                profilesChartHandle.data.datasets.push(calibrationDataOf);
-                profilesChartHandle.update();
-            }
-        });
+        updateSimulationProfilingGraph();
     }
 });
+
+function updateSimulationProfilingGraph() {
+    var selectedProfileCalibration = executedProfilesSelection.value;
+    $.ajax({
+        url: "/semode/v1/" + setupName + "/profiles/" + selectedProfileCalibration + "?avg=" + averageAProfileSelection.value,
+        success: function (result) {
+            console.log(result);
+
+            const cpuMemoryEquivalents = new Map(Object.entries(result.cpuMemoryEquivalents));
+            const verticalLines = [];
+
+            cpuMemoryEquivalents.forEach((value, key) => {
+                console.log(key + " - " + value);
+                var lineConfig = {
+                    type: 'line',
+                    xMin: value,
+                    xMax: value,
+                    borderColor: 'rgb(255,193,99)',
+                    borderWidth: 2,
+                }
+                verticalLines.push(lineConfig);
+            });
+
+            profilesChartHandle.destroy();
+
+            var plugins = {
+                annotation: {
+                    annotations: verticalLines
+                }
+            }
+
+            var config = {
+                type: 'scatter',
+                data: {
+                    datasets: [],
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            type: 'linear',
+                            position: 'bottom'
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins
+                }
+            };
+
+            // create new graph
+            profilesChartHandle = new Chart(profilesChart, config);
+
+            // fill the selection for selecting an a for the ideal curve
+            averageAProfileSelection.length = 0;
+            for (i = 0; i < result.avgOptions.length; i++) {
+                var option = document.createElement("option");
+                option.text = "a = " + result.avgOptions[i];
+                option.value = result.avgOptions[i];
+                averageAProfileSelection.add(option);
+                if (result.avgOptions[i] == result.avg) {
+                    averageAProfileSelection.selectedIndex = i;
+                }
+            }
+
+            // add simulation data
+            const RGB = 255;
+            var calibrationDataOf = {
+                label: 'Profile ' + selectedProfileCalibration,
+                data: result.profileData,
+                backgroundColor: 'rgb(' + Math.random() * RGB + ', ' + Math.random() * RGB + ', ' + Math.random() * RGB + ')'
+            };
+
+            // add ideal average curve based on the selected a
+            var avgData = {
+                type: 'line',
+                label: 'AVG ' + selectedProfileCalibration + ', ' + result.avg,
+                pointRadius: 1,
+                pointHoverRadius: 1,
+                data: result.avgData,
+                backgroundColor: 'rgb(' + Math.random() * RGB + ', ' + Math.random() * RGB + ', ' + Math.random() * RGB + ')',
+                fill: false
+            };
+            profilesChartHandle.data.datasets.push(avgData);
+            profilesChartHandle.data.datasets.push(calibrationDataOf);
+            profilesChartHandle.update();
+        }
+    });
+}

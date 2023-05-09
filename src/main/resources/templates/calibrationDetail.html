@@ -284,6 +284,12 @@
                         th:field="*{machineConfig.cpuModelName}"/></td>
             </tr>
             <tr>
+                <td>Number of Cores</td>
+                <td><input
+                        id="cores"
+                        th:field="*{machineConfig.noCPUs}"/></td>
+            </tr>
+            <tr>
                 <td>Model Number</td>
                 <td><input
                         id="modelNr"
@@ -345,6 +351,14 @@
                     </select>
                 </td>
             </tr>
+            <tr>
+                <td>AVG<sub>a</sub></td>
+                <td>
+                    <select id="averageAProfileSelection">
+                        <option value="-1"> --- Select an Option ---</option>
+                    </select>
+                </td>
+            </tr>
         </table>
         <div class="stabX py-1">
             <h5>Profiles for Selected Calibration</h5>
@@ -399,6 +413,7 @@
 
 <div th:replace="fragments/footer :: footer">...</div>
 <script th:src="@{/js/node_modules/chart.js/dist/chart.js}"></script>
+<script th:src="@{/js/node_modules/chartjs-plugin-annotation/dist/chartjs-plugin-annotation.js}"></script>
 <script type="text/javascript" th:src="@{/js/calibration.js}"></script>
 </body>
 </html>

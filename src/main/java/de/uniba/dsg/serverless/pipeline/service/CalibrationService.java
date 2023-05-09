@@ -171,6 +171,22 @@ public class CalibrationService {
         return memorySizeCPUShare;
     }
 
+    public Map<Integer, Integer> computeCPUMemoryEquivalents(Long calibrationId) {
+        Optional<CalibrationConfig> optionalCalibrationConfig = this.calibrationConfigRepository.findById(calibrationId);
+        if (optionalCalibrationConfig.isEmpty()) {
+            return new HashMap<>();
+        }
+
+        CalibrationConfig calibrationConfig = optionalCalibrationConfig.get();
+        MappingCalibrationConfig mappingConfig = calibrationConfig.getMappingCalibrationConfig();
+
+        // compute mapping
+        return new MappingMaster().computeCPUMemoryEquivalents(
+                calibrationConfig.getMachineConfig().getNoCPUs(),
+                this.conversionUtils.mapCalibrationEventList(this.calibrationEventRepository.findByConfigId(mappingConfig.getLocalCalibration().getId())),
+                this.conversionUtils.mapCalibrationEventList(this.calibrationEventRepository.findByConfigId(mappingConfig.getProviderCalibration().getId())));
+    }
+
     public void runFunctionLocally(String setup) throws SeMoDeException {
         log.info("Running the function with the computed cpu share for the specified memory settings...");
 
@@ -269,6 +285,7 @@ public class CalibrationService {
      * @param setupName
      * @return
      */
+    // TOT
     public List<Integer> computeGflopsMapping(String setupName, String gflops) throws SeMoDeException {
         MappingCalibrationConfig mappingConfig = this.getCurrentCalibrationConfig(setupName).getMappingCalibrationConfig();
 

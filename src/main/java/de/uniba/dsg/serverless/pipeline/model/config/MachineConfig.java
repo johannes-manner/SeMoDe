@@ -12,11 +12,13 @@ public class MachineConfig {
     private String cpuModelName;
     private String modelNr;
     private String operatingSystem;
+    private int noCPUs;
 
     public MachineConfig() {
         this.machineName = "";
         this.cpuModelName = "";
         this.modelNr = "";
         this.operatingSystem = "";
+        this.noCPUs = 0;
     }
 }
