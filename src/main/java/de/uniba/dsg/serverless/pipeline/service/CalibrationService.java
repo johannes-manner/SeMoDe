@@ -171,7 +171,16 @@ public class CalibrationService {
         return memorySizeCPUShare;
     }
 
-    public Map<Integer, Integer> computeCPUMemoryEquivalents(Long calibrationId) {
+    /**
+     * Return the cpu memory equivalents for displaying at the frontend, but only if they are interesting based on
+     * the simulated data. E.g. if the simulation data is generated until 2048MB, a CPU equivalent for 2435MB is not
+     * returned any more.
+     *
+     * @param calibrationId
+     * @param maxSimulationMBValue
+     * @return
+     */
+    public Map<Integer, Integer> computeCPUMemoryEquivalents(Long calibrationId, double maxSimulationMBValue) {
         Optional<CalibrationConfig> optionalCalibrationConfig = this.calibrationConfigRepository.findById(calibrationId);
         if (optionalCalibrationConfig.isEmpty()) {
             return new HashMap<>();
@@ -181,10 +190,18 @@ public class CalibrationService {
         MappingCalibrationConfig mappingConfig = calibrationConfig.getMappingCalibrationConfig();
 
         // compute mapping
-        return new MappingMaster().computeCPUMemoryEquivalents(
+        Map<Integer, Integer> cpuMemoryEquivalents = new MappingMaster().computeCPUMemoryEquivalents(
                 calibrationConfig.getMachineConfig().getNoCPUs(),
                 this.conversionUtils.mapCalibrationEventList(this.calibrationEventRepository.findByConfigId(mappingConfig.getLocalCalibration().getId())),
                 this.conversionUtils.mapCalibrationEventList(this.calibrationEventRepository.findByConfigId(mappingConfig.getProviderCalibration().getId())));
+
+        for (int noOfCPU = 1; noOfCPU <= calibrationConfig.getMachineConfig().getNoCPUs(); noOfCPU++) {
+            if (cpuMemoryEquivalents.get(noOfCPU) > maxSimulationMBValue) {
+                cpuMemoryEquivalents.remove(noOfCPU);
+            }
+        }
+
+        return cpuMemoryEquivalents;
     }
 
     public void runFunctionLocally(String setup) throws SeMoDeException {

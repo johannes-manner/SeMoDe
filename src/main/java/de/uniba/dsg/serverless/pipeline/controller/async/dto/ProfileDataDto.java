@@ -13,12 +13,18 @@ public class ProfileDataDto {
     private double[] avgOptions;
     private double avg;
     private Map<Integer, Integer> cpuMemoryEquivalents;
+    private Map<Integer, Integer> providerCpuMemoryEquivalents;
+    private IPointDto[] simulatedPrice;
 
-    public ProfileDataDto(IPointDto[] profileData, IPointDto[] avgData, double[] avgOptions, double avg, Map<Integer, Integer> cpuMemoryEquivalents) {
+    public ProfileDataDto(IPointDto[] profileData, IPointDto[] avgData, double[] avgOptions, double avg,
+                          Map<Integer, Integer> cpuMemoryEquivalents, Map<Integer, Integer> providerCpuMemoryEquivalents,
+                          IPointDto[] simulatedPrice) {
         this.profileData = profileData;
         this.avgData = avgData;
         this.avgOptions = avgOptions;
         this.avg = avg;
         this.cpuMemoryEquivalents = cpuMemoryEquivalents;
+        this.providerCpuMemoryEquivalents = providerCpuMemoryEquivalents;
+        this.simulatedPrice = simulatedPrice;
     }
 }

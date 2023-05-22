@@ -62,7 +62,6 @@ var removeDatasetLocalCalibration = document.getElementById('removeDatasetLocalC
 var providerCalibrationChart = document.getElementById('providerCalibrationChart');
 var removeDatasetProviderCalibration = document.getElementById('removeDatasetProviderCalibration');
 var profilesChart = document.getElementById('profilesChart');
-var removeDatasetProfiles = document.getElementById('removeDatasetProfiles');
 
 function setButtonDisabledProperty(boolDisabled) {
     startLocalCalibration.disabled = boolDisabled;
@@ -280,11 +279,6 @@ removeDatasetProviderCalibration.addEventListener('click', function () {
     providerCalibrationChartHandle.update();
 });
 
-removeDatasetProfiles.addEventListener('click', function () {
-    profilesChartHandle.data.datasets.pop();
-    profilesChartHandle.update();
-});
-
 localCalibrationConfig.addEventListener('change', function () {
     addCalibrationDataToChart(localCalibrationConfig.value, localCalibrationChartHandle, localCalibrationStats);
     displayRegressionFunction(localCalibrationConfig.value, localCalibrationFunction);
@@ -339,9 +333,22 @@ function updateSimulationProfilingGraph() {
             console.log(result);
 
             const cpuMemoryEquivalents = new Map(Object.entries(result.cpuMemoryEquivalents));
+            const providerCpuMemoryEquivalents = new Map(Object.entries(result.providerCpuMemoryEquivalents));
             const verticalLines = [];
 
             cpuMemoryEquivalents.forEach((value, key) => {
+                console.log(key + " - " + value);
+                var lineConfig = {
+                    type: 'line',
+                    xMin: value,
+                    xMax: value,
+                    borderColor: 'rgb(65,105,225)',
+                    borderWidth: 2,
+                }
+                verticalLines.push(lineConfig);
+            });
+
+            providerCpuMemoryEquivalents.forEach((value, key) => {
                 console.log(key + " - " + value);
                 var lineConfig = {
                     type: 'line',
@@ -375,7 +382,17 @@ function updateSimulationProfilingGraph() {
                             position: 'bottom'
                         },
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            display: true,
+                            position: 'left'
+                        },
+                        y1: {
+                            beginAtZero: true,
+                            display: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false, // only want the grid lines for one axis to show up
+                            }
                         }
                     },
                     plugins
@@ -402,7 +419,8 @@ function updateSimulationProfilingGraph() {
             var calibrationDataOf = {
                 label: 'Profile ' + selectedProfileCalibration,
                 data: result.profileData,
-                backgroundColor: 'rgb(' + Math.random() * RGB + ', ' + Math.random() * RGB + ', ' + Math.random() * RGB + ')'
+                backgroundColor: 'rgb(50,205,50)',
+                yAxisID: 'y'
             };
 
             // add ideal average curve based on the selected a
@@ -412,11 +430,22 @@ function updateSimulationProfilingGraph() {
                 pointRadius: 1,
                 pointHoverRadius: 1,
                 data: result.avgData,
-                backgroundColor: 'rgb(' + Math.random() * RGB + ', ' + Math.random() * RGB + ', ' + Math.random() * RGB + ')',
-                fill: false
+                backgroundColor: 'rgb(0,100,0)',
+                fill: false,
+                yAxisID: 'y'
             };
+
+            var priceSimulation = {
+                type: 'line',
+                label: 'Simulated Price',
+                data: result.simulatedPrice,
+                backgroundColor: 'rgb(255,0,255)',
+                yAxisID: 'y1'
+            }
+
             profilesChartHandle.data.datasets.push(avgData);
             profilesChartHandle.data.datasets.push(calibrationDataOf);
+            profilesChartHandle.data.datasets.push(priceSimulation);
             profilesChartHandle.update();
         }
     });
