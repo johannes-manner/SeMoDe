@@ -135,6 +135,12 @@
                            th:field="*{awsBenchmarkConfig.memorySizes}"/></td>
             </tr>
             <tr>
+                <td>Deployment Sizes (comma separated List)</td>
+                <td><input id="awsBenchmarkConfigDeploymentSizes"
+                           th:readonly="${benchmarkConfig.deployed}"
+                           th:field="*{awsBenchmarkConfig.deploymentPackageSizes}"/></td>
+            </tr>
+            <tr>
                 <td>Path to ZIP Source (locally on your computer)</td>
                 <td><input id="awsBenchmarkConfigPathToZip"
                            th:readonly="${benchmarkConfig.deployed}"

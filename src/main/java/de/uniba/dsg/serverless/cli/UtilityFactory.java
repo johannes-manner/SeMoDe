@@ -14,14 +14,14 @@ public class UtilityFactory {
     private final List<CustomUtility> utilityList = new ArrayList<>();
 
     @Autowired
-    public UtilityFactory(CliSetupService cliSetupService, CliHardwareCalibrationService cliHardwareCalibrationService) {
+    public UtilityFactory(CliSetupService cliSetupService, CliHardwareCalibrationService cliHardwareCalibrationService, DeploymentSizeUtility deploymentSizeUtility) {
         this.utilityList.addAll(List.of(
                 // parts of benchmarking
                 cliSetupService,
                 // hardware calibration
                 cliHardwareCalibrationService,
-                // pre spring era
-                new DeploymentSizeUtility("deploymentSize"),
+                // file size enlarger for testing deployment hypotheses
+                deploymentSizeUtility,
 
                 // simulation
                 // pre spring era
