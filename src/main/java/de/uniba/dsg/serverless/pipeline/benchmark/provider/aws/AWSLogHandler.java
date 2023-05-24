@@ -98,25 +98,14 @@ public final class AWSLogHandler implements LogHandler {
             DescribeLogStreamsResult logResponse = this.amazonCloudLogs.describeLogStreams(logRequest);
             final List<LogStream> streams = logResponse.getLogStreams();
 
-            boolean furtherLogRequest = true;
-
-            do {
+            while (logResponse.getNextToken() != null) {
                 logRequest = new DescribeLogStreamsRequest(this.logGroupName);
                 logRequest.setNextToken(logResponse.getNextToken());
 
                 logResponse = this.amazonCloudLogs.describeLogStreams(logRequest);
 
-                final List<LogStream> responseStreams = logResponse.getLogStreams();
-
-                if (responseStreams.isEmpty()) {
-                    furtherLogRequest = false;
-                    // Check the first returned log stream to avoid duplicates in the returned list
-                } else if (streams.contains(responseStreams.get(0))) {
-                    furtherLogRequest = false;
-                } else {
-                    streams.addAll(logResponse.getLogStreams());
-                }
-            } while (furtherLogRequest);//logResponse.getLogStreams().size() > 0);
+                streams.addAll(logResponse.getLogStreams());
+            }
 
             log.info("Number of Log streams: " + streams.size());
 

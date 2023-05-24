@@ -40,6 +40,7 @@ public final class AWSLogAnalyzer {
      * messages.
      */
     public static final String TROUBLESHOOT_SPLIT_PATTERN = "::";
+    private static final String EVENT_INIT = "INIT_START";
     private static final String EVENT_MESSAGE_START = "START";
     private static final String EVENT_MESSAGE_END = "REPORT";
     /**
@@ -70,13 +71,17 @@ public final class AWSLogAnalyzer {
 
         for (final OutputLogEvent event : logEvents) {
             message = event.getMessage();
-            if (message.startsWith(EVENT_MESSAGE_START)) {
-                final String requestId = AWSLogAnalyzer.extractRequestId(message);
-                cohesiveEvent = new FunctionExecutionEvent(functionName, logStream, requestId);
-            }
-            cohesiveEvent.addLogEvent(event);
-            if (message.startsWith(EVENT_MESSAGE_END)) {
-                groupedEvents.add(cohesiveEvent);
+            if (message.startsWith(EVENT_INIT)) {
+                // infos about the initialization and the runtime version, currently omitted
+            } else {
+                if (message.startsWith(EVENT_MESSAGE_START)) {
+                    final String requestId = AWSLogAnalyzer.extractRequestId(message);
+                    cohesiveEvent = new FunctionExecutionEvent(functionName, logStream, requestId);
+                }
+                cohesiveEvent.addLogEvent(event);
+                if (message.startsWith(EVENT_MESSAGE_END)) {
+                    groupedEvents.add(cohesiveEvent);
+                }
             }
         }
 
