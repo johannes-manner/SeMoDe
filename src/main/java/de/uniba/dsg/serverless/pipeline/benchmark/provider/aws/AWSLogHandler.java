@@ -149,9 +149,25 @@ public final class AWSLogHandler implements LogHandler {
      * @return List of {@link OutputLogEvent}
      */
     private List<OutputLogEvent> getOutputLogEvent(final String logStreamName) {
-        final GetLogEventsRequest logsRequest = new GetLogEventsRequest(this.logGroupName, logStreamName);
-        final GetLogEventsResult logEvents = this.amazonCloudLogs.getLogEvents(logsRequest);
-        return logEvents.getEvents();
+        GetLogEventsRequest logsRequest = new GetLogEventsRequest(this.logGroupName, logStreamName).withStartFromHead(true);
+        GetLogEventsResult logEvents = this.amazonCloudLogs.getLogEvents(logsRequest);
+        List<OutputLogEvent> outputLogEventList = new ArrayList<>();
+
+        outputLogEventList.addAll(logEvents.getEvents());
+        while (logEvents.getEvents().isEmpty()) {
+            logsRequest = new GetLogEventsRequest(this.logGroupName, logStreamName).withStartFromHead(true).withNextToken(logEvents.getNextForwardToken());
+            logEvents = this.amazonCloudLogs.getLogEvents(logsRequest);
+            outputLogEventList.addAll(logEvents.getEvents());
+            log.info("Executed another request to get historical data...");
+        }
+        while (logEvents.getEvents().isEmpty() == false) {
+            logsRequest = new GetLogEventsRequest(this.logGroupName, logStreamName).withStartFromHead(true).withNextToken(logEvents.getNextForwardToken());
+            logEvents = this.amazonCloudLogs.getLogEvents(logsRequest);
+            outputLogEventList.addAll(logEvents.getEvents());
+            log.info("Reached the data period and request further...");
+        }
+        log.info("Log Event Size: " + outputLogEventList.size());
+        return outputLogEventList;
     }
 
     @Override
