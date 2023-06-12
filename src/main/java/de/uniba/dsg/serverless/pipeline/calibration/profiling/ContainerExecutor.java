@@ -39,7 +39,7 @@ public class ContainerExecutor {
         // build a number of containers for simulating also the microservice use case
         int i = 0;
         for (String sourceFolder : this.runningCalibrationConfig.getFunctionDockerSourceFolder().split(",")) {
-            String imageName = Paths.get(sourceFolder).getFileName().toString();
+            String imageName = Paths.get(sourceFolder).getFileName().toString().toLowerCase();
             DockerContainer container = new DockerContainer(sourceFolder, imageName);
             log.info("building container " + imageName + " Path: " + sourceFolder);
             container.buildContainer();
