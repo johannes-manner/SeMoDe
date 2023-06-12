@@ -266,8 +266,12 @@ public class CalibrationService {
         return this.calibrationConfigRepository.getCalibrationConfigIdsWithAssociatedProfiles(setup);
     }
 
-    public List<IPointDto> getProfilePointsForSetupAndCalibration(String setup, Integer id) {
-        return this.calibrationConfigRepository.getProfilePointsBySetupAndCalibrationId(setup, id);
+    public List<String> getFunctionNamesForProfile(Integer calibrationId) {
+        return this.profileRecordRepository.findDistinctFunctionNameByCalibrationConfigId((long) calibrationId);
+    }
+
+    public List<IPointDto> getProfilePointsForSetupAndCalibration(String setup, Integer id, String functionName) {
+        return this.calibrationConfigRepository.getProfilePointsBySetupAndCalibrationId(setup, id, functionName);
     }
 
     public String generateStackYmlForOpenFaas(String setupName, Integer version) throws SeMoDeException {

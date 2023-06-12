@@ -27,9 +27,9 @@ public interface CalibrationConfigRepository extends JpaRepository<CalibrationCo
 
     @Query(value = "select pr.memory_size as x, pr.duration_inms as y\n" +
             "from calibration_config cc INNER JOIN profile_record pr on cc.id = pr.calibration_config_id\n" +
-            "where cc.setup_name = ?1 and cc.id = ?2\n" +
+            "where cc.setup_name = ?1 and cc.id = ?2 and pr.function_name = ?3\n" +
             "order by cc.id", nativeQuery = true)
-    List<IPointDto> getProfilePointsBySetupAndCalibrationId(String setup, Integer id);
+    List<IPointDto> getProfilePointsBySetupAndCalibrationId(String setup, Integer id, String functionName);
 
     @Query(value = "SELECT * FROM calibration_config WHERE setup_name = ?1 ORDER BY version_number DESC LIMIT 1", nativeQuery = true)
     CalibrationConfig getCalibrationConfigBySetupName(String setupName);

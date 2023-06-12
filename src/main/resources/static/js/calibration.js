@@ -56,6 +56,7 @@ var localCalibrationStats = document.getElementById('localCalibrationStats');
 var providerCalibrationConfig = document.getElementById('providerCalibrationConfig');
 var providerCalibrationStats = document.getElementById('providerCalibrationStats');
 var averageAProfileSelection = document.getElementById('averageAProfileSelection');
+var profileFunctionSelection = document.getElementById('profileFunctionSelection');
 //  charts and remove buttons
 var localCalibrationChart = document.getElementById('localCalibrationChart');
 var removeDatasetLocalCalibration = document.getElementById('removeDatasetLocalCalibration');
@@ -293,6 +294,10 @@ averageAProfileSelection.addEventListener('change', function () {
     updateSimulationProfilingGraph();
 });
 
+profileFunctionSelection.addEventListener('change', function () {
+    updateSimulationProfilingGraph();
+});
+
 addCalibrationDataToChart(localCalibrationConfig.value, localCalibrationChartHandle, localCalibrationStats);
 addCalibrationDataToChart(providerCalibrationConfig.value, providerCalibrationChartHandle, providerCalibrationStats)
 
@@ -321,14 +326,26 @@ $.ajax({
 executedProfilesSelection.addEventListener('change', function () {
     var selectedProfileCalibration = executedProfilesSelection.value;
     if (selectedProfileCalibration > 0) {
-        updateSimulationProfilingGraph();
+        // get Functions
+        $.ajax({
+            url: "/semode/v1/" + setupName + "/profiles/" + executedProfilesSelection.value + "/names",
+            success: function (result) {
+                console.log(result)
+                for (const functionName of result) {
+                    var option = document.createElement("option");
+                    option.text = "Function: " + functionName;
+                    option.value = functionName;
+                    profileFunctionSelection.add(option);
+                }
+            }
+        });
     }
 });
 
 function updateSimulationProfilingGraph() {
     var selectedProfileCalibration = executedProfilesSelection.value;
     $.ajax({
-        url: "/semode/v1/" + setupName + "/profiles/" + selectedProfileCalibration + "?avg=" + averageAProfileSelection.value,
+        url: "/semode/v1/" + setupName + "/profiles/" + selectedProfileCalibration + "?avg=" + averageAProfileSelection.value + "&function=" + profileFunctionSelection.value,
         success: function (result) {
             console.log(result);
 

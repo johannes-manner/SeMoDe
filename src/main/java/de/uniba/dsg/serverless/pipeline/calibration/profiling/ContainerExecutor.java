@@ -39,8 +39,9 @@ public class ContainerExecutor {
         // build a number of containers for simulating also the microservice use case
         int i = 0;
         for (String sourceFolder : this.runningCalibrationConfig.getFunctionDockerSourceFolder().split(",")) {
-            DockerContainer container = new DockerContainer(sourceFolder, "semode/local_" + i);
-            log.info("building container semode/local " + sourceFolder);
+            String imageName = Paths.get(sourceFolder).getFileName().toString();
+            DockerContainer container = new DockerContainer(sourceFolder, imageName);
+            log.info("building container " + imageName + " Path: " + sourceFolder);
             container.buildContainer();
             this.containers.add(container);
             i++;
@@ -89,7 +90,7 @@ public class ContainerExecutor {
 
         for (int i = 0; i < this.runningCalibrationConfig.getNumberOfProfiles(); i++) {
             for (int j = 0; j < this.containers.size(); j++) {
-                final Profile p = this.runContainer(this.environmentVariables, limits, this.containers.get(j), "Container_" + j);
+                final Profile p = this.runContainer(this.environmentVariables, limits, this.containers.get(j), this.containers.get(j).imageTag);
                 this.saveProfile(p, out.resolve("profile_" + randomExecutionNumber + "_" + i + "_" + memorySize + "_container_" + j));
                 profiles.add(p);
                 log.info("Executed profile " + i + " for memory size " + memorySize + " and container " + this.containers.get(j).imageTag);

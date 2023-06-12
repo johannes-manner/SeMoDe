@@ -97,14 +97,32 @@ public class AsynchronousCalibrationController {
         }
     }
 
+    @GetMapping("semode/v1/{setup}/profiles/{calibrationConfigId}/names")
+    public ResponseEntity<List<String>> getExecutedFunctionNamesByCalibration(@PathVariable(value = "setup") String setupName,
+                                                                              @PathVariable("calibrationConfigId") Integer id,
+                                                                              @AuthenticationPrincipal User user) {
+        if (this.service.checkSetupAccessRights(setupName, user)) {
+            return ResponseEntity.ok(this.calibrationService.getFunctionNamesForProfile(id));
+        } else {
+            log.warn("Access from user '" + user.getUsername() + "' for setup: " + setupName);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+
     @GetMapping("semode/v1/{setup}/profiles/{calibrationConfigId}")
     public ResponseEntity<ProfileDataDto> getProfilePointsForSetupAndCalibration(@PathVariable(value = "setup") String setupName,
                                                                                  @PathVariable("calibrationConfigId") Integer id,
                                                                                  @RequestParam Double avg,
+                                                                                 @RequestParam String function,
                                                                                  @AuthenticationPrincipal User user) {
         if (this.service.checkSetupAccessRights(setupName, user)) {
 
-            List<IPointDto> profilingData = this.calibrationService.getProfilePointsForSetupAndCalibration(setupName, id);
+            // choose for a specific function
+            // if function is blank use the first entry as default
+            if (function.isBlank()) {
+                function = this.calibrationService.getFunctionNamesForProfile(id).stream().findFirst().orElse("");
+            }
+            List<IPointDto> profilingData = this.calibrationService.getProfilePointsForSetupAndCalibration(setupName, id, function);
             Map<Double, List<Double>> profilingDataPerMB = new HashMap<>();
 
             for (IPointDto p : profilingData) {
