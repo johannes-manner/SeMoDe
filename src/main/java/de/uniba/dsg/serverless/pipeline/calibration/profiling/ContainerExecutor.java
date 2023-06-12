@@ -43,6 +43,7 @@ public class ContainerExecutor {
             log.info("building container semode/local " + sourceFolder);
             container.buildContainer();
             this.containers.add(container);
+            i++;
         }
 
         this.initEnvironmentVariables();
