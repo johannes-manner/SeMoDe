@@ -39,8 +39,8 @@ public class ContainerExecutor {
         // build a number of containers for simulating also the microservice use case
         int i = 0;
         for (String sourceFolder : this.runningCalibrationConfig.getFunctionDockerSourceFolder().split(",")) {
-            DockerContainer container = new DockerContainer(this.runningCalibrationConfig.getFunctionDockerSourceFolder(), "semode/local_" + i);
-            log.info("building container semode/local " + this.runningCalibrationConfig.getFunctionDockerSourceFolder());
+            DockerContainer container = new DockerContainer(sourceFolder, "semode/local_" + i);
+            log.info("building container semode/local " + sourceFolder);
             container.buildContainer();
             this.containers.add(container);
         }
