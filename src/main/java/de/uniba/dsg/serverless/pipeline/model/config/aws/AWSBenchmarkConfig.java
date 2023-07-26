@@ -20,6 +20,7 @@ public class AWSBenchmarkConfig {
     private String functionHandler;
     private int timeout;
     private String memorySizes;
+    private String deploymentPackageSizes;
     private String pathToSource;
 
     // internals set by aws
@@ -53,6 +54,18 @@ public class AWSBenchmarkConfig {
                 .map(String::trim)
                 .filter(Predicate.not(String::isEmpty))
                 .map(Integer::parseInt)
+                .collect(Collectors.toList());
+    }
+
+    public List<String> getDeploymentSizes() {
+
+        if (this.memorySizes == null) {
+            return List.of("0");
+        }
+
+        return Arrays.stream(this.deploymentPackageSizes.split(","))
+                .map(String::trim)
+                .filter(Predicate.not(String::isEmpty))
                 .collect(Collectors.toList());
     }
 }

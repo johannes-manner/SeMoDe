@@ -15,6 +15,7 @@ var awsBenchmarkConfigARNRole = document.getElementById('awsBenchmarkConfigARNRo
 var awsBenchmarkConfigHandlerName = document.getElementById('awsBenchmarkConfigHandlerName');
 var awsBenchmarkConfigTimeout = document.getElementById('awsBenchmarkConfigTimeout');
 var awsBenchmarkConfigMemorySizes = document.getElementById('awsBenchmarkConfigMemorySizes');
+var awsBenchmarkConfigDeploymentSizes = document.getElementById('awsBenchmarkConfigDeploymentSizes');
 var awsBenchmarkConfigPathToZip = document.getElementById('awsBenchmarkConfigPathToZip');
 var awsBenchmarkConfigTargetUrl = document.getElementById('awsBenchmarkConfigTargetUrl');
 var awsBenchmarkConfigApiKey = document.getElementById('awsBenchmarkConfigApiKey');
@@ -125,6 +126,7 @@ versionDropdown.addEventListener('change', function () {
             awsBenchmarkConfigHandlerName.value = result.awsBenchmarkConfig.functionHandler;
             awsBenchmarkConfigTimeout.value = result.awsBenchmarkConfig.timeout;
             awsBenchmarkConfigMemorySizes.value = result.awsBenchmarkConfig.memorySizes;
+            awsBenchmarkConfigDeploymentSizes.value = result.awsBenchmarkConfig.deploymentPackageSizes;
             awsBenchmarkConfigPathToZip.value = result.awsBenchmarkConfig.pathToSource;
             awsBenchmarkConfigTargetUrl.value = result.awsBenchmarkConfig.targetUrl;
             awsBenchmarkConfigApiKey.value = result.awsBenchmarkConfig.apiKey;

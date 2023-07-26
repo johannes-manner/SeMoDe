@@ -23,20 +23,21 @@ public class AWSBenchmark implements BenchmarkMethods {
     private final String setupName;
     private final AWSBenchmarkConfig awsBenchmarkConfig;
     private final AWSClient awsClient;
-    private final String platformPrefix;
 
     public AWSBenchmark(final String setupName, final AWSBenchmarkConfig awsBenchmarkConfig) throws SeMoDeException {
         this.setupName = setupName + "_benchmark";
         this.awsBenchmarkConfig = awsBenchmarkConfig;
         this.awsClient = new AWSClient(awsBenchmarkConfig.getRegion());
-        this.platformPrefix = this.setupName + "_";
     }
 
     @Override
     public List<Pair<String, Integer>> generateFunctionNames() {
         final List<Pair<String, Integer>> functionConfigs = new ArrayList<>();
         for (final Integer memorySize : this.awsBenchmarkConfig.getMemorySizeList()) {
-            functionConfigs.add(new ImmutablePair<>(this.platformPrefix + memorySize, memorySize));
+            for (final String deploymentSize : this.awsBenchmarkConfig.getDeploymentSizes()) {
+                String functionName = this.setupName + "_" + memorySize + "_" + deploymentSize;
+                functionConfigs.add(new ImmutablePair<>(functionName, memorySize));
+            }
         }
         return functionConfigs;
     }

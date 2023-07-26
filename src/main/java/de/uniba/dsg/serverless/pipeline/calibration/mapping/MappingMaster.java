@@ -36,9 +36,17 @@ public class MappingMaster {
             log.info("Compute CPU quota for memory size: " + memorySize + " CPU share: " + cpuShare);
             memorySettingCPUShare.put(memorySize, cpuShare);
         }
-        this.localRegressionFunction.computeMemoryForCpuShares(this.providerRegressionFunction);
+        this.localRegressionFunction.computeCPUMemoryEquivalents(this.providerRegressionFunction);
         return memorySettingCPUShare;
     }
+
+    public Map<Integer, Integer> computeCPUMemoryEquivalents(int noOfCPUs, Map<Double, List<Double>> localMetricsMap, Map<Double, List<Double>> providerMetricsMap) {
+
+        this.computeFunctions(localMetricsMap, providerMetricsMap);
+
+        return this.localRegressionFunction.computeCPUMemoryEquivalents(noOfCPUs, this.providerRegressionFunction);
+    }
+
 
     /**
      * Return a map in the form GFLOP,ResourceSetting

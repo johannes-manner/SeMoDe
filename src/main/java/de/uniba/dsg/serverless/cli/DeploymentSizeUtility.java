@@ -3,6 +3,7 @@ package de.uniba.dsg.serverless.cli;
 import de.uniba.dsg.serverless.pipeline.util.FileSizeEnlarger;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,24 +13,31 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @Slf4j
+@Service
 public class DeploymentSizeUtility implements CustomUtility {
 
+    public static final int BYTES_OF_KB = 1_024;
+    public static final String TEMP_DEPLOYMENT_FOLDER = "deployment";
     private boolean isZipFile;
     private Path path;
     private long desiredFileSize;
     private String commentStart;
 
-    private final String name;
-
-    public DeploymentSizeUtility(final String name) {
-        this.name = name;
-    }
-
     @Override
     public String getName() {
-        return this.name;
+        return "deploymentSize";
     }
 
+    /**
+     * This method enlarges a file and uses this file for deployment.
+     * Important for testing the deployment size hypotheses for cold starts <br/><br/>
+     * <p>
+     * 1. Parameter: Path <br/>
+     * 2. Parameter: Length in KB <br/>
+     * 3. Parameter: Comment, e.g. for Java/JS // <br/>
+     *
+     * @param args
+     */
     @Override
     public void start(final List<String> args) {
         try {
@@ -46,6 +54,24 @@ public class DeploymentSizeUtility implements CustomUtility {
         }
     }
 
+    public void copyZipAndEnlarge(String source, String functionName) throws SeMoDeException {
+        log.info("Enlarge source file " + source + ", function name: " + functionName);
+        // original source
+        Path sourcePath = Paths.get(source);
+        // copy it to a temp location
+        String tempFileName = DeploymentSizeUtility.TEMP_DEPLOYMENT_FOLDER + "/" + functionName + ".zip";
+        try {
+            Files.deleteIfExists(Paths.get(tempFileName));
+            Files.copy(sourcePath, Paths.get(tempFileName));
+        } catch (IOException e) {
+            throw new SeMoDeException(e);
+        }
+
+        // enlarge it
+        String deploymentSize = functionName.split("_")[functionName.split("_").length - 1];
+        this.start(List.of(tempFileName, deploymentSize, "//"));
+    }
+
     private void parseArguments(final List<String> arguments) throws SeMoDeException {
         if (arguments.size() < 2) {
             throw new SeMoDeException("Wrong parameter size: " + "\n(1) path " + "\n(2) desired length in bytes "
@@ -53,7 +79,7 @@ public class DeploymentSizeUtility implements CustomUtility {
         }
 
         try {
-            this.desiredFileSize = Long.parseLong(arguments.get(1));
+            this.desiredFileSize = Long.parseLong(arguments.get(1)) * BYTES_OF_KB;
         } catch (final NumberFormatException e) {
             throw new SeMoDeException(e.getMessage(), e);
         }

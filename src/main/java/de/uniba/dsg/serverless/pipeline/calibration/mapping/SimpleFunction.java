@@ -4,6 +4,9 @@ import de.uniba.dsg.serverless.pipeline.calibration.util.PhysicalCoreFinder;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Slf4j
 public class SimpleFunction {
 
@@ -64,7 +67,7 @@ public class SimpleFunction {
      *
      * @param function
      */
-    public void computeMemoryForCpuShares(final SimpleFunction function) {
+    public void computeCPUMemoryEquivalents(final SimpleFunction function) {
         try {
             for (int i = 1; i <= PhysicalCoreFinder.getPhysicalCores(); i++) {
                 log.info("cpu " + i + " comparable to " + ((i * this.slope + this.intercept - function.intercept) / function.slope) + " MB");
@@ -74,8 +77,29 @@ public class SimpleFunction {
         }
     }
 
+    /**
+     * Duplicated version of {@link #computeCPUMemoryEquivalents(SimpleFunction)}.
+     * Could be consolidated in future when a bigger refactoring is necessary to handle multiple profile configurations
+     * for several machines. <br/>
+     * <p>
+     * Return a map of cpu equivalents, {[1,1135],[2,2505]..}.
+     *
+     * @param noOfCPUs
+     * @param function
+     * @return
+     */
+    public Map<Integer, Integer> computeCPUMemoryEquivalents(int noOfCPUs, final SimpleFunction function) {
+        Map<Integer, Integer> cpuMemoryEquivalents = new HashMap<>();
+        for (int i = 1; i <= noOfCPUs; i++) {
+            int cpuInMB = (int) ((i * this.slope + this.intercept - function.intercept) / function.slope);
+            cpuMemoryEquivalents.put(i, cpuInMB);
+            log.info("cpu " + i + " comparable to " + cpuInMB + " MB");
+        }
+        return cpuMemoryEquivalents;
+    }
+
     @Override
     public String toString() {
-        return "r: " + this.r + " - R²: " + this.rSquare + " f(x)" + " = " + this.slope + " * x " + " + " + this.intercept;
+        return String.format("r: %4f - R²:  %4f f(x) = %4f * x + %4f", this.r, this.rSquare, this.slope, this.intercept);
     }
 }

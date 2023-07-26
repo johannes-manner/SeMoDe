@@ -98,25 +98,14 @@ public final class AWSLogHandler implements LogHandler {
             DescribeLogStreamsResult logResponse = this.amazonCloudLogs.describeLogStreams(logRequest);
             final List<LogStream> streams = logResponse.getLogStreams();
 
-            boolean furtherLogRequest = true;
-
-            do {
+            while (logResponse.getNextToken() != null) {
                 logRequest = new DescribeLogStreamsRequest(this.logGroupName);
                 logRequest.setNextToken(logResponse.getNextToken());
 
                 logResponse = this.amazonCloudLogs.describeLogStreams(logRequest);
 
-                final List<LogStream> responseStreams = logResponse.getLogStreams();
-
-                if (responseStreams.isEmpty()) {
-                    furtherLogRequest = false;
-                    // Check the first returned log stream to avoid duplicates in the returned list
-                } else if (streams.contains(responseStreams.get(0))) {
-                    furtherLogRequest = false;
-                } else {
-                    streams.addAll(logResponse.getLogStreams());
-                }
-            } while (furtherLogRequest);//logResponse.getLogStreams().size() > 0);
+                streams.addAll(logResponse.getLogStreams());
+            }
 
             log.info("Number of Log streams: " + streams.size());
 
@@ -160,9 +149,25 @@ public final class AWSLogHandler implements LogHandler {
      * @return List of {@link OutputLogEvent}
      */
     private List<OutputLogEvent> getOutputLogEvent(final String logStreamName) {
-        final GetLogEventsRequest logsRequest = new GetLogEventsRequest(this.logGroupName, logStreamName);
-        final GetLogEventsResult logEvents = this.amazonCloudLogs.getLogEvents(logsRequest);
-        return logEvents.getEvents();
+        GetLogEventsRequest logsRequest = new GetLogEventsRequest(this.logGroupName, logStreamName).withStartFromHead(true);
+        GetLogEventsResult logEvents = this.amazonCloudLogs.getLogEvents(logsRequest);
+        List<OutputLogEvent> outputLogEventList = new ArrayList<>();
+
+        outputLogEventList.addAll(logEvents.getEvents());
+        while (logEvents.getEvents().isEmpty()) {
+            logsRequest = new GetLogEventsRequest(this.logGroupName, logStreamName).withStartFromHead(true).withNextToken(logEvents.getNextForwardToken());
+            logEvents = this.amazonCloudLogs.getLogEvents(logsRequest);
+            outputLogEventList.addAll(logEvents.getEvents());
+            log.info("Executed another request to get historical data...");
+        }
+        while (logEvents.getEvents().isEmpty() == false) {
+            logsRequest = new GetLogEventsRequest(this.logGroupName, logStreamName).withStartFromHead(true).withNextToken(logEvents.getNextForwardToken());
+            logEvents = this.amazonCloudLogs.getLogEvents(logsRequest);
+            outputLogEventList.addAll(logEvents.getEvents());
+            log.info("Reached the data period and request further...");
+        }
+        log.info("Log Event Size: " + outputLogEventList.size());
+        return outputLogEventList;
     }
 
     @Override

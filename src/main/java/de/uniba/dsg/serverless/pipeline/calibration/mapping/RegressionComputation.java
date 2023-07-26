@@ -22,7 +22,7 @@ public final class RegressionComputation {
         SimpleRegression regression = new SimpleRegression();
         log.info("Compute regression ...");
         for (Double key : metrics.keySet()) {
-            log.info("Add quota/memory size " + key + " value " + metrics.get(key) + " to linear regression.");
+            log.debug("Add quota/memory size " + key + " value " + metrics.get(key) + " to linear regression.");
             for (Double item : metrics.get(key)) {
                 regression.addData(key, item);
             }

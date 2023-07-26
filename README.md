@@ -52,6 +52,10 @@ their data.
 
 ### Publications
 
+- Simulation idea applied to open source platforms (tag <b>v1.2</b>)<br/>
+  Manner, J., Wirtz,
+  G.: [Resource Scaling Strategies for Open-Source FaaS Platforms compared to Commercial Cloud Offerings](https://www.researchgate.net/publication/362039700_Resource_Scaling_Strategies_for_Open-Source_FaaS_Platforms_compared_to_Commercial_Cloud_Offerings)
+  Proceedings of the IEEE International Conference on Cloud Computing (CLOUD), Barcelona, Spain, July 11 - July 16 2022.
 - Major contribution to reach the simulation goal (tag <b>v0.3</b>) <br/>
   Manner, J., Endreß, M., Böhm, S. and Wirtz,
   G.: [Optimizing Cloud Function Configuration via Local Simulations](https://www.researchgate.net/publication/354403185_Optimizing_Cloud_Function_Configuration_via_Local_Simulations)

@@ -14,6 +14,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.google.common.util.concurrent.Uninterruptibles;
+import de.uniba.dsg.serverless.cli.DeploymentSizeUtility;
 import de.uniba.dsg.serverless.pipeline.model.config.aws.AWSBenchmarkConfig;
 import de.uniba.dsg.serverless.pipeline.util.SeMoDeException;
 import lombok.extern.slf4j.Slf4j;
@@ -441,7 +442,7 @@ public class AWSClient {
         // change directory to the linpack directory and zip it
         this.deployLambdaFunction(functionName, benchmarkConfig.getRuntime(), benchmarkConfig.getAwsArnLambdaRole(),
                 benchmarkConfig.getFunctionHandler(), benchmarkConfig.getTimeout(), memorySize,
-                Paths.get(benchmarkConfig.getPathToSource()));
+                Paths.get(DeploymentSizeUtility.TEMP_DEPLOYMENT_FOLDER + "/" + functionName + ".zip"));
 
         log.info("Function deployment successfully completed for " + memorySize + " MB! (AWS Lambda)");
     }
@@ -483,6 +484,13 @@ public class AWSClient {
             final String restApiId = this.createRestAPI(setupName);
             benchmarkConfig.setRestApiId(restApiId);
 
+            // copy zip file to temp folder and enlarge it for cold start experiments
+            DeploymentSizeUtility deploymentSizeUtility = new DeploymentSizeUtility();
+            for (final Pair<String, Integer> f : functionConfigs) {
+                deploymentSizeUtility.copyZipAndEnlarge(benchmarkConfig.getPathToSource(), f.getLeft());
+            }
+
+            // deploy function
             for (final Pair<String, Integer> f : functionConfigs) {
                 this.deployLambdaFunctionAndHttpMethod(f.getLeft(), f.getRight(), benchmarkConfig);
             }

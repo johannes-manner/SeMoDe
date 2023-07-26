@@ -27,7 +27,9 @@ public class Profile {
     public final LocalDateTime finished;
     public final ProfileMetaInfo metaInfo;
 
-    public Profile(final List<ContainerMetrics> metrics, final InspectContainerResponse additional) throws SeMoDeException {
+    public final String containerName;
+
+    public Profile(final List<ContainerMetrics> metrics, final InspectContainerResponse additional, String containerName) throws SeMoDeException {
         this.validateMetrics(metrics);
         this.validateAdditionalInformation(additional);
         this.metrics = metrics;
@@ -42,6 +44,7 @@ public class Profile {
             throw new SeMoDeException(e);
         }
         this.metaInfo = new ProfileMetaInfo(this);
+        this.containerName = containerName;
     }
 
     private List<ContainerMetrics> calculateDeltaMetrics() throws SeMoDeException {
